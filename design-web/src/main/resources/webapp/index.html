@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en" ng-app="coralApp">
+<head>
+  <meta charset="utf-8">
+  <title>My AngularJS App</title>
+  <link rel="stylesheet" href="css/app.css"/>
+
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="lib/bootstrap/3.2.0/css/bootstrap.min.css">
+
+  <!-- Optional theme -->
+  <link rel="stylesheet" href="lib/bootstrap/3.2.0/css/bootstrap-theme.min.css">
+
+  <!-- we <3 plumbing -->
+  <link rel="stylesheet" href="lib/joint/0.9.2/css/joint.min.css" />
+
+</head>
+<body> <!--ng-controller="appCtrl" -->
+
+  <div ng-include="'html/includes/nav.html'"></div>
+  <div ng-include="'html/includes/alert.html'"></div>
+
+  <div ng-view></div>
+
+  <!-- angular -->
+  <script src="lib/angular/1.2.25/angular.min.js"></script>
+  <script src="lib/angular/1.2.25/angular-route.min.js"></script>
+
+  <!-- Latest compiled and minified Angular bootstrap ui -->
+  <script src="lib/angular-ui/0.12.0/ui-bootstrap-tpls.min.js"></script>
+
+  <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+  <!--<script src="lib/jquery/1.11.1/jquery.min.js"></script>-->
+
+  <!-- Latest compiled and minified JavaScript -->
+  <!--<script src="lib/bootstrap/3.2.0/js/bootstrap.min.js"></script>-->
+
+  <script src="lib/joint/0.9.2/js/joint.min.js"></script>
+  <script src="lib/joint/0.9.2/js/joint.shapes.devs.min.js"></script>
+  <script src="lib/joint/0.9.2/js/joint.layout.DirectedGraph.js"></script>
+
+  <script src="js/app.js"></script>
+  <script src="js/services/resourcesService.js"></script>
+  <script src="js/directives/jointDirective.js"></script>
+  <script src="js/controllers/flowCtrl.js"></script>
+  <script src="js/controllers/todoCtrl.js"></script>
+
+</body>
+</html>

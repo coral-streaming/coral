@@ -1,0 +1,116 @@
+<div class="container">
+    <div class="row">
+        <div class="col-md-8">
+            <div>
+                <joint-diagram></joint-diagram>
+            </div>
+            <div>
+                <button type="button" class="btn btn-primary pull-right" data-toggle="modal" data-target="#createActor">Add actor</button>
+            </div>
+            <div>
+                        <table class="table table-hover">
+                            <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Type</th>
+                                <th>Events</th>
+                                <th>Invalid</th>
+                                <th>Trigger</th>
+                                <th>Collect</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <th scope="row">1</th>
+                                <td>REST server</td>
+                                <td>51221</td>
+                                <td>67</td>
+                                <td>External</td>
+                                <td>-</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">2</th>
+                                <td>Histogram</td>
+                                <td>53243</td>
+                                <td>0</td>
+                                <td>actor:1</td>
+                                <td>-</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">3</th>
+                                <td>Zscore</td>
+                                <td>76234</td>
+                                <td>22</td>
+                                <td>actor:1</td>
+                                <td>actor:2</td>
+                            </tr>
+                            </tbody>
+                        </table>
+            </div>
+        </div>
+        <div class="col-md-4">
+            Actors details go here.
+<pre>
+    {
+    "type": "zscore",
+    "params": {
+        "by": "city",
+        "field": "amount",
+        "score": 2.0
+    },
+    "input": {
+        "trigger": {
+            "in": {
+                "type": "actor",
+                "source": 1
+            }
+        },
+        "collect": {
+            "histogram": {
+                "type": "actor",
+                "source": 2
+            }
+        }
+    }
+}
+</pre>
+        </div>
+    </div>
+
+</div>
+
+<div class="modal fade" id="createActor">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form>
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Create Actor</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="actorType">Actor type</label>
+                    <select class="form-control" id="actorType">
+                        <option value="none"  ></option>
+                        <option value="rest"  >RESTful json server</option>
+                        <option value="hist"  >Histogram</option>
+                        <option value="zscore">Score filter</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="actorJson">Actor parameters</label>
+                    <textarea class="form-control" id="actorJson"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="actorScaling">Scaling options</label>
+                    <textarea class="form-control" id="actorScaling"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary">Create</button>
+            </div>
+            </form>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
