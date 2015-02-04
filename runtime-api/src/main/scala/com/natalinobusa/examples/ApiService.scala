@@ -57,6 +57,12 @@ trait ApiService extends HttpService {
     pathEndOrSingleSlash {
       complete("api is running. enjoy")
     } ~
+    pathPrefix("test") {
+      post {
+        import JsonConversions._
+        entity(as[JObject]) { json => complete(StatusCodes.Created, "ok")}
+      }
+    } ~
     pathPrefix("api") {
       pathPrefix("actors") {
         pathEnd {

@@ -10,6 +10,7 @@ object Dependencies {
     "io.spray"           %% "spray-io"        % sprayVersion,
     "io.spray"           %% "spray-httpx"     % sprayVersion,
     "io.spray"           %% "spray-routing"   % sprayVersion,
+    "io.spray"           %% "spray-client"    % sprayVersion,
 
     //spray-json (deprecated in favor of json4s)
     "io.spray"           %% "spray-json"     % "1.3.1",

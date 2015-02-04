@@ -49,8 +49,10 @@ def randEvent() :
 post('/api/actors', {"type":"rest"})
 post('/api/actors', {"type":"histogram", "params":{"field": "amount"}, "group":{"by":"city"}})
 post('/api/actors', {"type":"zscore",    "params":{"by":"city", "field": "amount","score" : 2.0}})
+post('/api/actors', {"type":"httpclient", "params":{"url":"http://localhost:8000/test"}})
 
 put('/api/actors/1',  {"input":{"trigger":{"in":{"type":"external"}}}})
 put('/api/actors/2',  {"input":{"trigger":{"in":{"type":"actor", "source":1}}}})
 put('/api/actors/3',  {"input":{"trigger":{"in":{"type":"actor", "source":1}},"collect":{"histogram":{"type":"actor", "source":2}}}})
+put('/api/actors/4',  {"input":{"trigger":{"in":{"type":"actor", "source":3}}}})
 

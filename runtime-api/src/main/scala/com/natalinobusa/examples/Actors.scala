@@ -2,6 +2,8 @@ package com.natalinobusa.examples
 
 // scala
 
+import com.natalinobusa.examples.models.JsonConversions
+
 import scala.collection.immutable.{HashMap, SortedSet, SortedMap}
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -53,6 +55,7 @@ object CoralActorFactory {
         case "zscore" => ZscoreActor(json)
         case "histogram" => HistogramActor(json)
         case "rest" => RestActor(json)
+        case "httpclient" => HttpClientActor(json)
       }
     } yield props
 
@@ -125,7 +128,7 @@ trait CoralActor extends Actor with ActorLogging {
 
   implicit def executionContext = actorRefFactory.dispatcher
 
-  implicit val timeout = Timeout(10.milliseconds)
+  implicit val timeout = Timeout(1000.milliseconds)
 
   def  askActor(a: String, msg: Any) = actorRefFactory.actorSelection(a).ask(msg)
   def tellActor(a: String, msg: Any) = actorRefFactory.actorSelection(a).!(msg)
@@ -503,4 +506,59 @@ class ZscoreActor(json:JObject) extends CoralActor {
 
 }
 
+object HttpClientActor {
+  implicit val formats = org.json4s.DefaultFormats
+
+  def getParams(json:JValue) = {
+    for {
+    // from json actor definition
+    // possible parameters server/client, url, etc
+      url    <- (json \ "params" \ "url").extractOpt[String]
+    } yield {
+      (url)
+    }
+  }
+
+  def apply(json:JValue):Option[Props] = {
+    getParams(json).map(_ =>  Props(classOf[HttpClientActor], json))
+    // todo: take better care of exceptions and error handling
+  }
+}
+
+import spray.client.pipelining._
+
+import spray.http.{HttpRequest, HttpResponse}
+
+import scala.concurrent.Future
+import scala.util.{Failure, Success}
+
+// metrics actor example
+class HttpClientActor(json:JObject) extends CoralActor {
+
+  import JsonConversions._
+
+  def jsonDef = json
+  val (url) = HttpClientActor.getParams(jsonDef).get
+
+  def state = Map.empty
+
+  def trigger = {
+    json: JObject =>
+      for {
+        // from trigger data
+        outlier <- getTriggerInputField[Boolean](json \ "outlier")
+      } yield {
+        // post
+        val pipeline: HttpRequest => Future[HttpResponse] = sendReceive
+        val response = pipeline(Post(url, json))
+
+        response onComplete {
+          case Success(resp)  => log.warning("successfully posted")
+          case Failure(error) => log.warning("Failure: " + error)
+        }
+      }
+  }
+
+  def emit = doNotEmit
+}
 
