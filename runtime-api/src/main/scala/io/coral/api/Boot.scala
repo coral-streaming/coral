@@ -1,10 +1,11 @@
 // Natalino Busa
 // http://www.linkedin.com/in/natalinobusa
 
-package com.natalinobusa.examples
+package io.coral.api
 
 import akka.actor.{ActorSystem, Props}
 import akka.io.IO
+import io.coral.actors.RuntimeActor
 import spray.can.Http
 
 object Boot extends App {
