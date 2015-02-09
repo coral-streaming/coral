@@ -8,16 +8,12 @@ object CoralActorFactory {
 	def getProps(json: JValue) = {
 		implicit val formats = org.json4s.DefaultFormats
 
-		println(pretty(json))
-
 		// check for grouping, if so generate a group actor and move on ...
 		// otherwise, generate the proper actor
 		val groupByProps = (json \ "group" \ "by").extractOpt[String] match {
 			case Some(x) => GroupByActor(json)
 			case None => None
 		}
-
-		println(groupByProps.toString)
 
 		val actorProps = for {
 			actorType <- (json \ "type").extractOpt[String]
