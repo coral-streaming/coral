@@ -1,113 +1,114 @@
 package io.coral.api
 
-import akka.actor.Actor
-import org.json4s._
-import spray.http.HttpHeaders.Location
-import spray.http._
+import io.coral.actors.Messages._
+import scala.concurrent.duration._
+import scala.util.{Failure, Success}
+import akka.pattern.ask
+import akka.util.Timeout
+import akka.actor._
+import spray.http.{HttpResponse, StatusCodes}
 import spray.routing.HttpService
-import spray.util._
-import scala.collection.mutable.{Map => mMap}
-import io.coral.api.JsonConversions._
+import org.json4s.JObject
 
-class ApiServiceActor extends Actor with ApiService {
-	// the HttpService trait defines only one abstract member, which
-	// connects the services environment to the enclosing actor or test
-	def actorRefFactory = context
+class ApiServiceActor extends Actor with ApiService with ActorLogging {
+  // the HttpService trait defines only one abstract member, which
+  // connects the services environment to the enclosing actor or test
+  def actorRefFactory = context
 
-	// this actor only runs our route, but you could add
-	// other things here, like request stream processing,
-	// timeout handling or alternative handler registration
-	def receive = runRoute(route)
+  // this actor only runs our route, but you could add
+  // other things here, like request stream processing,
+  // timeout handling or alternative handler registration
+  def receive = runRoute(serviceRoute)
 }
 
-// Routing embedded in the actor
+// terminology:
+// in order not to clash which akka actors,
+// we call the REST exposed actors (Beads internal name, external name Actor)
+// we call the REST exposed api actor factory as coral, external name coral)
+// we call the REST exposed actors connections "connections", exposed as "connections"
+// declaration time : /api/coral/flows/{flowid}/actors/{actorid}
 trait ApiService extends HttpService {
-	implicit val log = LoggingContext.fromActorRefFactory
-	val resources = mMap.empty[String, JObject]
-	val webappRoute = {
-		pathSingleSlash {
-			redirect("webapp/", StatusCodes.PermanentRedirect)
-		} ~ pathPrefix("webapp") {
-				pathEnd {
-					redirect("webapp/", StatusCodes.PermanentRedirect)
-				} ~ pathEndOrSingleSlash {
-						getFromResource("webapp/index.html")
-					} ~ getFromResourceDirectory("webapp")
-			}
-	}
+  implicit def executionContext = actorRefFactory.dispatcher
+  implicit val timeout = Timeout(1.seconds)
 
-	val apiRoute = {
-		pathPrefix("api") {
-			apiCollectionRoute("tasks")
-		}
-	}
+  def coralActor = actorRefFactory.actorSelection("/user/coral")
 
-	val route = webappRoute ~ apiRoute
-	var counter = 0L
+  // just a few handy shortcut
+  def askActor(a: ActorPath, msg:Any) =  actorRefFactory.actorSelection(a).ask(msg)
+  def askActor(a: String, msg:Any)    =  actorRefFactory.actorSelection(a).ask(msg)
+  def askActor(a: ActorSelection, msg: Any) = a.ask(msg)
 
-	def apiCollectionRoute(collectionName: String) = {
-		pathPrefix(collectionName) {
-			pathEnd {
-				post {
-					import io.coral.api.JsonConversions._
-					entity(as[JObject]) { json =>
-
-						// update the counter
-						counter += 1
-						val id = counter.toString
-
-						// store the json resource and decorate it with the id field
-						val value = JObject(("id", JString(id))) merge json
-						resources += (id -> value)
-
-						// build the response
-						respondWithHeader(Location(Uri(s"/api/$collectionName/$id"))) {
-							complete(StatusCodes.Created, value)
-						}
-					}
-				} ~ get {
-						complete(StatusCodes.OK, (collectionName, resources.values))
-					} ~ delete {
-						complete({
-							resources.clear()
-							StatusCodes.OK
-						}, "")
-					} ~ head {
-						complete(StatusCodes.OK, "")
-					} ~ complete(StatusCodes.MethodNotAllowed, "")
-			} ~ pathPrefix(Segment) {
-					id =>
-						pathEnd {
-							put {
-								import io.coral.api.JsonConversions._
-								entity(as[JObject]) {
-									json =>
-										// store the json resource and decorate it with the id field
-										val value = JObject(("id", JString(id))) merge json
-										resources += (id -> value)
-
-										complete(StatusCodes.OK, "")
-								}
-							} ~ delete {
-									complete({
-										resources -= id
-										StatusCodes.OK
-									}, "")
-								} ~ get {
-									resources.get(id) match {
-										case Some(json) => complete(StatusCodes.OK, json)
-										case _ => complete(StatusCodes.NotFound, "")
-									}
-								} ~ head {
-									complete(
-										resources.get(id) match {
-											case Some(_) => StatusCodes.OK
-											case _ => StatusCodes.NotFound
-										}, ""
-									)
-								} ~ complete(StatusCodes.MethodNotAllowed, "")
-						} ~ complete(StatusCodes.NotFound, "")
-				}
-		}
-	}
+  val serviceRoute = {
+    pathEndOrSingleSlash {
+      complete("api is running. enjoy")
+    } ~
+      pathPrefix("api") {
+        pathPrefix("actors") {
+          pathEnd {
+            get {
+              import JsonConversions._
+              ctx => askActor(coralActor,List).mapTo[List[Long]]
+                .onSuccess { case actors => ctx.complete(actors)}
+            } ~
+              post {
+                import JsonConversions._
+                entity(as[JObject]) { json =>
+                  ctx => askActor(coralActor, CreateActor(json)).mapTo[Option[Long]]
+                    .onSuccess {
+                    case Some(id) => ctx.complete(id.toString)
+                    case _ => ctx.complete("not created")
+                  }
+                }
+              } ~
+              (delete | head | patch) {
+                complete(HttpResponse(StatusCodes.MethodNotAllowed))
+              }
+          }
+        } ~
+          pathPrefix("actors" / LongNumber) {
+            actorId =>
+              // find my actor
+              onSuccess(askActor(coralActor, GetActorPath(actorId)).mapTo[Option[ActorPath]]) {
+                actorPath => validate(actorPath.isDefined, "") {
+                  provide(actorPath.orNull) {
+                    ap => {
+                      pathEnd {
+                        put {
+                          import JsonConversions._
+                          entity(as[JObject]) { json =>
+                            ctx => askActor(ap, UpdateProperties(json)).mapTo[Boolean]
+                              .onSuccess {
+                              case true => ctx.complete(StatusCodes.Created, "ok")
+                              case _ => ctx.complete("not created")
+                            }
+                          }
+                        } ~
+                          get {
+                            import JsonConversions._
+                            val result = askActor(ap, Get()).mapTo[JObject]
+                            onComplete(result) {
+                              case Success(json) => complete(json)
+                              case Failure(ex)   => complete(StatusCodes.InternalServerError, s"An error occurred: ${ex.getMessage}")
+                            }
+                          }
+                      } ~
+                        // "in" should be exposed only as part of the input rest interface bead
+                        // this should be moved to the actor itself, by passing the ctx around
+                        // todo: create a REST bead and allow ctx to be passed there to continue processing
+                        pathPrefix("in" ) {
+                          post {
+                            import JsonConversions._
+                            entity(as[JObject]) { json =>
+                              actorRefFactory.actorSelection(ap) ! json
+                              complete(StatusCodes.Created, json)
+                            }
+                          }
+                        }
+                    }
+                  }
+                }
+              }
+          }
+      }
+  }
 }

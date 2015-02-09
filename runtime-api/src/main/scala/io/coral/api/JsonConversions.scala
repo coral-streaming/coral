@@ -7,4 +7,3 @@ import spray.httpx.Json4sJacksonSupport
 object JsonConversions extends Json4sJacksonSupport {
 	implicit def json4sJacksonFormats: Formats = DefaultFormats
 }
-

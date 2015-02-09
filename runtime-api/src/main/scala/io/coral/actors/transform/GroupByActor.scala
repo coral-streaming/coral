@@ -1,7 +1,9 @@
 package io.coral.actors.transform
 
 import akka.actor.{ActorLogging, Props}
-import io.coral.actors.{CoralActor, CoralActorFactory, GetCount, RegisterActorPath}
+import io.coral.actors.Messages.GetCount
+import io.coral.actors.{CoralActor, CoralActorFactory}
+import io.coral.actors.Messages._
 import scala.collection.immutable.SortedMap
 import akka.actor._
 import org.json4s.JsonDSL._

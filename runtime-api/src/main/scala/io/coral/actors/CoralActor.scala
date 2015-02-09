@@ -1,6 +1,7 @@
 package io.coral.actors
 
 import akka.actor.{Actor, ActorLogging, ActorRef}
+import io.coral.actors.Messages._
 import scala.collection.immutable.SortedSet
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -13,13 +14,6 @@ import org.json4s.jackson.JsonMethods._
 import scalaz.OptionT._
 import scalaz.{Monad, OptionT}
 import scala.reflect.Manifest
-
-case class Get()
-case class GetField(field:String)
-case class ListFields()
-case class RegisterActor(r: ActorRef)
-case class UpdateProperties(json:JObject)
-case class GetProperties()
 
 trait CoralActor extends Actor with ActorLogging {
 	// begin: implicits and general actor init

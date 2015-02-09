@@ -1,5 +1,6 @@
 package io.coral.actors
 
+import io.coral.actors.Messages._
 import scala.collection.immutable.{SortedMap, SortedSet}
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -12,13 +13,6 @@ import org.json4s.jackson.JsonMethods._
 import scalaz.OptionT._
 import scalaz.{Monad, OptionT}
 import scala.reflect.Manifest
-
-case class CreateActor(json: JObject)
-case class RegisterActorPath(id: Long, path: ActorPath)
-case class GetCount()
-case class ListActors()
-case class GetActorPath(id: Long)
-case class Delete(id: Long)
 
 class RuntimeActor extends Actor with ActorLogging {
 	def actorRefFactory = context
