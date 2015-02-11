@@ -1,15 +1,21 @@
 package io.coral.actors.transform
 
-import akka.actor.Props
-import io.coral.actors.CoralActor
-import io.coral.api.JsonConversions._
-import org.json4s._
-import spray.client.pipelining._
-import spray.http.{HttpRequest, HttpResponse}
+//scala
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
+// coral
+import io.coral.actors.CoralActor
+import org.json4s._
+
+//spray client
+import spray.client.pipelining._
+import spray.http.{HttpRequest, HttpResponse}
+
 object HttpClientActor {
+	//akka actors props
+	import akka.actor.Props
+
 	implicit val formats = org.json4s.DefaultFormats
 
 	def getParams(json: JValue) = {
@@ -40,6 +46,7 @@ class HttpClientActor(json: JObject) extends CoralActor {
 				outlier <- getTriggerInputField[Boolean](json \ "outlier")
 			} yield {
 				// post
+				import io.coral.api.JsonConversions._
 				val pipeline: HttpRequest => Future[HttpResponse] = sendReceive
 				val response = pipeline(Post(url, json))
 

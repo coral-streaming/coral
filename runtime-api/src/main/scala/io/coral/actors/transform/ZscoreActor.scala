@@ -48,15 +48,16 @@ class ZscoreActor(json: JObject) extends CoralActor {
 				value <- getTriggerInputField[Double](json \ field)
 
 				// from other actors
-				avg <- getCollectInputField[Double]("histogram", subpath, "avg")
-				std <- getCollectInputField[Double]("histogram", subpath, "sd")
+				count <- getCollectInputField[Long]("histogram", subpath, "count")
+				avg   <- getCollectInputField[Double]("histogram", subpath, "avg")
+				std   <- getCollectInputField[Double]("histogram", subpath, "sd")
 
 			//alternative syntax from other actors multiple fields
 			//(avg,std) <- getActorField[Double](s"/user/events/histogram/$city", List("avg", "sd"))
 			} yield {
 				// compute (local variables & update state)
 				val th = avg + score * std
-				outlier = value > th
+				outlier = (value > th) & (count > 100)
 			}
 	}
 

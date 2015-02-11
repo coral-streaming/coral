@@ -1,24 +1,33 @@
 package io.coral.actors
 
-import akka.actor.{Actor, ActorLogging, ActorRef}
-import io.coral.actors.Messages._
+// scala
 import scala.collection.immutable.SortedSet
 import scala.concurrent.Future
 import scala.concurrent.duration._
-import akka.actor._
+
+// akka
 import akka.pattern.ask
 import akka.util.Timeout
-import org.json4s.JsonDSL._
+import akka.actor._
+
+//json goodness
 import org.json4s._
+import org.json4s.JsonDSL._
 import org.json4s.jackson.JsonMethods._
+
+// scalaz monad transformers
+import scalaz.{OptionT, Monad}
 import scalaz.OptionT._
-import scalaz.{Monad, OptionT}
-import scala.reflect.Manifest
+
+//coral
+import io.coral.actors.Messages._
+
 
 trait CoralActor extends Actor with ActorLogging {
 	// begin: implicits and general actor init
 	def actorRefFactory = context
 	def jsonDef: JValue
+
 	// transmit actor list
 	var emitTargets = SortedSet.empty[ActorRef]
 	var triggerSource: Option[String] = None
@@ -130,7 +139,7 @@ trait CoralActor extends Actor with ActorLogging {
 			}
 
 			r.onFailure {
-				case _ => log.warning("oh no, timeout or other serious exceptions!")
+				case _ => //log.warning("oh no, timeout or other serious exceptions!")
 			}
 	}
 

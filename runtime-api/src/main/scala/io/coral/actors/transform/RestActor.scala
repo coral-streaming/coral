@@ -1,10 +1,12 @@
 package io.coral.actors.transform
 
-import akka.actor.Props
-import io.coral.actors.CoralActor
 import org.json4s._
+import io.coral.actors.CoralActor
 
 object RestActor {
+	//akka actors props
+	import akka.actor.Props
+
 	implicit val formats = org.json4s.DefaultFormats
 
 	def getParams(json: JValue) = {

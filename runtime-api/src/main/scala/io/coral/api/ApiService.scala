@@ -94,7 +94,6 @@ trait ApiService extends HttpService {
                       } ~
                         // "in" should be exposed only as part of the input rest interface bead
                         // this should be moved to the actor itself, by passing the ctx around
-                        // todo: create a REST bead and allow ctx to be passed there to continue processing
                         pathPrefix("in" ) {
                           post {
                             import JsonConversions._

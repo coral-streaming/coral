@@ -24,7 +24,6 @@ class RuntimeActor extends Actor with ActorLogging {
 			val props = CoralActorFactory.getProps(json)
 
 			val actorId = props map { p =>
-				log.warning(p.toString)
 				count += 1
 				val id = count
 				val actor = actorRefFactory.actorOf(p, s"$id")

@@ -1,10 +1,15 @@
 package io.coral.actors.transform
 
+// akka
 import akka.actor.Props
-import io.coral.actors.CoralActor
+
+//json goodness
 import org.json4s._
 import org.json4s.JsonDSL._
 import org.json4s.jackson.JsonMethods._
+
+// coral
+import io.coral.actors.CoralActor
 
 object HistogramActor {
 	implicit val formats = org.json4s.DefaultFormats
