@@ -141,6 +141,24 @@ trait CoralActor extends Actor with ActorLogging {
 			r.onFailure {
 				case _ => //log.warning("oh no, timeout or other serious exceptions!")
 			}
+
+		case Request(json) =>
+			val s = sender
+			val stage = trigger(json)
+			val r = stage.run
+
+			r.onSuccess {
+				case Some(_) =>
+					val result = emit(json)
+					transmit(result)
+				  s ! result
+
+				case None => log.warning("some variables are not available")
+			}
+
+			r.onFailure {
+				case _ => //log.warning("oh no, timeout or other serious exceptions!")
+			}
 	}
 
 	def receive = jsonData orElse stateReceive orElse transmitAdmin orElse propertiesHandling orElse resourceDesc

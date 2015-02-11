@@ -14,6 +14,7 @@ object Messages {
 
 	// CoralActor messages
 	case class Get()
+	case class Request(json: JObject)
 	case class GetField(field:String)
 	case class ListFields()
 	case class RegisterActor(r: ActorRef)
