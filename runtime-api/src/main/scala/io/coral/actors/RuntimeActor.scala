@@ -24,6 +24,7 @@ class RuntimeActor extends Actor with ActorLogging {
 			val props = CoralActorFactory.getProps(json)
 
 			val actorId = props map { p =>
+				log.warning(p.toString)
 				count += 1
 				val id = count
 				val actor = actorRefFactory.actorOf(p, s"$id")
@@ -35,10 +36,19 @@ class RuntimeActor extends Actor with ActorLogging {
 		case RegisterActorPath(id, path) =>
 			actors += (id -> path)
 		case GetCount() =>
+			// TODO: Natalino, why is this needed?
 			count += 1
 			sender ! Some(count)
 		case ListActors() =>
 			sender ! actors.keys.toList
+		case Delete(id: Long) =>
+			actors.get(id).map { a => actorRefFactory.actorSelection(a) ! PoisonPill }
+			actors -= id
+		case DeleteAllActors() =>
+			actors.foreach { path => actorRefFactory.actorSelection(path._2) ! PoisonPill }
+			actors = SortedMap.empty[Long, ActorPath]
+			count = 0
+			log.info(context.children.size.toString)
 		case GetActorPath(id) =>
 			val path = actors.get(id)
 			log.info(s"streams get stream id $id, path ${path.toString} ")

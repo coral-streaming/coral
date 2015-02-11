@@ -11,6 +11,7 @@ object Messages {
 	case class ListActors()
 	case class GetActorPath(id: Long)
 	case class Delete(id: Long)
+	case class DeleteAllActors()
 
 	// CoralActor messages
 	case class Get()
