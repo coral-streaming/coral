@@ -31,8 +31,8 @@ def delete(path) :
 
 #create the graph
 post('/api/actors', {"type":"rest"})
-post('/api/actors', {"type":"histogram", "params":{"field": "amount"}, "group":{"by":"city"}})
-post('/api/actors', {"type":"zscore",    "params":{"by":"city", "field": "amount","score" : 3.0}})
+post('/api/actors', {"type":"histogram", "params":{"field": "amount"}, "group":{"by":"tag"}})
+post('/api/actors', {"type":"zscore",    "params":{"by":"tag", "field": "amount","score" : 6.0}})
 #post('/api/actors', {"type":"httpclient", "params":{"url":"http://localhost:8000/test"}})
 
 put('/api/actors/1',  {"input":{"trigger":{"in":{"type":"external"}}}})

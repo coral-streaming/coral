@@ -57,7 +57,7 @@ class ZscoreActor(json: JObject) extends CoralActor {
 			} yield {
 				// compute (local variables & update state)
 				val th = avg + score * std
-				outlier = (value > th) & (count > 100)
+				outlier = (value > th) & (count > 20)
 			}
 	}
 

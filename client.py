@@ -47,7 +47,7 @@ def delete(path) :
 #     post('/api/actors/1/in',randEvent() )
 #     time.sleep(0.01)
 
-keys = ['account', 'amount', 'datetime', 'city', 'desc', 'words']
+keys = ['account', 'amount', 'datetime', 'city', 'desc', 'tag']
 
 with open("/Users/natalino/Projects/datascience/txs.csv", "r") as input:
   for line in input:
