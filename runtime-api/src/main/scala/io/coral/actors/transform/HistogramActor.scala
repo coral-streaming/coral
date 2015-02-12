@@ -38,11 +38,15 @@ class HistogramActor(json: JObject) extends CoralActor {
 	var sd = 0.0
 	var `var` = 0.0
 
+	var min = 0.0
+	var max = 0.0
+
 	def state = Map(
 		("count", render(count)),
 		("avg", render(avg)),
 		("sd", render(Math.sqrt(`var`))),
-		("var", render(`var`))
+		("min", render(min)),
+		("max", render(max))
 	)
 
 	var avg_1 = 0.0
@@ -59,10 +63,14 @@ class HistogramActor(json: JObject) extends CoralActor {
 						count = 1
 						avg_1 = value
 						avg = value
+						min = value
+						max = value
 					case _ =>
 						count += 1
 						avg_1 = avg
 						avg = avg_1 * (count - 1) / count + value / count
+						min = if (value < min) value else min
+						max = if (value > max) value else max
 				}
 
 				// descriptive variance
