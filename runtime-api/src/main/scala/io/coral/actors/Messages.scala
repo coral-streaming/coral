@@ -4,6 +4,9 @@ import akka.actor.{ActorRef, ActorPath}
 import org.json4s._
 
 object Messages {
+	// Generic messages
+
+
 	// RuntimeActor messages
 	case class CreateActor(json: JObject)
 	case class RegisterActorPath(id: Long, path: ActorPath)

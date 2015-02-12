@@ -1,18 +1,8 @@
 package io.coral.actors
 
 import io.coral.actors.Messages._
-import scala.collection.immutable.{SortedMap, SortedSet}
-import scala.concurrent.Future
-import scala.concurrent.duration._
+import scala.collection.immutable.SortedMap
 import akka.actor._
-import akka.pattern.ask
-import akka.util.Timeout
-import org.json4s.JsonDSL._
-import org.json4s._
-import org.json4s.jackson.JsonMethods._
-import scalaz.OptionT._
-import scalaz.{Monad, OptionT}
-import scala.reflect.Manifest
 
 class RuntimeActor extends Actor with ActorLogging {
 	def actorRefFactory = context
@@ -36,7 +26,6 @@ class RuntimeActor extends Actor with ActorLogging {
 		case RegisterActorPath(id, path) =>
 			actors += (id -> path)
 		case GetCount() =>
-			// TODO: Natalino, why is this needed?
 			count += 1
 			sender ! Some(count)
 		case ListActors() =>
