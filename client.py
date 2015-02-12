@@ -54,6 +54,6 @@ with open("/Users/natalino/Projects/datascience/txs.csv", "r") as input:
     values = line.strip().split(";")
     event = dict(zip(keys,values))
     event['amount'] = float(event['amount'])
-    #print event
+    #print json.dumps(event, indent=2)
     post('/api/actors/1/in', event )
 
