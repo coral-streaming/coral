@@ -8,7 +8,7 @@ import akka.util.Timeout
 import akka.actor._
 import spray.http.{HttpResponse, StatusCodes}
 import spray.routing.HttpService
-import org.json4s.JObject
+import org.json4s.{JValue, JObject}
 
 class ApiServiceActor extends Actor with ApiService with ActorLogging {
   // the HttpService trait defines only one abstract member, which
@@ -96,7 +96,7 @@ trait ApiService extends HttpService {
                           post {
                             import JsonConversions._
                             entity(as[JObject]) { json =>
-                              val result = askActor(ap, Request(json)).mapTo[JObject]
+                              val result = askActor(ap, Request(json)).mapTo[JValue]
                               onComplete(result) {
                                 case Success(json) => complete(json)
                                 case Failure(ex)   => complete(StatusCodes.InternalServerError, s"An error occurred: ${ex.getMessage}")

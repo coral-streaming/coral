@@ -27,16 +27,37 @@ def delete(path) :
     if (r.text):
         print json.dumps(json.loads(r.text), indent=2)
 
-#create the graph
-post('/api/actors', {"type":"rest"})
-post('/api/actors', {"type":"enrich", "params":{"field": "city", "lookup":{"amsterdam": {"geo":"aaa", "zip":"1010 AA"}}}} )
-post('/api/actors', {"type":"histogram", "params":{"field": "amount"}, "group":{"by":"tag"}})
-post('/api/actors', {"type":"zscore",    "params":{"by":"tag", "field": "amount","score" : 6.0}})
-#post('/api/actors', {"type":"httpclient", "params":{"url":"http://localhost:8000/test"}})
+with open("/Users/natalino/Projects/datascience/place2geo.json", "r") as input:
+    txt = input.readlines()
+    geo_lookup = json.loads(txt[0])
+
+#create the graph (profiling cities)
+# post('/api/actors', {"type":"rest"})
+# post('/api/actors', {"type":"histogram", "params":{"field": "amount"}, "group":{"by":"city"}})
+# post('/api/actors', {"type":"zscore",    "params":{"by":"city", "field": "amount","score" : 6.0}})
+#
+# put('/api/actors/1',  {"input":{"trigger":{"in":{"type":"external"}}}})
+# put('/api/actors/2',  {"input":{"trigger":{"in":{"type":"actor", "source":1}}}})
+# put('/api/actors/3',  {"input":{"trigger":{"in":{"type":"actor", "source":1}},"collect":{"histogram":{"type":"actor", "source":2}}}})
+
+#create the graph (profiling tags)
+# post('/api/actors', {"type":"rest"})
+# post('/api/actors', {"type":"histogram", "params":{"field": "amount"}, "group":{"by":"tag"}})
+# post('/api/actors', {"type":"zscore",    "params":{"by":"tag", "field": "amount","score" : 6.0}})
 
 put('/api/actors/1',  {"input":{"trigger":{"in":{"type":"external"}}}})
 put('/api/actors/2',  {"input":{"trigger":{"in":{"type":"actor", "source":1}}}})
-put('/api/actors/3',  {"input":{"trigger":{"in":{"type":"actor", "source":2}}}})
-put('/api/actors/4',  {"input":{"trigger":{"in":{"type":"actor", "source":2}},"collect":{"histogram":{"type":"actor", "source":2}}}})
-#put('/api/actors/5',  {"input":{"trigger":{"in":{"type":"actor", "source":4}}}})
+put('/api/actors/3',  {"input":{"trigger":{"in":{"type":"actor", "source":1}},"collect":{"histogram":{"type":"actor", "source":2}}}})
+
+#enrich data while streaming
+# post('/api/actors', {"type":"rest"})
+# post('/api/actors', {"type":"map", "params":{"key": "city", "function":"enrich", "lookup": { "amsterdam": {"geo":"aaa", "zip":"1010 AA"}, "rotterdam": {"geo":"bbb", "zip":"1010 AA"}} }})
+# post('/api/actors', {"type":"histogram", "params":{"field": "amount"}, "group":{"by":"tag"}})
+# post('/api/actors', {"type":"zscore",    "params":{"by":"tag", "field": "amount","score" : 6.0}})
+#
+# put('/api/actors/1',  {"input":{"trigger":{"in":{"type":"external"}}}})
+# put('/api/actors/2',  {"input":{"trigger":{"in":{"type":"actor", "source":1}}}})
+# put('/api/actors/3',  {"input":{"trigger":{"in":{"type":"actor", "source":2}}}})
+# put('/api/actors/4',  {"input":{"trigger":{"in":{"type":"actor", "source":2}},"collect":{"histogram":{"type":"actor", "source":3}}}})
+
 

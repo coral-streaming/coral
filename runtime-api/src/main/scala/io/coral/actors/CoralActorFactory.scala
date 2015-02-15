@@ -23,7 +23,7 @@ object CoralActorFactory {
 			props <- actorType match {
 				case "zscore" => ZscoreActor(json)
 				case "histogram" => HistogramActor(json)
-				case "enrich" => EnrichActor(json)
+				case "map" => MapActor(json)
 				case "rest" => RestActor(json)
 				case "httpclient" => HttpClientActor(json)
 			}
