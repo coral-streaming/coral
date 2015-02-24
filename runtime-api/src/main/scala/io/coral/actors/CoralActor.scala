@@ -22,8 +22,8 @@ import scalaz.OptionT._
 //coral
 import io.coral.actors.Messages._
 
-
 trait CoralActor extends Actor with ActorLogging {
+
 	// begin: implicits and general actor init
 	def actorRefFactory = context
 	def jsonDef: JValue
@@ -31,6 +31,7 @@ trait CoralActor extends Actor with ActorLogging {
 	// transmit actor list
 	var emitTargets = SortedSet.empty[ActorRef]
 	var triggerSource: Option[String] = None
+
 	// numeric id  or None or "external"
 	var collectSources = Map.empty[String, String] // zero or more alias to actorpath id
 

@@ -11,7 +11,7 @@ import org.json4s.jackson.JsonMethods._
 // coral
 import io.coral.actors.CoralActor
 
-object HistogramActor {
+object StatsActor {
 	implicit val formats = org.json4s.DefaultFormats
 
 	def getParams(json: JValue) = {
@@ -24,14 +24,14 @@ object HistogramActor {
 	}
 
 	def apply(json: JValue): Option[Props] = {
-		getParams(json).map(_ => Props(classOf[HistogramActor], json))
+		getParams(json).map(_ => Props(classOf[StatsActor], json))
 		// todo: take better care of exceptions and error handling
 	}
 }
 
-class HistogramActor(json: JObject) extends CoralActor {
+class StatsActor(json: JObject) extends CoralActor {
 	def jsonDef = json
-	val field = HistogramActor.getParams(json).get
+	val field = StatsActor.getParams(json).get
 
 	var count = 0L
 	var avg = 0.0

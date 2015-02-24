@@ -11,7 +11,7 @@ import org.json4s.jackson.JsonMethods._
 // coral
 import io.coral.actors.CoralActor
 
-object MapActor {
+object LookupActor {
   implicit val formats = org.json4s.DefaultFormats
 
   def getParams(json: JValue) = {
@@ -25,14 +25,14 @@ object MapActor {
   }
 
   def apply(json: JValue): Option[Props] = {
-    getParams(json).map(_ => Props(classOf[MapActor], json))
+    getParams(json).map(_ => Props(classOf[LookupActor], json))
   }
 }
 
 /* RestActor sends requests to InListActor */
-class MapActor(json: JObject) extends CoralActor with ActorLogging {
+class LookupActor(json: JObject) extends CoralActor with ActorLogging {
   def jsonDef = json
-  val (key,lookup, function) = MapActor.getParams(json).get
+  val (key,lookup, function) = LookupActor.getParams(json).get
 
   def state =  Map.empty
 

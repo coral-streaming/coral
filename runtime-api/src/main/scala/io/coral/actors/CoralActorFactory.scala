@@ -21,10 +21,10 @@ object CoralActorFactory {
 			actorType <- (json \ "type").extractOpt[String]
 
 			props <- actorType match {
-				case "zscore" => ZscoreActor(json)
-				case "histogram" => HistogramActor(json)
-				case "map" => MapActor(json)
-				case "rest" => RestActor(json)
+				case "zscore"     => ZscoreActor(json)
+				case "stats"      => StatsActor(json)
+				case "lookup"     => LookupActor(json)
+				case "httpserver" => HttpServerActor(json)
 				case "httpclient" => HttpClientActor(json)
 			}
 		} yield props

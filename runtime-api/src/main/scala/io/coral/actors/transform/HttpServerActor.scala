@@ -3,7 +3,7 @@ package io.coral.actors.transform
 import org.json4s._
 import io.coral.actors.CoralActor
 
-object RestActor {
+object HttpServerActor {
 	//akka actors props
 	import akka.actor.Props
 
@@ -20,12 +20,12 @@ object RestActor {
 	}
 
 	def apply(json: JValue): Option[Props] = {
-		getParams(json).map(_ => Props(classOf[RestActor], json))
+		getParams(json).map(_ => Props(classOf[HttpServerActor], json))
 		// todo: take better care of exceptions and error handling
 	}
 }
 
-class RestActor(json: JObject) extends CoralActor {
+class HttpServerActor(json: JObject) extends CoralActor {
 	def jsonDef = json
 	def state = Map.empty
 	def trigger = noProcess

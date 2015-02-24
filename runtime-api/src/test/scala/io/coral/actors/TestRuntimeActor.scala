@@ -31,12 +31,12 @@ class TestRuntimeActor(_system: ActorSystem) extends TestKit(_system)
 		"Create actors on request" in {
 			runtime ! DeleteAllActors()
 
-			val json1 = parse("""{"type": "rest" }""").asInstanceOf[JObject]
+			val json1 = parse("""{"type": "httpserver" }""").asInstanceOf[JObject]
 			runtime ! CreateActor(json1)
 			expectMsg(Some(1))
 
 			val json2 = parse(
-				"""{ "type": "histogram", "params":
+				"""{ "type": "stats", "params":
 				  |{ "field": "amount"}, "group": { "by": "city" } }"""
 					.stripMargin).asInstanceOf[JObject]
 			runtime ! CreateActor(json2)
@@ -66,7 +66,7 @@ class TestRuntimeActor(_system: ActorSystem) extends TestKit(_system)
 			val result1 = Await.result(runtime.ask(ListActors()), timeout.duration)
 			assert(result1 == List())
 
-			val json1 = parse("""{"type": "rest" }""").asInstanceOf[JObject]
+			val json1 = parse("""{"type": "httpserver" }""").asInstanceOf[JObject]
 			runtime ! CreateActor(json1)
 			expectMsg(Some(1))
 
@@ -75,7 +75,7 @@ class TestRuntimeActor(_system: ActorSystem) extends TestKit(_system)
 			val result2 = Await.result(runtime.ask(ListActors()), timeout.duration)
 			assert(result2 == List())
 
-			val json2 = parse("""{"type": "rest" }""").asInstanceOf[JObject]
+			val json2 = parse("""{"type": "httpserver" }""").asInstanceOf[JObject]
 			runtime ! CreateActor(json2)
 			// We do not expect that the counter starts over again or fills in the gaps
 			expectMsg(Some(2))
