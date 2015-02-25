@@ -51,7 +51,8 @@ actors/123/state/actors
  fsm actor
 
  input fsm table
- (event, state) -> state
+ state ->
+   event1 -> state
 
  initial state
 

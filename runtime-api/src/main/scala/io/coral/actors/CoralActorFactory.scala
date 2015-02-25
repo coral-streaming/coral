@@ -21,6 +21,7 @@ object CoralActorFactory {
 			actorType <- (json \ "type").extractOpt[String]
 
 			props <- actorType match {
+				case "fsm"        => FsmActor(json)
 				case "zscore"     => ZscoreActor(json)
 				case "stats"      => StatsActor(json)
 				case "lookup"     => LookupActor(json)

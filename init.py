@@ -41,13 +41,13 @@ with open("/Users/natalino/Projects/datascience/place2geo.json", "r") as input:
 # put('/api/actors/3',  {"input":{"trigger":{"in":{"type":"actor", "source":1}},"collect":{"stats":{"type":"actor", "source":2}}}})
 
 #create the graph (profiling tags)
-post('/api/actors', {"type":"httpserver"})
-post('/api/actors', {"type":"stats", "timeout":{"duration":10, "mode":"continue"}, "params":{"field": "amount"}, "group":{"by":"tag"}})
-post('/api/actors', {"type":"zscore",    "params":{"by":"tag", "field": "amount","score" : 6.0}})
-
-put('/api/actors/1',  {"input":{"trigger":{"in":{"type":"external"}}}})
-put('/api/actors/2',  {"input":{"trigger":{"in":{"type":"actor", "source":1}}}})
-put('/api/actors/3',  {"input":{"trigger":{"in":{"type":"actor", "source":1}},"collect":{"stats":{"type":"actor", "source":2}}}})
+# post('/api/actors', {"type":"httpserver"})
+# post('/api/actors', {"type":"stats", "timeout":{"duration":60, "mode":"continue"}, "params":{"field": "amount"}, "group":{"by":"tag"}})
+# post('/api/actors', {"type":"zscore",    "params":{"by":"tag", "field": "amount","score" : 6.0}})
+#
+# put('/api/actors/1',  {"input":{"trigger":{"in":{"type":"external"}}}})
+# put('/api/actors/2',  {"input":{"trigger":{"in":{"type":"actor", "source":1}}}})
+# put('/api/actors/3',  {"input":{"trigger":{"in":{"type":"actor", "source":1}},"collect":{"stats":{"type":"actor", "source":2}}}})
 
 #enrich data while streaming
 # post('/api/actors', {"type":"httpserver"})
@@ -60,4 +60,27 @@ put('/api/actors/3',  {"input":{"trigger":{"in":{"type":"actor", "source":1}},"c
 # put('/api/actors/3',  {"input":{"trigger":{"in":{"type":"actor", "source":2}}}})
 # put('/api/actors/4',  {"input":{"trigger":{"in":{"type":"actor", "source":2}},"collect":{"stats":{"type":"actor", "source":3}}}})
 
+### fsm demo
+table = {
+    "sleep": {
+        "tired":"sleep",
+        "hungry":"eat",
+        "bored":"freak"
+    },
+    "eat":{
+        "tired":"sleep",
+        "hungry":"eat",
+        "bored":"freak"
+    },
+    "freak":{
+        "tired":"sleep",
+        "hungry":"eat",
+        "bored":"freak"
+    }
+}
 
+post('/api/actors', {"type":"httpserver"})
+post('/api/actors', {"type":"fsm", "params":{"key":"mood", "table": table, "s0":"sleep"}})
+
+put('/api/actors/1',  {"input":{"trigger":{"in":{"type":"external"}}}})
+put('/api/actors/2',  {"input":{"trigger":{"in":{"type":"actor", "source":1}}}})
