@@ -31,7 +31,7 @@ coral actors can be configured via json
  - group
  - window
 
- alias is defined
+ name is defined
  collect requires a number of
 
 actors/123/state/actors
@@ -46,3 +46,13 @@ actors/123/state/actors
 
  created by groupby actor
  inverted index by groupby actor
+
+
+ fsm actor
+
+ input fsm table
+ (event, state) -> state
+
+ initial state
+
+ timeout:

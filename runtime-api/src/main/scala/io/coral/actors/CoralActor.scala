@@ -1,6 +1,10 @@
 package io.coral.actors
 
 // scala
+
+import org.json4s.JValue
+import org.json4s.JsonAST.JValue
+
 import scala.collection.immutable.SortedSet
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -9,6 +13,9 @@ import scala.concurrent.duration._
 import akka.pattern.ask
 import akka.util.Timeout
 import akka.actor._
+
+//spray utils
+import spray.util.actorSystem
 
 //json goodness
 import org.json4s._
@@ -21,6 +28,11 @@ import scalaz.OptionT._
 
 //coral
 import io.coral.actors.Messages._
+
+sealed class TimerBehavior
+object TimerExit     extends TimerBehavior
+object TimerContinue extends TimerBehavior
+object TimerNone     extends TimerBehavior
 
 trait CoralActor extends Actor with ActorLogging {
 
@@ -70,6 +82,41 @@ trait CoralActor extends Actor with ActorLogging {
 		optionT(result)
 	}
 
+	def in[U](duration: FiniteDuration)(body: => U): Unit =
+		actorSystem.scheduler.scheduleOnce(duration)(body)
+
+	override def preStart() {
+		if (timerDuration>0 && (timerMode==TimerExit || timerMode==TimerContinue))
+			in(timerDuration.seconds) {self ! TimeoutEvent}
+	}
+
+	def timerDuration:Long = (jsonDef \ "timeout" \ "duration").extractOrElse(0L)
+	def timerMode:TimerBehavior =
+		(jsonDef \ "timeout" \ "mode").extractOpt[String] match {
+			case Some("exit") => TimerExit
+			case Some("continue") => TimerContinue
+			case _ => TimerNone
+		}
+
+	def timer: JValue
+
+	def receiveTimeout: Receive = {
+		case TimeoutEvent =>
+				transmit(timer)
+
+			  // depending on the configuration,
+		    // end the actor (gracefully) or ...
+		    // reset the timer
+
+			  timerMode match {
+					case TimerContinue =>
+						in(timerDuration.seconds) { self ! TimeoutEvent }
+					case TimerExit =>
+						self ! PoisonPill
+					case _ => // do nothing
+				}
+	}
+
 	def trigger: JObject => OptionT[Future, Unit]
 
 	def noProcess(json: JObject): OptionT[Future, Unit] = {
@@ -78,6 +125,7 @@ trait CoralActor extends Actor with ActorLogging {
 
 	def emit: JObject => JValue
 
+	val notSet = JNothing
 	val doNotEmit: JObject => JValue = _ => JNothing
 	val passThroughEmit: JObject => JValue = json => json
 
@@ -162,7 +210,13 @@ trait CoralActor extends Actor with ActorLogging {
 			}
 	}
 
-	def receive = jsonData orElse stateReceive orElse transmitAdmin orElse propertiesHandling orElse resourceDesc
+	def receive = jsonData           orElse
+		            stateReceive       orElse
+		 						transmitAdmin      orElse
+		            propertiesHandling orElse
+		            resourceDesc       orElse
+		            receiveTimeout
+
 	def state: Map[String, JValue]
 
 	def stateReceive: Receive = {

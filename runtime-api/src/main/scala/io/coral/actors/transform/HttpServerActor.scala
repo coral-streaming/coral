@@ -30,4 +30,5 @@ class HttpServerActor(json: JObject) extends CoralActor {
 	def state = Map.empty
 	def trigger = noProcess
 	def emit = passThroughEmit
+	def timer = notSet
 }

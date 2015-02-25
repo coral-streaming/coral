@@ -51,6 +51,18 @@ class StatsActor(json: JObject) extends CoralActor {
 
 	var avg_1 = 0.0
 
+	def timer = {
+		count = 0L
+		avg = 0.0
+		sd = 0.0
+		`var` = 0.0
+
+		min = 0.0
+		max = 0.0
+
+		JNothing
+	}
+
 	def trigger = {
 		json: JObject =>
 			for {

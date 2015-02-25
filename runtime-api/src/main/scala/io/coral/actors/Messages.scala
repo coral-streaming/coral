@@ -24,4 +24,6 @@ object Messages {
 	case class RegisterActor(r: ActorRef)
 	case class UpdateProperties(json:JObject)
 	case class GetProperties()
+
+	case object TimeoutEvent
 }

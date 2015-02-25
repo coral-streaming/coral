@@ -42,7 +42,7 @@ with open("/Users/natalino/Projects/datascience/place2geo.json", "r") as input:
 
 #create the graph (profiling tags)
 post('/api/actors', {"type":"httpserver"})
-post('/api/actors', {"type":"stats", "params":{"field": "amount"}, "group":{"by":"tag"}})
+post('/api/actors', {"type":"stats", "timeout":{"duration":10, "mode":"continue"}, "params":{"field": "amount"}, "group":{"by":"tag"}})
 post('/api/actors', {"type":"zscore",    "params":{"by":"tag", "field": "amount","score" : 6.0}})
 
 put('/api/actors/1',  {"input":{"trigger":{"in":{"type":"external"}}}})

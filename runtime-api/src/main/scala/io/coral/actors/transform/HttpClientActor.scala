@@ -39,6 +39,8 @@ class HttpClientActor(json: JObject) extends CoralActor {
 	val (url) = HttpClientActor.getParams(jsonDef).get
 	def state = Map.empty
 
+	def timer = notSet
+
 	def trigger = {
 		json: JObject =>
 			for {

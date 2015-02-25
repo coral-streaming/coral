@@ -50,6 +50,7 @@ class GroupByActor(json: JObject) extends CoralActor with ActorLogging {
 	var actors = SortedMap.empty[String, Long]
 	def state = Map(("actors", render(actors)))
 	def emit = doNotEmit
+	def timer = notSet
 
 	def trigger = {
 		json: JObject =>
