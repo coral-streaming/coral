@@ -29,7 +29,6 @@ object LookupActor {
   }
 }
 
-/* RestActor sends requests to InListActor */
 class LookupActor(json: JObject) extends CoralActor with ActorLogging {
   def jsonDef = json
   val (key,lookup, function) = LookupActor.getParams(json).get

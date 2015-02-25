@@ -61,6 +61,7 @@ with open("/Users/natalino/Projects/datascience/place2geo.json", "r") as input:
 # put('/api/actors/4',  {"input":{"trigger":{"in":{"type":"actor", "source":2}},"collect":{"stats":{"type":"actor", "source":3}}}})
 
 ### fsm demo
+
 table = {
     "sleep": {
         "tired":"sleep",
