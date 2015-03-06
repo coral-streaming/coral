@@ -26,7 +26,10 @@ object Dependencies {
     "com.typesafe.akka"  %% "akka-slf4j"     % akkaVersion,
 
     //logging
-    "ch.qos.logback"     % "logback-classic" % "1.0.13"
+    "ch.qos.logback"     % "logback-classic" % "1.0.13",
+
+    // cassandra
+    "com.datastax.cassandra" % "cassandra-driver-core" % "2.0.1"
   )
 
   val allTestDependencies = Seq(

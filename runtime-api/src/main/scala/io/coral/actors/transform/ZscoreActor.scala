@@ -65,7 +65,6 @@ class ZscoreActor(json: JObject) extends CoralActor {
 
 	def emit = {
 		json: JObject =>
-
 			outlier match {
 				case true =>
 					// produce emit my results (dataflow)

@@ -1,0 +1,23 @@
+akka {
+  loglevel = INFO
+  stdout-loglevel = INFO
+  event-handlers = ["akka.event.Logging$DefaultLogger"]
+
+  actor {
+    provider = "akka.cluster.ClusterActorRefProvider"
+  }
+
+  remote {
+    enabled-transports = ["akka.remote.netty.tcp"]
+    log-remote-lifecycle-events = off
+    netty.tcp {
+      hostname = <NETTY_TCP_HOSTNAME>
+      port = <NETTY_TCP_PORT>
+    }
+  }
+
+  cluster {
+    seed-nodes = ["akka.tcp://CoralCluster@<SEED_IP>:<SEED_PORT>"]
+    auto-down = off
+  }
+}

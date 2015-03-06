@@ -36,7 +36,7 @@ class FsmActor(json: JObject) extends CoralActor with ActorLogging {
   // fsm state
   var s = s0
 
-  def state =  Map( ("s", JString(s)) )
+  def state =  Map(("s", JString(s)))
 
   def timer = notSet
 
@@ -45,11 +45,10 @@ class FsmActor(json: JObject) extends CoralActor with ActorLogging {
       for {
       // from trigger data
         value <- getTriggerInputField[String](json \ key)
-
       } yield {
         // compute (local variables & update state)
-        val e = table.getOrElse(s,s0).asInstanceOf[Map[String,String]]
-        s = e.getOrElse(value,s)
+        val e = table.getOrElse(s, s0).asInstanceOf[Map[String, String]]
+        s = e.getOrElse(value, s)
       }
   }
 

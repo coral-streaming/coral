@@ -1,6 +1,8 @@
 package io.coral.actors
 
 //json
+
+import io.coral.database.CassandraActor
 import org.json4s._
 
 //coral
@@ -27,6 +29,7 @@ object CoralActorFactory {
 				case "lookup"     => LookupActor(json)
 				case "httpserver" => HttpServerActor(json)
 				case "httpclient" => HttpClientActor(json)
+                case "cassandra"  => CassandraActor(json)
 			}
 		} yield props
 
