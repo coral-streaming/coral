@@ -1,12 +1,8 @@
 package io.coral.actors
 
-//json
-
-import io.coral.database.CassandraActor
 import org.json4s._
-
-//coral
 import io.coral.actors.transform._
+import io.coral.database.CassandraActor
 
 object CoralActorFactory {
 	def getProps(json: JValue) = {
@@ -29,7 +25,8 @@ object CoralActorFactory {
 				case "lookup"     => LookupActor(json)
 				case "httpserver" => HttpServerActor(json)
 				case "httpclient" => HttpClientActor(json)
-                case "cassandra"  => CassandraActor(json)
+        case "cassandra"  => CassandraActor(json)
+        case "threshold"  => ThresholdActor(json)
 			}
 		} yield props
 
