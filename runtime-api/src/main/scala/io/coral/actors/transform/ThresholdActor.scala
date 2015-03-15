@@ -26,9 +26,9 @@ object ThresholdActor {
 }
 
 class ThresholdActor(json: JObject) extends CoralActor with ActorLogging {
-  private val (key, threshold) = ThresholdActor.getParams(json).get
+  val (key, threshold) = ThresholdActor.getParams(json).get
   
-  private var thresholdReached = false
+  var thresholdReached = false
   
   def jsonDef = json
   
