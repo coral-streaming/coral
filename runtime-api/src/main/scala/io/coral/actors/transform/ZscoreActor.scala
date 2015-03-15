@@ -1,14 +1,15 @@
 package io.coral.actors.transform
 
-import akka.actor.Props
-import io.coral.actors.CoralActor
-import org.json4s._
-import org.json4s.jackson.JsonMethods._
-import org.json4s._
-import org.json4s.jackson.JsonMethods._
+// akka
+import akka.actor.{ActorLogging, Props}
+
+//json goodness
 import org.json4s._
 import org.json4s.JsonDSL._
-import org.json4s.jackson.JsonMethods._
+import org.json4s.jackson.JsonMethods.{render, compact}
+
+// coral
+import io.coral.actors.CoralActor
 
 
 object ZscoreActor {

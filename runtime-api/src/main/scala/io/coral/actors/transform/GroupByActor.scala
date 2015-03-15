@@ -1,31 +1,19 @@
 package io.coral.actors.transform
 
 // scala
-
-import scala.collection.immutable.{HashMap, SortedSet, SortedMap}
-import scala.concurrent.Future
-import scala.concurrent.duration._
+import scala.collection.immutable.SortedMap
 
 // akka
-import akka.pattern.ask
-import akka.util.Timeout
-import akka.actor._
+import akka.actor.{ActorLogging, Props}
 
 //json goodness
 import org.json4s._
 import org.json4s.JsonDSL._
 import org.json4s.jackson.JsonMethods._
 
-// scalaz monad transformers
-import scalaz.{OptionT, Monad}
-import scalaz.OptionT._
-
-// First attempt to describe a user DSL for collecting values
-import scala.reflect.{ClassTag, Manifest}
-
-// Inter-actor messaging
+// coral
+import io.coral.actors.{CoralActor, CoralActorFactory}
 import io.coral.actors.Messages._
-import io.coral.actors._
 
 object GroupByActor {
   implicit val formats = org.json4s.DefaultFormats

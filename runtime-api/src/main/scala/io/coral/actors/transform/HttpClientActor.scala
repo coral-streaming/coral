@@ -1,21 +1,23 @@
 package io.coral.actors.transform
 
-//scala
+// scala
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
-// coral
-import io.coral.actors.CoralActor
+// akka
+import akka.actor.{ActorLogging, Props}
+
+//json goodness
 import org.json4s._
 
-//spray client
+// coral
+import io.coral.actors.CoralActor
+
+// spray client
 import spray.client.pipelining._
 import spray.http.{HttpRequest, HttpResponse}
 
 object HttpClientActor {
-  //akka actors props
-  import akka.actor.Props
-
   implicit val formats = org.json4s.DefaultFormats
 
   def getParams(json: JValue) = {
@@ -34,7 +36,7 @@ object HttpClientActor {
   }
 }
 
-class HttpClientActor(json: JObject) extends CoralActor {
+class HttpClientActor(json: JObject) extends CoralActor with ActorLogging {
   def jsonDef = json
   val (url) = HttpClientActor.getParams(jsonDef).get
   def state = Map.empty

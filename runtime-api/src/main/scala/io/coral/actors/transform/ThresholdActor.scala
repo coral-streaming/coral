@@ -1,13 +1,15 @@
 package io.coral.actors.transform
 
-import io.coral.actors.CoralActor
-import akka.actor.ActorLogging
+// akka
+import akka.actor.{ActorLogging, Props}
+
+//json goodness
 import org.json4s._
 import org.json4s.JsonDSL._
-import org.json4s.jackson.JsonMethods._
-import scalaz.OptionT
-import scala.concurrent.Future
-import akka.actor.Props
+import org.json4s.jackson.JsonMethods.render
+
+// coral
+import io.coral.actors.CoralActor
 
 object ThresholdActor {
   implicit val formats = org.json4s.DefaultFormats

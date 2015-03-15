@@ -1,12 +1,15 @@
 package io.coral.actors.transform
 
+// akka
+import akka.actor.{ActorLogging, Props}
+
+//json goodness
 import org.json4s._
+
+// coral
 import io.coral.actors.CoralActor
 
 object HttpServerActor {
-  //akka actors props
-  import akka.actor.Props
-
   implicit val formats = org.json4s.DefaultFormats
 
   def getParams(json: JValue) = {
@@ -25,7 +28,7 @@ object HttpServerActor {
   }
 }
 
-class HttpServerActor(json: JObject) extends CoralActor {
+class HttpServerActor(json: JObject) extends CoralActor with ActorLogging {
   def jsonDef = json
   def state = Map.empty
   def trigger = noProcess

@@ -1,12 +1,12 @@
 package io.coral.actors.transform
 
 // akka
-import akka.actor.Props
+import akka.actor.{ActorLogging, Props}
 
 //json goodness
 import org.json4s._
 import org.json4s.JsonDSL._
-import org.json4s.jackson.JsonMethods._
+import org.json4s.jackson.JsonMethods.render
 
 // coral
 import io.coral.actors.CoralActor
@@ -29,7 +29,7 @@ object StatsActor {
   }
 }
 
-class StatsActor(json: JObject) extends CoralActor {
+class StatsActor(json: JObject) extends CoralActor with ActorLogging {
   def jsonDef = json
   val field = StatsActor.getParams(json).get
 
