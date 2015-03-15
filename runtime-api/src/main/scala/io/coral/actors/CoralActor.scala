@@ -2,7 +2,6 @@ package io.coral.actors
 
 // scala
 
-import org.json4s.JValue
 import org.json4s.JsonAST.JValue
 
 import scala.collection.immutable.SortedSet
