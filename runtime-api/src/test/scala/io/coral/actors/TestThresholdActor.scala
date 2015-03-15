@@ -49,18 +49,18 @@ class TestThresholdActor(_system: ActorSystem) extends TestKit(_system)
       threshold ! json
       expectMsg(parse("""{"key1": 10.7, "thresholdReached": "key1"}"""))
     }
-    
-    "Not emit when higher than the threshold for another key" in {
-      val json = parse("""{"key2": 10.7}""").asInstanceOf[JObject]
-      threshold ! json
-      expectNoMsg
-    }
-    
+
     "Not emit when lower than the threshold" in {
       val json = parse("""{"key1": 10.4}""").asInstanceOf[JObject]
       threshold ! json
       expectNoMsg
     }
-    
+
+    "Not emit when key is not present in triggering json" in {
+      val json = parse("""{"key2": 10.7}""").asInstanceOf[JObject]
+      threshold ! json
+      expectNoMsg
+    }
+
   }
 }
