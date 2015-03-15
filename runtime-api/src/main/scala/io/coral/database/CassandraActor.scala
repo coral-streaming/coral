@@ -127,7 +127,7 @@ class CassandraActor(json: JObject) extends CoralActor {
     render(result).asInstanceOf[JObject]
   }
   
-  // todo: ???
+  // todo: renderResultSet is not correctly implemented
   def renderResultSet(data: ResultSet): JObject = {
     val it = data.iterator()
     val columns = data.getColumnDefinitions
@@ -136,7 +136,8 @@ class CassandraActor(json: JObject) extends CoralActor {
       val row = it.next
     }
 
-    val stringRep = DataType.serializeValue toString
+    // stringRep is never used,
+    // val stringRep = DataType.serializeValue().toString
     null
   }
 }
