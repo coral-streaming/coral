@@ -33,9 +33,9 @@ class RuntimeActor extends Actor with ActorLogging {
       actors.get(id).map { a => actorRefFactory.actorSelection(a) ! PoisonPill }
       actors -= id
     case DeleteAllActors() =>
+      // do not reset the counter since poisoning is asynchrounous!
       actors.foreach { path => actorRefFactory.actorSelection(path._2) ! PoisonPill }
       actors = SortedMap.empty[Long, ActorPath]
-      count = 0
       log.info(context.children.size.toString)
     case GetActorPath(id) =>
       val path = actors.get(id)
