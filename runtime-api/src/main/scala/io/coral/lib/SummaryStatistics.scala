@@ -67,6 +67,10 @@ trait SummaryStatistics {
 
   def variance: Double
 
+  def populationSd = math.sqrt(variance)
+
+  def sampleSd = if (count > 1L) math.sqrt(variance * (count.toDouble / (count - 1.0)))
+
   def min: Double
 
   def max: Double
