@@ -2,7 +2,7 @@ package io.coral.actors
 
 //json
 
-import io.coral.database.CassandraActor
+import io.coral.actors.database.CassandraActor
 import org.json4s._
 
 //coral

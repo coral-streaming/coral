@@ -35,7 +35,6 @@ object TimerContinue extends TimerBehavior
 object TimerNone     extends TimerBehavior
 
 trait CoralActor extends Actor with ActorLogging {
-
 	// begin: implicits and general actor init
 	def actorRefFactory = context
 	def jsonDef: JValue
@@ -190,7 +189,6 @@ trait CoralActor extends Actor with ActorLogging {
 			r.onFailure {
 				case _ => //log.warning("oh no, timeout or other serious exceptions!")
 			}
-
 		case Request(json) =>
 			val s = sender
 			val stage = trigger(json)
@@ -200,22 +198,22 @@ trait CoralActor extends Actor with ActorLogging {
 				case Some(_) =>
 					val result = emit(json)
 					transmit(result)
-				  s ! result
+				    if (result != JNothing) s ! result
 
 				case None => log.warning("some variables are not available")
 			}
 
 			r.onFailure {
-				case _ => //log.warning("oh no, timeout or other serious exceptions!")
+				case e => println(e) //log.warning("oh no, timeout or other serious exceptions!")
 			}
 	}
 
-	def receive = jsonData           orElse
-		            stateReceive       orElse
-		 						transmitAdmin      orElse
-		            propertiesHandling orElse
-		            resourceDesc       orElse
-		            receiveTimeout
+	def receive = jsonData orElse
+		          stateReceive orElse
+		 	      transmitAdmin orElse
+		          propertiesHandling orElse
+		          resourceDesc orElse
+		          receiveTimeout
 
 	def state: Map[String, JValue]
 
