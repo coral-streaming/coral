@@ -19,8 +19,6 @@ class TestRuntimeActor(_system: ActorSystem) extends TestKit(_system)
   with Matchers
   with BeforeAndAfterAll {
 
-  implicit val ec = system.dispatcher
-  implicit val timeout = Timeout(100.millis)
   def this() = this(ActorSystem("MySpec"))
   val runtime = system.actorOf(Props[RuntimeActor], "coral")
 
@@ -31,45 +29,51 @@ class TestRuntimeActor(_system: ActorSystem) extends TestKit(_system)
   "A RuntimeActor" must {
     "Create actors on request" in {
       runtime ! DeleteAllActors()
+      expectNoMsg()
 
       val json1 = parse("""{"type": "httpserver" }""").asInstanceOf[JObject]
-      val id1 = runtime ? CreateActor(json1)
+      runtime ! CreateActor(json1)
+      val id1 = receiveOne(500.millisecond).asInstanceOf[Option[Long]]
 
       val json2 = parse(
         """{ "type": "stats", "params":
           |{ "field": "amount"}, "group": { "by": "city" } }"""
           .stripMargin).asInstanceOf[JObject]
-      val id2 = runtime ? CreateActor(json2)
+      runtime ! CreateActor(json2)
+      val id2 = receiveOne(500.millisecond).asInstanceOf[Option[Long]]
 
       val json3 = parse(
         """{ "type": "zscore", "params": { "by": "city",
           |"field": "amount", "score": 2.0 }}"""
           .stripMargin).asInstanceOf[JObject]
-      val id3 = runtime ? CreateActor(json3)
+      runtime ! CreateActor(json3)
+      val id3 = receiveOne(500.millisecond).asInstanceOf[Option[Long]]
 
       val json4 = parse(
         """{ "type": "httpclient", "params": {
           |"url": "http://localhost:8000/test" }}"""
           .stripMargin).asInstanceOf[JObject]
-      val id4 = runtime ? CreateActor(json4)
+      runtime ! CreateActor(json4)
+      val id4 = receiveOne(500.millisecond).asInstanceOf[Option[Long]]
 
-      val idFutures = Future.sequence(List(id1, id2, id3, id4) map (_.mapTo[Option[Long]]))
-      val ids    = Await.result(idFutures, timeout.duration) filter (_.isDefined) map(_.get)
-      val result = Await.result(runtime.ask(ListActors()), timeout.duration)
-      assert(result == ids)
+      val ids = List(id1, id2, id3, id4) map (_.getOrElse(-1))
+      runtime ! ListActors()
+      expectMsg(ids)
     }
 
     "Delete actors on request" in {
       runtime ! DeleteAllActors()
+      expectNoMsg()
 
       val json1 = parse("""{"type": "httpserver" }""").asInstanceOf[JObject]
-      val id1 = runtime ? CreateActor(json1)
+      runtime ! CreateActor(json1)
+      val id1 = receiveOne(500.millisecond).asInstanceOf[Option[Long]]
 
-      val result1 = Await.result(id1.mapTo[Option[Long]], timeout.duration)
-      runtime ! Delete(result1.get)
+      runtime ! Delete(id1.getOrElse(-1))
+      expectNoMsg()
 
-      val result2 = Await.result(runtime.ask(ListActors()), timeout.duration)
-      assert(result2 == List())
+      runtime ! ListActors()
+      expectMsg(List())
 
     }
   }
