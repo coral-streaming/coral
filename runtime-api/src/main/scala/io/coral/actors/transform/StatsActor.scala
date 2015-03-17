@@ -27,9 +27,9 @@ object StatsActor {
 
 class StatsActor(json: JObject) extends CoralActor with ActorLogging {
 
-  def renderDouble(x: Double) = if (!x.isNaN) render(x) else render(JNull)
-
   def jsonDef = json
+
+  def renderDouble(x: Double) = if (!x.isNaN) render(x) else render(JNull)
 
   val field = StatsActor.getParams(json).get
 
