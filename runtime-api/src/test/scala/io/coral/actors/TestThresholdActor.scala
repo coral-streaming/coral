@@ -8,9 +8,8 @@ import scala.concurrent.duration._
 
 // akka
 import akka.actor.ActorSystem
-import akka.testkit.{TestActors, TestActorRef, TestKit, ImplicitSender}
+import akka.testkit._
 import akka.util.Timeout
-import akka.pattern.ask
 
 // json
 import org.json4s._
@@ -43,31 +42,32 @@ class TestThresholdActor(_system: ActorSystem) extends TestKit(_system)
     val props = CoralActorFactory.getProps(createJson).get
     val threshold = TestActorRef[ThresholdActor](props)
 
-    // subscribe echo on the test actor
-    threshold.underlyingActor.emitTargets += testActor
+    // subscribe the testprobe for emitting
+    val probe = TestProbe()
+    threshold.underlyingActor.emitTargets += probe.ref
 
     "Emit when equal to the threshold" in {
       val json = parse("""{"key1": 10.5}""").asInstanceOf[JObject]
       threshold ! json
-      expectMsg(parse("""{"key1": 10.5, "thresholdReached": "key1"}"""))
+      probe.expectMsg(parse("""{"key1": 10.5, "thresholdReached": "key1"}"""))
     }
     
     "Emit when higher than the threshold" in {
       val json = parse("""{"key1": 10.7}""").asInstanceOf[JObject]
-      threshold ? json
-      expectMsg(parse("""{"key1": 10.7, "thresholdReached": "key1"}"""))
+      threshold ! json
+      probe.expectMsg(parse("""{"key1": 10.7, "thresholdReached": "key1"}"""))
     }
 
     "Not emit when lower than the threshold" in {
       val json = parse("""{"key1": 10.4}""").asInstanceOf[JObject]
-      threshold ? json
-      expectNoMsg
+      threshold ! json
+      probe.expectNoMsg
     }
 
     "Not emit when key is not present in triggering json" in {
       val json = parse("""{"key2": 10.7}""").asInstanceOf[JObject]
       threshold ! json
-      expectNoMsg
+      probe.expectNoMsg
     }
 
   }
