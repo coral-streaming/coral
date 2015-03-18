@@ -221,7 +221,7 @@ trait CoralActor extends Actor with ActorLogging {
   def stateReceive: Receive = {
     case GetField(x) => {
       val value = state.get(x)
-      sender ! render(state)
+      sender ! render(value)
     }
   }
 }
