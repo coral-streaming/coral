@@ -87,6 +87,7 @@ class TestCassandraActor(_system: ActorSystem) extends TestKit(_system)
             val expected = parse(
             """{
                "query": "select * from testkeyspace.test1",
+               "success": true,
                "columns": [{
                   "col1": "varchar"
                },{
@@ -111,7 +112,8 @@ class TestCassandraActor(_system: ActorSystem) extends TestKit(_system)
             val expected = parse(
             """{
                 "query": "select * from doesnotexist.doesnotexist",
-                "result": false
+                "success": false,
+                "error": "Keyspace doesnotexist does not exist"
             }"""
             )
 
@@ -126,7 +128,8 @@ class TestCassandraActor(_system: ActorSystem) extends TestKit(_system)
             val expected = parse(
                 """{
                 "query": "select * from testkeyspace.doesnotexist",
-                "result": false
+                "success": false,
+                "error": "unconfigured columnfamily doesnotexist"
             }""")
 
             assert(actual == expected)
@@ -139,30 +142,64 @@ class TestCassandraActor(_system: ActorSystem) extends TestKit(_system)
             val expected = parse(
                 """{
                 "query": "this is not a query",
-                "result": false
+                "success" false,
+                "error": "line 1:0 no viable alternative at input 'this' ([this]...)"
             }""")
 
             assert(actual == expected)
         }
 
-        "Insert data and check that it is inserted" in {
-            val query1 = parse(
+        "Return data in the correct format" in {
+            val insert = parse(
                 """{ "query": "insert into testkeyspace.test1
                   |(col1, col2, col3) values ('test1', 100, 100);" } """.stripMargin)
                 .asInstanceOf[JObject]
 
-            Await.result(cassandra.ask(Request(query1)), timeout.duration)
+            Await.result(cassandra.ask(Request(insert)), timeout.duration)
 
             val queryString = "select count(*) from testkeyspace.test1 where col1 = 'test1';"
             val complete = s"""{ "query": "$queryString" } """
-            val query2 = parse(complete).asInstanceOf[JObject]
-            val actual2 = Await.result(cassandra.ask(Request(query2)), timeout.duration)
+            val select = parse(complete).asInstanceOf[JObject]
+            val actual = Await.result(cassandra.ask(Request(select)), timeout.duration)
 
-            val expected2 = parse(
-                s"""{ "query": "$queryString",
-                   |"columns": [{ "count": "bigint" }], "data": [[ 1 ]] }""".stripMargin)
+            val expected = parse(
+                s"""{ "query": "$queryString","success": true, "columns": [{ "count": "bigint" }], "data": [[ 1 ]] }""".stripMargin)
 
-            assert(actual2 == expected2)
+            assert(actual == expected)
+        }
+
+        "Execute a valid delete query that returns no results" in {
+            val queryString = "delete from testkeyspace.test1 where col1 = 'doesnotexist';"
+            val query = parse(s"""{ "query": "$queryString" } """).asInstanceOf[JObject]
+            val actual = Await.result(cassandra.ask(Request(query)), timeout.duration)
+            val expected = parse(s"""{ "query": "$queryString", "success": true }""".stripMargin)
+            assert(actual == expected)
+        }
+
+        "Return an empty list on select without result" in {
+            val queryString = "select * from testkeyspace.test1 where col1 = 'doesnotexist';"
+            val query = parse(s"""{ "query": "$queryString" } """).asInstanceOf[JObject]
+            val actual = Await.result(cassandra.ask(Request(query)), timeout.duration)
+            val expected = parse(
+                s"""{
+                   "query": "select * from testkeyspace.test1 where col1 = 'doesnotexist';",
+                   "success": true,
+                   "columns": [{
+                      "col1":"varchar"
+                   },{
+                      "col2": "int"
+                   },{
+                      "col3": "float"
+                   }], "data": []
+                }""".stripMargin).asInstanceOf[JObject]
+            assert(actual == expected)
+        }
+
+        "Not be triggered when query JSON field is not present" in {
+            val queryString = "select * from testkeyspace.test1 where col1 = 'somevalue';"
+            val query = parse(s"""{ "otherfield": "$queryString" } """).asInstanceOf[JObject]
+            val actual = Await.result(cassandra.ask(Request(query)), Timeout(2.seconds).duration)
+            println(actual)
         }
     }
 

@@ -59,12 +59,9 @@ class CassandraActor(json: JObject) extends CoralActor with CassandraHelper {
 
     def timer = JNothing
 
-    // Stores the intermediate result for emit.
-    // A select returns a resultset, any other
-    // query type (update, insert, delete, ...) returns
-    // a boolean indicating success or failure
-    var result: Option[Either[ResultSet, Boolean]] = _
+    var result: Option[ResultSet] = _
     var lastQuery: String = _
+    var lastError: String = _
 
     def trigger = {
         json: JObject =>
@@ -74,6 +71,8 @@ class CassandraActor(json: JObject) extends CoralActor with CassandraHelper {
                 val query = (json \ "query").extractOpt[String].get.trim()
                 lastQuery = query
 
+                // Since there is no way of using the AST from the query,
+                // we use text parsing instead
                 if (query.startsWith("use keyspace")) {
                     log.info("Changing keyspace, updating schema")
                     keyspace = query.substring(13, query.length - 1)
@@ -83,15 +82,18 @@ class CassandraActor(json: JObject) extends CoralActor with CassandraHelper {
                     val data = session.execute(query)
 
                     if (query.startsWith("select")) {
-                        result = Some(Left(data))
+                        result = Some(data)
                     } else {
-                        result = Some(Right(true))
+                        result = None
                     }
                 }
+
+                lastError = ""
             } catch {
                 // In this case, the operation failed
                 case e: Exception =>
-                    result = Some(Right(false))
+                    result = None
+                    lastError = e.getMessage
             }
 
             OptionT.some(Future.successful({}))
@@ -100,10 +102,15 @@ class CassandraActor(json: JObject) extends CoralActor with CassandraHelper {
     def emit = {
         json: JObject =>
             result match {
-                case Some(Left(data)) =>
-                    render(("query" -> lastQuery) ~ renderResultSet(data))
-                case Some(Right(successful)) =>
-                    render(("query" -> lastQuery) ~ ("result" -> successful))
+                case Some(data) =>
+                    // Actual data returned
+                    render(("query" -> lastQuery) ~ ("success" -> true) ~ renderResultSet(data))
+                case None if (lastError != "") =>
+                    // Error, and therefore no results
+                    render(("query" -> lastQuery) ~ ("success" -> false) ~ ("error" -> lastError))
+                case None =>
+                    // No error, just no results
+                    render(("query" -> lastQuery) ~ ("success" -> true))
                 case _ =>
                     JNothing
             }
