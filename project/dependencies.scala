@@ -17,6 +17,7 @@ object Dependencies {
 
     //json4s
     "org.json4s"         %% "json4s-jackson" % "3.2.11",
+    "org.json4s"         %% "json4s-native"  % "3.2.11",
 
     //scalaz
     "org.scalaz"         %% "scalaz-core"    % "7.1.0",
