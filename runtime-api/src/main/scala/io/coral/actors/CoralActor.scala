@@ -85,12 +85,12 @@ trait CoralActor extends Actor with ActorLogging {
 		actorSystem.scheduler.scheduleOnce(duration)(body)
 
 	override def preStart() {
-		if (timerDuration>0 && (timerMode==TimerExit || timerMode==TimerContinue))
+		if (timerDuration > 0 && (timerMode == TimerExit || timerMode == TimerContinue))
 			in(timerDuration.seconds) {self ! TimeoutEvent}
 	}
 
 	def timerDuration:Long = (jsonDef \ "timeout" \ "duration").extractOrElse(0L)
-	def timerMode:TimerBehavior =
+	def timerMode: TimerBehavior =
 		(jsonDef \ "timeout" \ "mode").extractOpt[String] match {
 			case Some("exit") => TimerExit
 			case Some("continue") => TimerContinue
