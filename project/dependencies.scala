@@ -30,7 +30,7 @@ object Dependencies {
     "ch.qos.logback"     % "logback-classic" % "1.0.13",
 
     // cassandra
-    "com.datastax.cassandra" % "cassandra-driver-core" % "2.0.1"
+    "com.datastax.cassandra" % "cassandra-driver-core" % "2.1.4"
   )
 
   val allTestDependencies = Seq(
@@ -45,6 +45,4 @@ object Dependencies {
   )
 
   val allDependencies = allBuildDependencies ++ allTestDependencies
-
 }
-
