@@ -2,7 +2,7 @@ package io.coral.actors
 
 import org.json4s._
 import io.coral.actors.transform._
-import io.coral.database.CassandraActor
+import io.coral.actors.database.CassandraActor
 
 object CoralActorFactory {
   def getProps(json: JValue) = {

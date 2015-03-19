@@ -1,24 +1,24 @@
 package io.coral.actors.database
 
-import akka.actor.{ActorRef, Props, ActorSystem}
+import akka.actor.{ActorRef, ActorSystem, Props}
+import akka.pattern.ask
 import akka.testkit.{ImplicitSender, TestKit}
 import akka.util.Timeout
 import io.coral.actors.Messages.{GetField, Request}
-import org.json4s.JsonAST.JValue
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 import org.json4s._
 import org.json4s.native.JsonMethods._
+import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+
 import scala.concurrent.Await
 import scala.concurrent.duration._
-import akka.pattern.ask
 
-class TestCassandraActor(_system: ActorSystem) extends TestKit(_system)
+class IntegrationTestCassandraActor(_system: ActorSystem) extends TestKit(_system)
     with ImplicitSender
     with WordSpecLike
     with Matchers
     with BeforeAndAfterAll {
 
-    implicit val timeout = Timeout(1.seconds)
+    implicit val timeout = Timeout(100.seconds)
     val duration = timeout.duration
 
     def this() = this(ActorSystem("testSystem"))
