@@ -1,6 +1,7 @@
 package io.coral.lib
 
-import Double.NaN
+import scala.Double.NaN
+import math.sqrt
 
 object SummaryStatistics {
 
@@ -67,9 +68,11 @@ trait SummaryStatistics {
 
   def variance: Double
 
-  def populationSd = math.sqrt(variance)
+  def populationSd: Double = sqrt(variance)
 
-  def sampleSd = if (count > 1L) math.sqrt(variance * (count.toDouble / (count - 1.0)))
+  def sampleSd: Double =
+    if (count > 1L) sqrt(variance * (count.toDouble / (count - 1.0)))
+    else NaN
 
   def min: Double
 
