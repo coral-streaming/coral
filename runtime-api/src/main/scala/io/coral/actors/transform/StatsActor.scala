@@ -1,11 +1,17 @@
 package io.coral.actors.transform
 
+// akka
 import akka.actor.{ActorLogging, Props}
-import io.coral.actors.CoralActor
-import io.coral.lib.SummaryStatistics
+
+// json
+
 import org.json4s.JsonDSL._
 import org.json4s._
 import org.json4s.jackson.JsonMethods.render
+
+// coral
+import io.coral.actors.CoralActor
+import io.coral.lib.SummaryStatistics
 
 object StatsActor {
 
