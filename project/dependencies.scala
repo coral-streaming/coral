@@ -17,6 +17,7 @@ object Dependencies {
 
     //json4s
     "org.json4s"         %% "json4s-jackson" % "3.2.11",
+    "org.json4s"         %% "json4s-native"  % "3.2.11",
 
     //scalaz
     "org.scalaz"         %% "scalaz-core"    % "7.1.0",
@@ -29,7 +30,7 @@ object Dependencies {
     "ch.qos.logback"     % "logback-classic" % "1.0.13",
 
     // cassandra
-    "com.datastax.cassandra" % "cassandra-driver-core" % "2.0.1"
+    "com.datastax.cassandra" % "cassandra-driver-core" % "2.1.4"
   )
 
   val allTestDependencies = Seq(
@@ -44,6 +45,4 @@ object Dependencies {
   )
 
   val allDependencies = allBuildDependencies ++ allTestDependencies
-
 }
-
