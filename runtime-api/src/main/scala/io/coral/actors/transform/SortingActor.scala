@@ -4,35 +4,44 @@ package io.coral.actors.transform
  * Created by Hoda Alemi on 3/19/15.
  */
 
-import akka.actor.{ActorLogging, Props}
+import akka.actor.ActorLogging
 import io.coral.actors.CoralActor
-import org.json4s.JObject
-import org.json4s.JsonAST.{JArray, JValue}
-import org.json4s.jackson.JsonMethods._
-import org.json4s.JsonDSL._
-import org.json4s._
-import org.json4s.jackson.JsonMethods.render
-
-import scala.concurrent.Future
-import scalaz.OptionT
 import io.coral.lib.Tree
+import org.json4s.{JObject, _}
 
 object SortingActor{
   implicit val formats = org.json4s.DefaultFormats
+
+  def getParams(json: JValue) = {
+    for {
+      field <- (json \ "params" \ "field").extractOpt[String]
+    } yield {
+      field
+    }
+  }
 }
 
 class SortingActor(json: JObject) extends CoralActor with ActorLogging {
-
+  val field = SortingActor.getParams(json).get
   val tree: Tree[Float] = new Tree[Float]()
-
-
+  //render(List(0.0f,2f))
   def jsonDef = json
 
   def timer = notSet
 
-  def state = Map("sortedTree", render(tree.preorder))
+  def state= {
+    null
+    //Map("sortedTree", JNull)  //tree.preorder
+  }
 
   def emit = doNotEmit
 
-  def trigger: (JObject) =>
+  def trigger ={
+    json: JObject =>
+      for {
+        value <- getTriggerInputField[Float](json \ field)
+      } yield {
+        tree.add(value)
+      }
+  }
 }
