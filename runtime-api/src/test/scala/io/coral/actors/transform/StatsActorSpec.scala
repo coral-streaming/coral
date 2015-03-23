@@ -19,7 +19,7 @@ class StatsActorSpec(_system: ActorSystem)
   with Matchers
   with BeforeAndAfterAll {
 
-  def this() = this(ActorSystem("TestThreshold"))
+  def this() = this(ActorSystem("StatsActorSpec"))
 
   override def afterAll() {
     TestKit.shutdownActorSystem(system)

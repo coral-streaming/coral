@@ -19,14 +19,14 @@ import org.json4s.jackson.JsonMethods._
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 
-class TestThresholdActor(_system: ActorSystem) extends TestKit(_system)
+class ThresholdActorSpec(_system: ActorSystem) extends TestKit(_system)
   with ImplicitSender
   with WordSpecLike
   with Matchers
   with BeforeAndAfterAll {
 
   implicit val timeout = Timeout(100.millis)
-  def this() = this(ActorSystem("TestThreshold"))
+  def this() = this(ActorSystem("ThresholdActorSpec"))
 
   override def afterAll() {
     TestKit.shutdownActorSystem(system)
