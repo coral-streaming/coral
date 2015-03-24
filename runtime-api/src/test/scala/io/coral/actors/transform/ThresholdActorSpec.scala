@@ -1,8 +1,8 @@
-package io.coral.actors
+package io.coral.actors.transform
 
 // scala
 
-import io.coral.actors.transform.ThresholdActor
+import io.coral.actors.CoralActorFactory
 
 import scala.concurrent.duration._
 
@@ -19,14 +19,14 @@ import org.json4s.jackson.JsonMethods._
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 
-class TestThresholdActor(_system: ActorSystem) extends TestKit(_system)
+class ThresholdActorSpec(_system: ActorSystem) extends TestKit(_system)
   with ImplicitSender
   with WordSpecLike
   with Matchers
   with BeforeAndAfterAll {
 
   implicit val timeout = Timeout(100.millis)
-  def this() = this(ActorSystem("TestThreshold"))
+  def this() = this(ActorSystem("ThresholdActorSpec"))
 
   override def afterAll() {
     TestKit.shutdownActorSystem(system)
@@ -61,13 +61,13 @@ class TestThresholdActor(_system: ActorSystem) extends TestKit(_system)
     "Not emit when lower than the threshold" in {
       val json = parse("""{"key1": 10.4}""").asInstanceOf[JObject]
       threshold ! json
-      probe.expectNoMsg
+      probe.expectNoMsg()
     }
 
     "Not emit when key is not present in triggering json" in {
       val json = parse("""{"key2": 10.7}""").asInstanceOf[JObject]
       threshold ! json
-      probe.expectNoMsg
+      probe.expectNoMsg()
     }
 
   }

@@ -1,11 +1,20 @@
 package io.coral.actors.transform
 
+// akka
 import akka.actor.{ActorLogging, Props}
-import io.coral.actors.CoralActor
-import io.coral.lib.SummaryStatistics
+import org.json4s.JsonAST.JValue
+
+// json
+
 import org.json4s.JsonDSL._
 import org.json4s._
 import org.json4s.jackson.JsonMethods.render
+
+// coral
+import io.coral.actors.CoralActor
+import io.coral.lib.SummaryStatistics
+
+import scala.language.implicitConversions
 
 object StatsActor {
 
@@ -27,9 +36,9 @@ object StatsActor {
 
 class StatsActor(json: JObject) extends CoralActor with ActorLogging {
 
-  def jsonDef = json
+  implicit def double2jvalue(x: Double): JValue = if (x.isNaN) JNull else JDouble(x)
 
-  def renderDouble(x: Double) = if (!x.isNaN) render(x) else render(JNull)
+  def jsonDef = json
 
   val field = StatsActor.getParams(json).get
 
@@ -37,10 +46,10 @@ class StatsActor(json: JObject) extends CoralActor with ActorLogging {
 
   def state = Map(
     ("count", render(stats.count)),
-    ("avg", renderDouble(stats.average)),
-    ("sd", renderDouble(stats.populationSd)),
-    ("min", renderDouble(stats.min)),
-    ("max", renderDouble(stats.max))
+    ("avg", render(stats.average)),
+    ("sd", render(stats.populationSd)),
+    ("min", render(stats.min)),
+    ("max", render(stats.max))
   )
 
   def timer = {

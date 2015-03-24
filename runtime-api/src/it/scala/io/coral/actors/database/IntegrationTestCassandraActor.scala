@@ -1,24 +1,24 @@
 package io.coral.actors.database
 
-import akka.actor.{ActorRef, Props, ActorSystem}
+import akka.actor.{ActorRef, ActorSystem, Props}
+import akka.pattern.ask
 import akka.testkit.{ImplicitSender, TestKit}
 import akka.util.Timeout
-import io.coral.actors.Messages.{GetField, Request}
-import org.json4s.JsonAST.JValue
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import io.coral.actors.Messages.{Trigger, GetField, Shunt}
 import org.json4s._
 import org.json4s.native.JsonMethods._
+import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+
 import scala.concurrent.Await
 import scala.concurrent.duration._
-import akka.pattern.ask
 
-class TestCassandraActor(_system: ActorSystem) extends TestKit(_system)
+class IntegrationTestCassandraActor(_system: ActorSystem) extends TestKit(_system)
     with ImplicitSender
     with WordSpecLike
     with Matchers
     with BeforeAndAfterAll {
 
-    implicit val timeout = Timeout(1.seconds)
+    implicit val timeout = Timeout(100.seconds)
     val duration = timeout.duration
 
     def this() = this(ActorSystem("testSystem"))
@@ -82,7 +82,7 @@ class TestCassandraActor(_system: ActorSystem) extends TestKit(_system)
         "Return a JSON representation of a ResultSet" in {
             val query = parse("""{ "query": "select * from testkeyspace.test1" } """)
                 .asInstanceOf[JObject]
-            val actual = Await.result(cassandra.ask(Request(query)), timeout.duration)
+            val actual = Await.result(cassandra.ask(Shunt(query)), timeout.duration)
 
             val expected = parse(
             """{
@@ -107,7 +107,7 @@ class TestCassandraActor(_system: ActorSystem) extends TestKit(_system)
         "Return false when selecting from nonexisting table and keyspace" in {
             val query = parse("""{ "query": "select * from doesnotexist.doesnotexist" } """)
                 .asInstanceOf[JObject]
-            val actual = Await.result(cassandra.ask(Request(query)), timeout.duration)
+            val actual = Await.result(cassandra.ask(Shunt(query)), timeout.duration)
 
             val expected = parse(
             """{
@@ -123,7 +123,7 @@ class TestCassandraActor(_system: ActorSystem) extends TestKit(_system)
         "Return false when selecting from a nonexisting table in a nonexisting keyspace" in {
             val query = parse("""{ "query": "select * from testkeyspace.doesnotexist" } """)
                 .asInstanceOf[JObject]
-            val actual = Await.result(cassandra.ask(Request(query)), timeout.duration)
+            val actual = Await.result(cassandra.ask(Shunt(query)), timeout.duration)
 
             val expected = parse(
                 """{
@@ -137,7 +137,7 @@ class TestCassandraActor(_system: ActorSystem) extends TestKit(_system)
 
         "Return false when executing an illegal query" in {
             val query = parse("""{ "query": "this is not a query" } """).asInstanceOf[JObject]
-            val actual = Await.result(cassandra.ask(Request(query)), timeout.duration)
+            val actual = Await.result(cassandra.ask(Shunt(query)), timeout.duration)
 
             val expected = parse(
                 """{
@@ -155,12 +155,12 @@ class TestCassandraActor(_system: ActorSystem) extends TestKit(_system)
                   |(col1, col2, col3) values ('test1', 100, 100);" } """.stripMargin)
                 .asInstanceOf[JObject]
 
-            Await.result(cassandra.ask(Request(insert)), timeout.duration)
+            Await.result(cassandra.ask(Shunt(insert)), timeout.duration)
 
             val queryString = "select count(*) from testkeyspace.test1 where col1 = 'test1';"
             val complete = s"""{ "query": "$queryString" } """
             val select = parse(complete).asInstanceOf[JObject]
-            val actual = Await.result(cassandra.ask(Request(select)), timeout.duration)
+            val actual = Await.result(cassandra.ask(Shunt(select)), timeout.duration)
 
             val expected = parse(
                 s"""{ "query": "$queryString","success": true, "columns": [{ "count": "bigint" }], "data": [[ 1 ]] }""".stripMargin)
@@ -171,7 +171,7 @@ class TestCassandraActor(_system: ActorSystem) extends TestKit(_system)
         "Execute a valid delete query that returns no results" in {
             val queryString = "delete from testkeyspace.test1 where col1 = 'doesnotexist';"
             val query = parse(s"""{ "query": "$queryString" } """).asInstanceOf[JObject]
-            val actual = Await.result(cassandra.ask(Request(query)), timeout.duration)
+            val actual = Await.result(cassandra.ask(Shunt(query)), timeout.duration)
             val expected = parse(s"""{ "query": "$queryString", "success": true }""".stripMargin)
             assert(actual == expected)
         }
@@ -179,7 +179,7 @@ class TestCassandraActor(_system: ActorSystem) extends TestKit(_system)
         "Return an empty list on select without result" in {
             val queryString = "select * from testkeyspace.test1 where col1 = 'doesnotexist';"
             val query = parse(s"""{ "query": "$queryString" } """).asInstanceOf[JObject]
-            val actual = Await.result(cassandra.ask(Request(query)), timeout.duration)
+            val actual = Await.result(cassandra.ask(Shunt(query)), timeout.duration)
             val expected = parse(
                 s"""{
                    "query": "select * from testkeyspace.test1 where col1 = 'doesnotexist';",
@@ -198,7 +198,7 @@ class TestCassandraActor(_system: ActorSystem) extends TestKit(_system)
         "Not be triggered when query JSON field is not present" in {
             val queryString = "select * from testkeyspace.test1 where col1 = 'somevalue';"
             val query = parse(s"""{ "otherfield": "$queryString" } """).asInstanceOf[JObject]
-            val actual = Await.result(cassandra.ask(Request(query)), Timeout(2.seconds).duration)
+            val actual = Await.result(cassandra.ask(Shunt(query)), Timeout(2.seconds).duration)
             println(actual)
         }
     }
@@ -206,7 +206,7 @@ class TestCassandraActor(_system: ActorSystem) extends TestKit(_system)
     def prepareDatabase() {
         scripts.foreach(script => {
             val json = parse(script).asInstanceOf[JObject]
-            cassandra ! Request(json)
+            cassandra ! Trigger(json)
             expectNoMsg(50.millis)
         })
     }

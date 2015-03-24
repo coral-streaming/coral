@@ -35,13 +35,13 @@ object Dependencies {
 
   val allTestDependencies = Seq(
     //spray
-    "io.spray"          %% "spray-testkit"   % sprayVersion % "test",
+    "io.spray"          %% "spray-testkit"   % sprayVersion % "it,test",
 
     //akka
-    "com.typesafe.akka" %% "akka-testkit"    % akkaVersion % "test",
+    "com.typesafe.akka" %% "akka-testkit"    % akkaVersion % "it,test",
 
     //testing
-    "org.scalatest"     %% "scalatest"       % "2.2.1" % "test"
+    "org.scalatest"     %% "scalatest"       % "2.2.1" % "it,test"
   )
 
   val allDependencies = allBuildDependencies ++ allTestDependencies

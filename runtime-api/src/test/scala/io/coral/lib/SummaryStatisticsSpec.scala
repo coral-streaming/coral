@@ -1,6 +1,7 @@
 package io.coral.lib
 
 import org.scalatest.{Matchers, WordSpecLike}
+import math._
 
 class SummaryStatisticsSpec extends WordSpecLike with Matchers {
 
@@ -78,6 +79,32 @@ class SummaryStatisticsSpec extends WordSpecLike with Matchers {
       stats.max should be(6.01)
       stats.reset()
       assert(stats.max.isNaN)
+    }
+
+    "provide the population standard deviation (initialize/update/reset correctly)" in {
+      val stats = SummaryStatistics.mutable
+      assert(stats.populationSd.isNaN)
+      stats.append(2.0)
+      stats.populationSd should be(0.0)
+      stats.append(6.0)
+      stats.populationSd should be(2.0)
+      stats.append(1.0)
+      stats.populationSd should be(sqrt(stats.variance))
+      stats.reset()
+      assert(stats.populationSd.isNaN)
+    }
+
+    "provide the sample standard deviation (initialize/update/reset correctly)" in {
+      val stats = SummaryStatistics.mutable
+      assert(stats.sampleSd.isNaN)
+      stats.append(2.0)
+      assert(stats.sampleSd.isNaN)
+      stats.append(6.0)
+      stats.sampleSd should be(2.0 * sqrt(2.0))
+      stats.append(1.0)
+      stats.sampleSd should be(sqrt(stats.variance * stats.count / (stats.count - 1.0)))
+      stats.reset()
+      assert(stats.sampleSd.isNaN)
     }
 
   }

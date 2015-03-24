@@ -1,6 +1,7 @@
 package io.coral.lib
 
-import Double.NaN
+import scala.Double.NaN
+import scala.math.sqrt
 
 object SummaryStatistics {
 
@@ -9,50 +10,40 @@ object SummaryStatistics {
   private class MutableSummaryStatistics()
     extends SummaryStatistics {
 
-    var _count = 0L
+    var count = 0L
 
-    var _average = NaN
+    var average = NaN
 
-    var _variance = NaN
+    var variance = NaN
 
-    var _min = NaN
+    var min = NaN
 
-    var _max = NaN
+    var max = NaN
 
-    def count = _count
-
-    def average = _average
-
-    def variance = _variance
-
-    def min = _min
-
-    def max = _max
-
-    def append(value: Double): Unit = _count match {
+    def append(value: Double): Unit = count match {
       case 0L =>
-        _count = 1L
-        _average = value
-        _variance = 0.0
-        _min = value
-        _max = value
+        count = 1L
+        average = value
+        variance = 0.0
+        min = value
+        max = value
       case _ =>
         val newCount = count + 1L
         val weight = 1.0 / newCount
-        val delta = weight * (value - _average)
-        _variance += _count * delta * delta - weight * _variance
-        _average += delta
-        _count = newCount
-        _min = if (value < _min) value else _min
-        _max = if (value > _max) value else _max
+        val delta = weight * (value - average)
+        variance += count * delta * delta - weight * variance
+        average += delta
+        count = newCount
+        min = if (value < min) value else min
+        max = if (value > max) value else max
     }
 
     def reset(): Unit = {
-      _count = 0L
-      _average = NaN
-      _variance = NaN
-      _min = NaN
-      _max = NaN
+      count = 0L
+      average = NaN
+      variance = NaN
+      min = NaN
+      max = NaN
     }
 
   }
@@ -67,9 +58,11 @@ trait SummaryStatistics {
 
   def variance: Double
 
-  def populationSd = math.sqrt(variance)
+  def populationSd: Double = sqrt(variance)
 
-  def sampleSd = if (count > 1L) math.sqrt(variance * (count.toDouble / (count - 1.0)))
+  def sampleSd: Double =
+    if (count > 1L) sqrt(variance * (count.toDouble / (count - 1.0)))
+    else NaN
 
   def min: Double
 
