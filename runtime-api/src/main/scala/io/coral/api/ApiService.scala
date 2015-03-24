@@ -96,7 +96,7 @@ trait ApiService extends HttpService {
                           post {
                             import JsonConversions._
                             entity(as[JObject]) { json =>
-                              val result = askActor(ap, Request(json)).mapTo[JValue]
+                              val result = askActor(ap, Shunt(json)).mapTo[JValue]
                               onComplete(result) {
                                 case Success(json) => complete(json)
                                 case Failure(ex)   => complete(StatusCodes.InternalServerError, s"An error occurred: ${ex.getMessage}")

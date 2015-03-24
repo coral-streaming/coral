@@ -86,7 +86,7 @@ trait CoralActor extends Actor with ActorLogging {
 
 	override def preStart() {
 		if (timerDuration>0 && (timerMode==TimerExit || timerMode==TimerContinue))
-			in(timerDuration.seconds) {self ! TimeoutEvent}
+			in(timerDuration.millis) {self ! TimeoutEvent}
 	}
 
 	def timerDuration:Long = (jsonDef \ "timeout" \ "duration").extractOrElse(0L)
@@ -177,35 +177,40 @@ trait CoralActor extends Actor with ActorLogging {
 	}
 
 	def jsonData: Receive = {
-		case json: JObject =>
-			val stage = trigger(json)
-			val r = stage.run
+        case json: JObject =>
+            val stage = trigger(json)
+            val r = stage.run
 
-			r.onSuccess {
-				case Some(_) => transmit(emit(json))
-				case None => log.warning("some variables are not available")
-			}
+            r.onSuccess {
+                case Some(_) => transmit(emit(json))
+                case None => log.warning("some variables are not available")
+            }
 
-			r.onFailure {
-				case _ => //log.warning("oh no, timeout or other serious exceptions!")
-			}
-		case Request(json) =>
-			val s = sender
-			val stage = trigger(json)
-			val r = stage.run
+            r.onFailure {
+                case _ =>
+            }
+        case Shunt(json) =>
+            val s = sender
+            val stage = trigger(json)
+            val r = stage.run
 
-			r.onSuccess {
-				case Some(_) =>
-					val result = emit(json)
-					transmit(result)
-				    if (result != JNothing) s ! result
+            r.onSuccess {
+                case Some(_) =>
+                    val result = emit(json)
+                    transmit(result)
+                    if (result != JNothing) s ! result
 
-				case None => log.warning("some variables are not available")
-			}
+                case None => log.warning("some variables are not available")
+            }
 
-			r.onFailure {
-				case e => println(e) //log.warning("oh no, timeout or other serious exceptions!")
-			}
+            r.onFailure {
+                case e => println(e)
+            }
+        case Trigger(json) =>
+            trigger(json).run
+        case Emit() =>
+            val result = emit(JObject())
+            sender ! result
 	}
 
 	def receive = jsonData orElse
@@ -218,9 +223,13 @@ trait CoralActor extends Actor with ActorLogging {
 	def state: Map[String, JValue]
 
 	def stateReceive: Receive = {
-		case GetField(x) => {
+		case GetField(x) =>
 			val value = state.get(x)
-			sender ! render(state)
-		}
+
+            if (value == None) {
+                sender ! render(JNothing)
+            } else {
+                sender ! render(value)
+            }
 	}
 }
