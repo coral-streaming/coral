@@ -108,13 +108,14 @@ class TestWindowActor(_system: ActorSystem) extends TestKit(_system)
             for (i <- 1 to 4) {
                 val json = parse(s"""{ "name": "object$i" } """)
                 windowActor ! Trigger(json.asInstanceOf[JObject])
+                Thread.sleep(300)
             }
 
             var emitted = Await.result(windowActor.ask(Emit()), duration)
             var expected = parse(
-                """[ { "name" : "object1" },
+                """{ "data": [ { "name" : "object1" },
                      { "name" : "object2" },
-                     { "name" : "object3" } ]""")
+                     { "name" : "object3" } ] } """)
             assert(emitted == expected)
 
             // Queue contains only one item so expect no response
@@ -130,9 +131,9 @@ class TestWindowActor(_system: ActorSystem) extends TestKit(_system)
             windowActor ! Trigger(json.asInstanceOf[JObject])
             emitted = Await.result(windowActor.ask(Emit()), duration)
             expected = parse(
-                """[ { "name" : "object4" },
+                """{ "data": [ { "name" : "object4" },
                      { "name" : "object5" },
-                     { "name" : "object6" } ]""")
+                     { "name" : "object6" } ] }""")
             assert(emitted == expected)
 
             json = parse(s"""{ "name": "object7" } """)
@@ -144,9 +145,9 @@ class TestWindowActor(_system: ActorSystem) extends TestKit(_system)
 
             emitted = Await.result(windowActor.ask(Emit()), duration)
             expected = parse(
-                """[ { "name" : "object7" },
+                """{ "data": [ { "name" : "object7" },
                      { "name" : "object8" },
-                     { "name" : "object9" } ]""")
+                     { "name" : "object9" } ] } """)
             assert(emitted == expected)
         }
 
@@ -168,13 +169,14 @@ class TestWindowActor(_system: ActorSystem) extends TestKit(_system)
             for (i <- 1 to 3) {
                 val json = parse(s"""{ "name": "object$i" } """)
                 windowActor ! Trigger(json.asInstanceOf[JObject])
+                Thread.sleep(300)
             }
 
             var emitted = Await.result(windowActor.ask(Emit()), duration)
             var expected = parse(
-                """[ { "name" : "object1" },
+                """{ "data": [ { "name" : "object1" },
                      { "name" : "object2" },
-                     { "name" : "object3" } ]""")
+                     { "name" : "object3" } ] }""")
             assert(emitted == expected)
 
             // Queue contains only one item so expect no response
@@ -185,18 +187,18 @@ class TestWindowActor(_system: ActorSystem) extends TestKit(_system)
             windowActor ! Trigger(json.asInstanceOf[JObject])
             emitted = Await.result(windowActor.ask(Emit()), duration)
             expected = parse(
-                """[ { "name" : "object2" },
+                """{ "data": [ { "name" : "object2" },
                      { "name" : "object3" },
-                     { "name" : "object4" } ]""")
+                     { "name" : "object4" } ] }""")
             assert(emitted == expected)
 
             json = parse(s"""{ "name": "object5" } """)
             windowActor ! Trigger(json.asInstanceOf[JObject])
             emitted = Await.result(windowActor.ask(Emit()), duration)
             expected = parse(
-                """[ { "name" : "object3" },
+                """{ "data": [ { "name" : "object3" },
                      { "name" : "object4" },
-                     { "name" : "object5" } ]""")
+                     { "name" : "object5" } ] }""")
             assert(emitted == expected)
         }
 
@@ -213,9 +215,9 @@ class TestWindowActor(_system: ActorSystem) extends TestKit(_system)
 
             var emitted = Await.result(windowActor.ask(Emit()), duration)
             var expected = parse(
-                """[ { "name" : "object1" },
+                """{ "data": [ { "name" : "object1" },
                      { "name" : "object2" },
-                     { "name" : "object3" } ]""")
+                     { "name" : "object3" } ] }""")
             assert(emitted == expected)
 
             // Queue contains only one item so expect no response
@@ -232,9 +234,9 @@ class TestWindowActor(_system: ActorSystem) extends TestKit(_system)
             windowActor ! Trigger(json.asInstanceOf[JObject])
             emitted = Await.result(windowActor.ask(Emit()), duration)
             expected = parse(
-                """[ { "name" : "object3" },
+                """{ "data": [ { "name" : "object3" },
                      { "name" : "object4" },
-                     { "name" : "object5" } ]""")
+                     { "name" : "object5" } ] }""")
             assert(emitted == expected)
         }
 
@@ -272,13 +274,6 @@ class TestWindowActor(_system: ActorSystem) extends TestKit(_system)
                   |{ "name" : "object6" },
                   |{ "name" : "object7" }]}""".stripMargin)
             probe.expectMsg(Timeout(2.seconds).duration, expected)
-        }
-
-        "Properly perform ('time', 5, 2)" in {
-            val constructor = parse(
-                """{ "type": "window", "method":
-                  |"time", "number": 5, "sliding": 2 }""".stripMargin).asInstanceOf[JObject]
-            val windowActor = system.actorOf(Props(new WindowActor(constructor)))
         }
     }
 }

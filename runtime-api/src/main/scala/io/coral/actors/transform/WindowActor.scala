@@ -69,9 +69,9 @@ object WindowActor {
     def getParams(json: JValue) = {
         for {
             method <- getMethod(json)
-            number <- getNumber(json)
+            number <- getNumber(json, method)
             // When no sliding window is given, no overlap is assumed
-            sliding <- getSliding(json, number)
+            sliding <- getSliding(json, number, method)
         } yield {
             (method, number, sliding)
         }
@@ -88,23 +88,33 @@ object WindowActor {
         Some(value)
     }
 
-    def getNumber(json: JValue): Option[Int] = {
+    def getNumber(json: JValue, method: String): Option[Int] = {
         val number = (json \ "number")
         val value: Int = number match {
             case JDouble(_) | JNothing => throw new IllegalArgumentException("number")
-            case JInt(i) => if (i.toInt <= 0) throw new IllegalArgumentException("number") else i.toInt
+            case JInt(i) =>
+                if (i.toInt <= 0) {
+                    throw new IllegalArgumentException("number")
+                } else {
+                    if (method == "time") i.toInt * 1000 else i.toInt
+                }
         }
 
         Some(value)
     }
 
-    def getSliding(json: JValue, number: Int): Option[Int] = {
+    def getSliding(json: JValue, number: Int, method: String): Option[Int] = {
         val sliding = (json \ "sliding")
 
         val value: Int = sliding match {
             case JDouble(_) => throw new IllegalArgumentException("sliding")
             case JNothing => number
-            case JInt(i) => if (i.toInt <= 0) throw new IllegalArgumentException("number") else i.toInt
+            case JInt(i) =>
+                if (i.toInt <= 0) {
+                    throw new IllegalArgumentException("number")
+                } else {
+                    if (method == "time") i.toInt * 1000 else i.toInt
+                }
         }
 
         Some(value)
@@ -132,9 +142,9 @@ class WindowActor(json: JObject) extends CoralActor with ActorLogging {
         if (method == "time") {
             // The sliding interval is the interval at
             // which something actually has to happen
-            actorRefFactory.system.scheduler.schedule(sliding seconds, sliding seconds) {
+            actorRefFactory.system.scheduler.schedule(sliding millis, sliding millis) {
                 performTimeWindow()
-                transmit(("data" -> JArray(toEmit)))
+                transmit(emit("data" -> JArray(toEmit)))
             }
         }
     }
@@ -207,27 +217,33 @@ class WindowActor(json: JObject) extends CoralActor with ActorLogging {
             // Dequeue and delete all items that are not
             // in the current time window any more
             val currentTime = System.currentTimeMillis
-            // The sliding window in milliseconds
-            val diff = sliding * 1000
 
-            // If it is longer ago than the current time minus
-            // the sliding window, we can delete it
+            // Dismissed when outside of the window
             items.dequeueAll(i => {
                 val time = i._1
-                time < (currentTime - diff)
+                time < (currentTime - number)
             })
+
+            if (items.size >= (number / 1000)) {
+                toEmit = items.map(x => x._2).toList
+                // No items.clear() here!
+            }
         }
     }
 
     def emit = {
         json: JObject =>
-            val result = toEmit.length match {
-                case 0 => JNothing
-                case _ => JArray(toEmit)
-            }
+            val nr = if (method == "count") number else number / 1000.0f
 
-            // Reset the toEmit list
-            toEmit = List.empty[JObject]
-            result
+            if (toEmit.length < nr) {
+                JNothing
+            } else {
+                val result = ("data" -> JArray(toEmit))
+
+                // Reset the toEmit list
+                toEmit = List.empty[JObject]
+
+                result
+            }
     }
 }
