@@ -19,10 +19,8 @@ object Packaging {
 
 object TopLevelBuild extends Build {
 
-  lazy val coral = Project (
-    id = Settings.appName,
-    base = file (".")
-  ).aggregate(runtimeApi, designWeb)
+  lazy val coral = Project (id = Settings.appName, base = file ("."))
+    .aggregate(runtimeApi)
 
   lazy val runtimeApi = Project (
     id = "runtime-api",
@@ -34,28 +32,6 @@ object TopLevelBuild extends Build {
         resolvers ++= Resolvers.allResolvers,
         libraryDependencies ++= Dependencies.allDependencies
       )
-  ) dependsOn(macros)
-
-  lazy val designWeb = Project (
-    id = "design-web",
-    base = file ("design-web"),
-    settings = Settings.buildSettings ++
-      Packaging.packagingSettings ++
-      Revolver.settings ++
-      Seq (
-        resolvers ++= Resolvers.allResolvers,
-        libraryDependencies ++= Dependencies.allDependencies
-      )
-  )
-
-  lazy val macros = Project(
-    id = "macros",
-    base = file("macros"),
-    settings = Settings.buildSettings ++ Seq(
-      libraryDependencies <+= (scalaVersion)("org.scala-lang" % "scala-reflect" % _),
-      libraryDependencies ++= Seq("org.json4s" %% "json4s-jackson" % "3.2.11"),
-      resolvers ++= Resolvers.allResolvers
-    )
-  )
+  ).configs( IntegrationTest ).settings( Defaults.itSettings : _*)
 }
 

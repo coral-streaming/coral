@@ -2,7 +2,7 @@
 
 # A script to kill a node in the cluster.
 
-killcluster() {
+killclusternode() {
 	# Kill spark if it is running already
 	sparkProcess=$(ps aux | grep "org\.apache\.spark" | awk '{print $2}' | head -n1)
 	if [[ $sparkProcess -ne "" ]]; then
@@ -26,5 +26,5 @@ killcluster() {
 }
 
 # Try multiple times to make sure everything is dead
-killcluster
-killcluster
+killclusternode
+killclusternode

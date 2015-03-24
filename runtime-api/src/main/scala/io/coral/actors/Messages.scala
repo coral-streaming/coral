@@ -4,29 +4,34 @@ import akka.actor.{ActorRef, ActorPath}
 import org.json4s._
 
 object Messages {
-	// Generic messages
+    // RuntimeActor messages
+    case class CreateActor(json: JObject)
+    case class RegisterActorPath(id: Long, path: ActorPath)
+    case class GetCount()
+    case class ListActors()
+    case class GetActorPath(id: Long)
+    case class Delete(id: Long)
+    case class DeleteAllActors()
 
+    // CoralActor messages
+    case class Get()
 
-	// RuntimeActor messages
-	case class CreateActor(json: JObject)
-	case class RegisterActorPath(id: Long, path: ActorPath)
-	case class GetCount()
-	case class ListActors()
-	case class GetActorPath(id: Long)
-	case class Delete(id: Long)
-	case class DeleteAllActors()
+    // Execute trigger and emit for given value
+    case class Shunt(json: JObject)
 
-	// CoralActor messages
-	case class Get()
-	case class Shunt(json: JObject)
-	case class GetField(field:String)
-	case class ListFields()
-	case class RegisterActor(r: ActorRef)
-	case class UpdateProperties(json:JObject)
-	case class GetProperties()
-
-	case object TimeoutEvent
-
+    // Execute trigger function without emit
     case class Trigger(json: JObject)
+
+    // Execute emit without json
     case class Emit()
+
+    // Get single field from state map
+    case class GetField(field: String)
+
+    case class ListFields()
+    case class RegisterActor(r: ActorRef)
+    case class UpdateProperties(json:JObject)
+    case class GetProperties()
+
+    case object TimeoutEvent
 }

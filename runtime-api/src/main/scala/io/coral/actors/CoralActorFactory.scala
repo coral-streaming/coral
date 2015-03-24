@@ -22,17 +22,18 @@ object CoralActorFactory {
 		val actorProps = for {
 			actorType <- (json \ "type").extractOpt[String]
 
-			props <- actorType match {
-				case "fsm"        => FsmActor(json)
-				case "zscore"     => ZscoreActor(json)
-				case "stats"      => StatsActor(json)
-				case "lookup"     => LookupActor(json)
-				case "httpserver" => HttpServerActor(json)
-				case "httpclient" => HttpClientActor(json)
-                case "cassandra"  => CassandraActor(json)
-                case "window"     => WindowActor(json)
-			}
-		} yield props
+      props <- actorType match {
+        case "fsm"        => FsmActor(json)
+        case "zscore"     => ZscoreActor(json)
+        case "stats"      => StatsActor(json)
+        case "lookup"     => LookupActor(json)
+        case "httpserver" => HttpServerActor(json)
+        case "httpclient" => HttpClientActor(json)
+        case "cassandra"  => CassandraActor(json)
+        case "threshold"  => ThresholdActor(json)
+        case "window"     => WindowActor(json)
+      }
+    } yield props
 
 		groupByProps orElse actorProps
 	}
