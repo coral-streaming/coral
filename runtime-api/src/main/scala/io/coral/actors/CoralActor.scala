@@ -2,7 +2,6 @@ package io.coral.actors
 
 // scala
 
-import org.json4s.JValue
 import org.json4s.JsonAST.JValue
 
 import scala.collection.immutable.SortedSet
@@ -189,7 +188,7 @@ trait CoralActor extends Actor with ActorLogging {
 			r.onFailure {
 				case _ => //log.warning("oh no, timeout or other serious exceptions!")
 			}
-		case Request(json) =>
+		case Shunt(json) =>
 			val s = sender
 			val stage = trigger(json)
 			val r = stage.run
@@ -206,6 +205,7 @@ trait CoralActor extends Actor with ActorLogging {
 			r.onFailure {
 				case e => println(e) //log.warning("oh no, timeout or other serious exceptions!")
 			}
+
 	}
 
 	def receive = jsonData orElse
@@ -220,7 +220,12 @@ trait CoralActor extends Actor with ActorLogging {
 	def stateReceive: Receive = {
 		case GetField(x) => {
 			val value = state.get(x)
-			sender ! render(state)
+
+            if (value == None) {
+                sender ! render(JNothing)
+            } else {
+                sender ! render(value)
+            }
 		}
 	}
 }

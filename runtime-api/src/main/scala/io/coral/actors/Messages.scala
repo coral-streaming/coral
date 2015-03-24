@@ -18,7 +18,7 @@ object Messages {
 
 	// CoralActor messages
 	case class Get()
-	case class Request(json: JObject)
+	case class Shunt(json: JObject)
 	case class GetField(field:String)
 	case class ListFields()
 	case class RegisterActor(r: ActorRef)
@@ -26,4 +26,7 @@ object Messages {
 	case class GetProperties()
 
 	case object TimeoutEvent
+
+    case class Trigger(json: JObject)
+    case class Emit()
 }

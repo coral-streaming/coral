@@ -30,6 +30,7 @@ object CoralActorFactory {
 				case "httpserver" => HttpServerActor(json)
 				case "httpclient" => HttpClientActor(json)
                 case "cassandra"  => CassandraActor(json)
+                case "window"     => WindowActor(json)
 			}
 		} yield props
 
