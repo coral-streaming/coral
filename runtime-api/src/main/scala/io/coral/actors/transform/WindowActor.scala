@@ -96,7 +96,7 @@ object WindowActor {
                 if (i.toInt <= 0) {
                     throw new IllegalArgumentException("number")
                 } else {
-                    if (method == "time") i.toInt * 1000 else i.toInt
+                    i.toInt
                 }
         }
 
@@ -113,7 +113,7 @@ object WindowActor {
                 if (i.toInt <= 0) {
                     throw new IllegalArgumentException("number")
                 } else {
-                    if (method == "time") i.toInt * 1000 else i.toInt
+                    i.toInt
                 }
         }
 
