@@ -11,9 +11,7 @@ import scala.concurrent.{Future, Await}
 import scala.concurrent.duration._
 import akka.pattern.ask
 
-import scala.util.Success
-
-class TestRuntimeActor(_system: ActorSystem) extends TestKit(_system)
+class RuntimeActorSpec(_system: ActorSystem) extends TestKit(_system)
   with ImplicitSender
   with WordSpecLike
   with Matchers

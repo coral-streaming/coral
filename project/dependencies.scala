@@ -17,6 +17,7 @@ object Dependencies {
 
     //json4s
     "org.json4s"         %% "json4s-jackson" % "3.2.11",
+    "org.json4s"         %% "json4s-native"  % "3.2.11",
 
     //scalaz
     "org.scalaz"         %% "scalaz-core"    % "7.1.0",
@@ -29,21 +30,19 @@ object Dependencies {
     "ch.qos.logback"     % "logback-classic" % "1.0.13",
 
     // cassandra
-    "com.datastax.cassandra" % "cassandra-driver-core" % "2.0.1"
+    "com.datastax.cassandra" % "cassandra-driver-core" % "2.1.4"
   )
 
   val allTestDependencies = Seq(
     //spray
-    "io.spray"          %% "spray-testkit"   % sprayVersion % "test",
+    "io.spray"          %% "spray-testkit"   % sprayVersion % "it,test",
 
     //akka
-    "com.typesafe.akka" %% "akka-testkit"    % akkaVersion % "test",
+    "com.typesafe.akka" %% "akka-testkit"    % akkaVersion % "it,test",
 
     //testing
-    "org.scalatest"     %% "scalatest"       % "2.2.1" % "test"
+    "org.scalatest"     %% "scalatest"       % "2.2.1" % "it,test"
   )
 
   val allDependencies = allBuildDependencies ++ allTestDependencies
-
 }
-
