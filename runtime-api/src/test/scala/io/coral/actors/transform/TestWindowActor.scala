@@ -275,5 +275,40 @@ class TestWindowActor(_system: ActorSystem) extends TestKit(_system)
                   |{ "name" : "object7" }]}""".stripMargin)
             probe.expectMsg(Timeout(2.seconds).duration, expected)
         }
+
+        "Properly perform ('time', 3, 1)" in {
+            // This means: emit everything you have
+            // collected in the last second without overlap
+
+            val constructor = parse(
+                """{ "type": "window", "params" : { "method":
+                  |"time", "number": 3000, "sliding": 1000 }}""".stripMargin).asInstanceOf[JObject]
+            val windowActor = system.actorOf(Props(new WindowActor(constructor)))
+
+            val probe = TestProbe()
+            windowActor ! RegisterActor(probe.ref)
+
+            Thread.sleep(500)
+
+            for (i <- 1 to 10) {
+                val json = parse(s"""{ "name": "object$i" } """)
+                windowActor ! Trigger(json.asInstanceOf[JObject])
+                Thread.sleep(1000)
+            }
+
+            var expected = parse(
+                """{ "data": [
+                  |{ "name" : "object1" },
+                  |{ "name" : "object2" },
+                  |{ "name" : "object3" }]}""".stripMargin)
+            probe.expectMsg(Timeout(4.seconds).duration, expected)
+
+            expected = parse(
+                """{ "data": [
+                  |{ "name" : "object2" },
+                  |{ "name" : "object3" },
+                  |{ "name" : "object4" }]}""".stripMargin)
+            probe.expectMsg(Timeout(7.seconds).duration, expected)
+        }
     }
 }
