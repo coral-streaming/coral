@@ -31,21 +31,21 @@ import scalaz.OptionT._
  * The parameters to set are the following:
  *   method = "count" / "time"
  *            for instance: "count"
- *   number = how many events / how many seconds
- *            for instance: 10
- *   sliding = how many events / how many seconds slides each time
+ *   number = how many events / how many milliseconds
+ *            for instance: 10 / 10000
+ *   sliding = how many events / how many milliseconds slides each time
  *            if not given, no sliding window is used
- *            for instance: 2
+ *            for instance: 2 / 2000
  *
  * 1) ("count", 10, 2) would mean that the actor emits 10 events at a time, but the two oldest are deleted
  * and the two newest are added. This means the list has an overlap of items with the previous list.
  * 2) ("count", 10, 10) would mean that the actor emits a list of JSON objects after 10 incoming events,
  * and the list is unique every time. This means that the list has no overlap with the previous one,
  * unless duplicate events come in.
- * 3) ("time", 10, 10) would mean that the actor emits all events it has collected in the 10 past seconds
+ * 3) ("time", 10000, 10000) would mean that the actor emits all events it has collected in the 10 past seconds
  * and then resets. This means that the list has no overlap with the previous one, unless duplicate events
  * come in.
- * 4) ("time", 10, 2), would mean that the actor emits all events it has collected in the last 10 seconds
+ * 4) ("time", 10000, 2000), would mean that the actor emits all events it has collected in the last 10 seconds
  * and every 2 seconds the window slides forward. This means that the events in the 8 seconds that
  * overlap are duplicated.
  *
@@ -136,15 +136,18 @@ class WindowActor(json: JObject) extends CoralActor with ActorLogging {
 
     // A counter to keep track of the sliding window position
     var counter: Int = 0
+    var startTime: Long = 0
 
     override def preStart() {
         // Start the timer, if any
         if (method == "time") {
             // The sliding interval is the interval at
             // which something actually has to happen
+            startTime = System.currentTimeMillis()
+
             actorRefFactory.system.scheduler.schedule(sliding millis, sliding millis) {
                 performTimeWindow()
-                transmit(emit("data" -> JArray(toEmit)))
+                transmit(emit(JObject()))
             }
         }
     }
@@ -224,7 +227,7 @@ class WindowActor(json: JObject) extends CoralActor with ActorLogging {
                 time < (currentTime - number)
             })
 
-            if (items.size >= (number / 1000)) {
+            if (currentTime - startTime >= number) {
                 toEmit = items.map(x => x._2).toList
                 // No items.clear() here!
             }
@@ -233,9 +236,9 @@ class WindowActor(json: JObject) extends CoralActor with ActorLogging {
 
     def emit = {
         json: JObject =>
-            val nr = if (method == "count") number else number / 1000.0f
-
-            if (toEmit.length < nr) {
+            if (method == "count" && toEmit.length < number) {
+                JNothing
+            } else if (method == "time" && toEmit.length == 0) {
                 JNothing
             } else {
                 val result = ("data" -> JArray(toEmit))
