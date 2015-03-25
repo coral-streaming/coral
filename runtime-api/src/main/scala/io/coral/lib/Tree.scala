@@ -2,8 +2,7 @@ package io.coral.lib
 
 import scala.collection.mutable.{ArrayBuffer, Queue, Stack}
 
-case class Node[K](value:K, var left:Option[Node[K]],
-                   var right:Option[Node[K]],var parent:Option[Node[K]]) {
+case class Node[K](value:K, var left:Option[Node[K]], var right:Option[Node[K]],var parent:Option[Node[K]]) {
   def hasLeft:Boolean = if (left!=None) true else false
   def hasRight:Boolean = if (right!=None) true else false
   def hasParent:Boolean = if (parent!=None) true else false
@@ -30,25 +29,27 @@ class Tree[K](implicit ord:K=>Ordered[K]) extends BinaryTree[K] {
   private var count = 0
   override def add(value:K) {
     root match {
-      case None => root = Some(new Node[K](value,None,None,None))
+      case None => root = Some(new Node[K](value, None, None, None)); count = 1
       case Some(node) => if(insert(node,value)) count+=1
     }
   }
 
   def insert(node:Node[K],newVal:K):Boolean= {
-    if(newVal<node.value) {
-      node match{
-        case Node(_,None,_,_) => node.left =
-          Some(new Node[K](newVal,None,None,Some(node))); true
-        case Node(_,Some(left),_,_) => insert(left,newVal)
+    if (newVal <= node.value) {
+      node match {
+        case Node(_, None, _, _) => node.left =
+          Some(new Node[K](newVal, None, None, Some(node)))
+          true
+        case Node(_, Some(left), _, _) => insert(left, newVal)
       }
-    } else if(newVal>node.value) {
-      node match{
-        case Node(_,_,None,_) => node.right =
-          Some(new Node[K](newVal,None,None,Some(node))); true
-        case Node(_,_,Some(right),_) => insert(right,newVal)
+    } else if (newVal > node.value) {
+      node match {
+        case Node(_, _, None, _) => node.right =
+          Some(new Node[K](newVal, None, None, Some(node)))
+          true
+        case Node(_, _, Some(right), _) => insert(right, newVal)
       }
-    } else false
+    }  else false //this removes the duplicate values from tree
   }
 
   override def remove(value:K):Boolean= {
@@ -69,24 +70,24 @@ class Tree[K](implicit ord:K=>Ordered[K]) extends BinaryTree[K] {
 
   def delete(node:Node[K]) {
     node match {
-      case Node(value,None,None,Some(parent)) => updateParent(parent,value,None)
+      case Node(value, None, None, Some(parent)) => updateParent(parent,value,None)
       case Node(value,Some(child),None,Some(parent)) => {
         updateParent(parent,value,Some(child))
         child.parent = Some(parent)
       }
-      case Node(value,None,Some(child),Some(parent)) => {
+      case Node(value, None, Some(child), Some(parent)) => {
         updateParent(parent,value,Some(child))
         child.parent = Some(parent)
       }
-      case Node(_,Some(child),None,None) => {
+      case Node(_, Some(child), None, None) => {
         root = Some(child)
         child.parent = None
       }
-      case Node(_,None,Some(child),None) => {
+      case Node(_, None, Some(child), None) => {
         root = Some(child)
         child.parent = None
       }
-      case Node(_,Some(left),Some(right),_) => {
+      case Node(_, Some(left), Some(right), _) => {
         var child = right
         while(child.left!=None) {
           child=child.left.get
@@ -107,16 +108,16 @@ class Tree[K](implicit ord:K=>Ordered[K]) extends BinaryTree[K] {
       case _ =>
     }
 
-    def updateParent(parent:Node[K],value:K,newChild:Option[Node[K]]) {
-      if(value<parent.value) parent.left = newChild
+    def updateParent(parent:Node[K], value:K, newChild:Option[Node[K]]) {
+      if (value< parent.value) parent.left = newChild
       else parent.right = newChild
     }
   }
 
-  def binarySearch(value:K,node:Node[K]):Option[Node[K]]= {
-    if (value==node.value)
+  def binarySearch(value:K, node:Node[K]): Option[Node[K]]= {
+    if (value == node.value)
       Some(node)
-    else if (value<=node.value) {
+    else if (value <= node.value) {
       node match {
         case Node(_,None,_,_) => None
         case Node(_,Some(left),_,_) => binarySearch(value,left)
@@ -173,7 +174,7 @@ class Tree[K](implicit ord:K=>Ordered[K]) extends BinaryTree[K] {
     nodes
   }
 
-  def postorder:Seq[K]= {
+  def postorder: Seq[K]= {
     val nodes = new ArrayBuffer[K]()
     val stack = new Stack[Node[K]]()
     if (size!=0) {
@@ -199,49 +200,29 @@ class Tree[K](implicit ord:K=>Ordered[K]) extends BinaryTree[K] {
     nodes
   }
 
-  def postorder(node:Option[Node[K]]) {
-    node match{
-      case None=>
-      case Some(n)=>{
-        postorder(n.left)
-        postorder(n.right)
-        println(n.value)
-      }
-    }
-  }
+//  def postorder(node:Option[Node[K]]) {
+//    node match{
+//      case None=>
+//      case Some(n)=>{
+//        postorder(n.left)
+//        postorder(n.right)
+//        println(n.value)
+//      }
+//    }
+//  }
 
   override def toString:String= {
     postorder.mkString(" : ")
   }
 
-  override def height:Int= depth(root)
+  override def height:Int= depth(root) - 1
 
   def depth(node:Option[Node[K]]):Int = {
     node match {
       case None => 0
-      case Some(n) => 1+ scala.math.max(depth(n.left),depth(n.right))
+      case Some(n) => 1 +  scala.math.max(depth(n.left), depth(n.right))
     }
   }
 
-  def prettyPrint(node:Option[Node[K]]):String= {
-    if (node == None) ""
-    else if(node.get.isLeaf) "\n\\t"+node.get.value.toString
-    else node.get.value.toString+"\n\\t"+prettyPrint(node.get.left)+"\n\\t"+prettyPrint(node.get.right)
-  }
-
-  def bfs {
-    val queue = new Queue[Option[Node[K]]]()
-    queue.enqueue(root)
-    while(!queue.isEmpty) {
-      queue.dequeue match {
-        case Some(node)=>{
-          println(node.value)
-          queue.enqueue(node.left)
-          queue.enqueue(node.right)
-        }
-        case None =>
-      }
-    }
-  }
   def size = count
 }
