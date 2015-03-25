@@ -1,16 +1,16 @@
 package io.coral.actors.transform
 
-import akka.actor.{Actor, ActorInitializationException, Props, ActorSystem}
-import akka.testkit.{TestProbe, ImplicitSender, TestKit}
+import akka.actor.{ActorSystem, Props}
+import akka.pattern.ask
+import akka.testkit.{ImplicitSender, TestKit, TestProbe}
 import akka.util.Timeout
 import io.coral.actors.Messages._
-import io.coral.actors.transform.WindowActor
-import org.json4s.JsonAST.{JValue, JNothing, JInt, JString, JObject}
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import org.json4s.JsonAST.{JInt, JNothing, JObject, JString}
 import org.json4s.native.JsonMethods._
+import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+
 import scala.concurrent.Await
 import scala.concurrent.duration._
-import akka.pattern.ask
 
 class TestWindowActor(_system: ActorSystem) extends TestKit(_system)
     with ImplicitSender
@@ -310,5 +310,22 @@ class TestWindowActor(_system: ActorSystem) extends TestKit(_system)
                   |{ "name" : "object4" }]}""".stripMargin)
             probe.expectMsg(Timeout(7.seconds).duration, expected)
         }
+
+      "Not emit the window before the window size is reached" in {
+        val constructor = parse(
+          """{ "type": "window", "params" : { "method":
+            |"time", "number": 10000, "sliding": 1000 }}""".stripMargin).asInstanceOf[JObject]
+        val windowActor = system.actorOf(Props(new WindowActor(constructor)))
+
+        val probe = TestProbe()
+        windowActor ! RegisterActor(probe.ref)
+
+        for (i <- 1 to 3) {
+          val json = parse(s"""{ "name": "object$i" } """)
+          windowActor ! Trigger(json.asInstanceOf[JObject])
+          Thread.sleep(1000)
+        }
+        probe.expectNoMsg(1.seconds)
+      }
     }
 }
