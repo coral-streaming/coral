@@ -3,7 +3,7 @@ package io.coral.lib
 import org.scalatest.{Matchers, WordSpecLike}
 import math._
 
-class SummaryStatisticsSpec extends WordSpecLike with Matchers {
+class TestSummaryStatistics extends WordSpecLike with Matchers {
 
   "SummaryStatistics should" should {
     "provide a count initialized to 0L" in {
