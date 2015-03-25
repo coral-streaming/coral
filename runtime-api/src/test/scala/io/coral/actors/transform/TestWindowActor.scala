@@ -26,8 +26,8 @@ class TestWindowActor(_system: ActorSystem) extends TestKit(_system)
     "A WindowActor" should {
         "Do not create a new actor with an improper definition" in {
             val constructor = parse(
-                """{ "type": "window", "method":
-                  |"invalid", "number": 3, "sliding": 1 }""".stripMargin).asInstanceOf[JObject]
+                """{ "type": "window", "params" : { "method":
+                  |"invalid", "number": 3, "sliding": 1 }}""".stripMargin).asInstanceOf[JObject]
 
             intercept[IllegalArgumentException] {
                 val windowActor = WindowActor(constructor)
@@ -37,8 +37,8 @@ class TestWindowActor(_system: ActorSystem) extends TestKit(_system)
 
         "Do not create a new actor with negative sliding window" in {
             val constructor = parse(
-                """{ "type": "window", "method":
-                  |"count", "number": 3, "sliding": -3 }""".stripMargin).asInstanceOf[JObject]
+                """{ "type": "window", "params" : { "method":
+                  |"count", "number": 3, "sliding": -3 }}""".stripMargin).asInstanceOf[JObject]
 
             intercept[IllegalArgumentException] {
                 val windowActor = WindowActor(constructor)
@@ -48,8 +48,8 @@ class TestWindowActor(_system: ActorSystem) extends TestKit(_system)
 
         "Do not create a new actor with a negative number" in {
             val constructor = parse(
-                """{ "type": "window", "method":
-                  |"count", "number": -3, "sliding": 3 }""".stripMargin).asInstanceOf[JObject]
+                """{ "type": "window", "params" : { "method":
+                  |"count", "number": -3, "sliding": 3 }}""".stripMargin).asInstanceOf[JObject]
 
             intercept[IllegalArgumentException] {
                 val windowActor = WindowActor(constructor)
@@ -59,8 +59,8 @@ class TestWindowActor(_system: ActorSystem) extends TestKit(_system)
 
         "Do not create a new actor with a floating point number parameter" in {
             val constructor = parse(
-                """{ "type": "window", "method":
-                  |"count", "number": 4.42, "sliding": 3 }""".stripMargin).asInstanceOf[JObject]
+                """{ "type": "window", "params" : { "method":
+                  |"count", "number": 4.42, "sliding": 3 }}""".stripMargin).asInstanceOf[JObject]
 
             intercept[IllegalArgumentException] {
                 val windowActor = WindowActor(constructor)
@@ -70,8 +70,8 @@ class TestWindowActor(_system: ActorSystem) extends TestKit(_system)
 
         "Do not create a new actor with a floating point sliding parameter" in {
             val constructor = parse(
-                """{ "type": "window", "method":
-                  |"count", "number": 4, "sliding": 3.42 }""".stripMargin).asInstanceOf[JObject]
+                """{ "type": "window", "params" : { "method":
+                  |"count", "number": 4, "sliding": 3.42 }}""".stripMargin).asInstanceOf[JObject]
 
             intercept[IllegalArgumentException] {
                 def windowActor = WindowActor(constructor)
@@ -81,8 +81,8 @@ class TestWindowActor(_system: ActorSystem) extends TestKit(_system)
 
         "Automatically set a sliding window with only number definition" in {
             val constructor = parse(
-                """{ "type": "window", "method":
-                  |"count", "number": 3 }""".stripMargin).asInstanceOf[JObject]
+                """{ "type": "window", "params" : { "method":
+                  |"count", "number": 3 }}""".stripMargin).asInstanceOf[JObject]
 
             val windowActor = system.actorOf(Props(new WindowActor(constructor)))
 
@@ -100,8 +100,8 @@ class TestWindowActor(_system: ActorSystem) extends TestKit(_system)
         // the collected values, and then clears the list and starts over
         "Properly perform ('count', 3, 3)" in {
             val constructor = parse(
-                """{ "type": "window", "method":
-                  |"count", "number": 3, "sliding": 3 }""".stripMargin).asInstanceOf[JObject]
+                """{ "type": "window", "params" : { "method":
+                  |"count", "number": 3, "sliding": 3 } }""".stripMargin).asInstanceOf[JObject]
 
             val windowActor = system.actorOf(Props(new WindowActor(constructor)))
 
@@ -153,8 +153,8 @@ class TestWindowActor(_system: ActorSystem) extends TestKit(_system)
 
         "Properly perform ('count', 3, 1)" in {
             val constructor = parse(
-                """{ "type": "window", "method":
-                  |"count", "number": 3, "sliding": 1 }""".stripMargin).asInstanceOf[JObject]
+                """{ "type": "window", "params" : { "method":
+                  |"count", "number": 3, "sliding": 1 } }""".stripMargin).asInstanceOf[JObject]
             val windowActor = system.actorOf(Props(new WindowActor(constructor)))
 
             val method = Await.result(windowActor.ask(GetField("method")), duration)
@@ -204,8 +204,8 @@ class TestWindowActor(_system: ActorSystem) extends TestKit(_system)
 
         "Properly perform ('count', 3, 2)" in {
             val constructor = parse(
-                """{ "type": "window", "method":
-                  |"count", "number": 3, "sliding": 2 }""".stripMargin).asInstanceOf[JObject]
+                """{ "type": "window", "params" : { "method":
+                  |"count", "number": 3, "sliding": 2 } }""".stripMargin).asInstanceOf[JObject]
             val windowActor = system.actorOf(Props(new WindowActor(constructor)))
 
             for (i <- 1 to 3) {
@@ -245,8 +245,8 @@ class TestWindowActor(_system: ActorSystem) extends TestKit(_system)
             // collected in the last second without overlap
 
             val constructor = parse(
-                """{ "type": "window", "method":
-                  |"time", "number": 1, "sliding": 1 }""".stripMargin).asInstanceOf[JObject]
+                """{ "type": "window", "params" : { "method":
+                  |"time", "number": 1, "sliding": 1 }}""".stripMargin).asInstanceOf[JObject]
             val windowActor = system.actorOf(Props(new WindowActor(constructor)))
 
             val probe = TestProbe()

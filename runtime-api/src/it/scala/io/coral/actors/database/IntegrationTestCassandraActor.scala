@@ -198,7 +198,7 @@ class IntegrationTestCassandraActor(_system: ActorSystem) extends TestKit(_syste
         "Not be triggered when query JSON field is not present" in {
             val queryString = "select * from testkeyspace.test1 where col1 = 'somevalue';"
             val query = parse(s"""{ "otherfield": "$queryString" } """).asInstanceOf[JObject]
-            val actual = Await.result(cassandra.ask(Request(query)), Timeout(2.seconds).duration)
+            val actual = Await.result(cassandra.ask(Shunt(query)), Timeout(2.seconds).duration)
             println(actual)
         }
     }
