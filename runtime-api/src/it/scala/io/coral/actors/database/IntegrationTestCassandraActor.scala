@@ -1,7 +1,6 @@
 package io.coral.actors.database
 
 import akka.actor.{ActorRef, ActorSystem, Props}
-import akka.pattern.ask
 import akka.testkit.{ImplicitSender, TestKit}
 import akka.util.Timeout
 import io.coral.actors.Messages.{Trigger, GetField, Shunt}
@@ -11,6 +10,7 @@ import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
+import akka.pattern.ask
 
 class IntegrationTestCassandraActor(_system: ActorSystem) extends TestKit(_system)
     with ImplicitSender
@@ -18,7 +18,7 @@ class IntegrationTestCassandraActor(_system: ActorSystem) extends TestKit(_syste
     with Matchers
     with BeforeAndAfterAll {
 
-    implicit val timeout = Timeout(100.seconds)
+    implicit val timeout = Timeout(1.seconds)
     val duration = timeout.duration
 
     def this() = this(ActorSystem("testSystem"))
