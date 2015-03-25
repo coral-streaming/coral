@@ -187,7 +187,6 @@ class GeneratorActor(json: JObject) extends CoralActor {
                         for {
                             i <- formatString.replace("[", "").replace("]", "").split(",")
                             i2 <- i.replace("'", "").trim()
-                            if (i2 != "")
                         } yield {
                             i2
                         }
