@@ -246,7 +246,7 @@ class TestWindowActor(_system: ActorSystem) extends TestKit(_system)
 
             val constructor = parse(
                 """{ "type": "window", "params" : { "method":
-                  |"time", "number": 1, "sliding": 1 }}""".stripMargin).asInstanceOf[JObject]
+                  |"time", "number": 1000, "sliding": 1000 }}""".stripMargin).asInstanceOf[JObject]
             val windowActor = system.actorOf(Props(new WindowActor(constructor)))
 
             val probe = TestProbe()
