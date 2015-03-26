@@ -16,7 +16,7 @@ import spray.can.Http
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class TestHttpClientActor(_system: ActorSystem)
+class HttpClientActorSpec(_system: ActorSystem)
   extends TestKit(_system)
   with ImplicitSender
   with WordSpecLike

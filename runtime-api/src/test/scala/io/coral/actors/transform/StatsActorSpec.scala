@@ -12,7 +12,7 @@ import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.concurrent.duration._
 
-class TestStatsActor(_system: ActorSystem)
+class StatsActorSpec(_system: ActorSystem)
   extends TestKit(_system)
   with ImplicitSender
   with WordSpecLike

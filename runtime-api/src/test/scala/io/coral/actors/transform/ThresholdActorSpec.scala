@@ -19,7 +19,7 @@ import org.json4s.jackson.JsonMethods._
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 
-class TestThresholdActor(_system: ActorSystem) extends TestKit(_system)
+class ThresholdActorSpec(_system: ActorSystem) extends TestKit(_system)
   with ImplicitSender
   with WordSpecLike
   with Matchers
