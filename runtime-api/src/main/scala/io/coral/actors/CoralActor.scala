@@ -109,7 +109,7 @@ trait CoralActor extends Actor with ActorLogging {
 
 			  timerMode match {
 					case TimerContinue =>
-						in(timerDuration.seconds) { self ! TimeoutEvent }
+						in(timerDuration.millis) { self ! TimeoutEvent }
 					case TimerExit =>
 						self ! PoisonPill
 					case _ => // do nothing
