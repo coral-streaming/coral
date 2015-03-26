@@ -10,6 +10,7 @@ import org.json4s.jackson.JsonMethods._
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.concurrent.duration._
+import scala.util.{Failure, Success}
 
 class ZscoreActorSpec(_system: ActorSystem)
   extends TestKit(_system)
@@ -77,9 +78,12 @@ class ZscoreActorSpec(_system: ActorSystem)
       println(s"\nstats count=${stats.stats.count} avg=${stats.stats.average} sd=${stats.stats.populationSd}")
       println(s"\n${stats.self.path}")
       zscore.collectSources = Map("stats" -> "/user/5")
+      implicit val fm = zscore.futureMonad
       val x = zscore.getCollectInputField[Long]("stats", "", "count")
-      println(s"\n${x}")
+      x.getOrElse(-1L).onComplete {
+        case Success(y) => println(s"\n>>>>>>>> ${y}")
+        case Failure(e) => println(s"\nFAILURE ${e}")
+      }
     }
-
   }
 }
