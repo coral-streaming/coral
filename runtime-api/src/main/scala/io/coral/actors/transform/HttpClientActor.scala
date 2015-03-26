@@ -64,6 +64,7 @@ class HttpClientActor(json: JObject) extends CoralActor with ActorLogging {
         }
       } catch {
         case e: Exception =>
+          answer = null
           log.error(e.getMessage)
       }
 

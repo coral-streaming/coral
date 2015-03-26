@@ -1,14 +1,18 @@
 package io.coral.actors.transform
 
 import akka.actor.{ActorSystem, Props}
+import akka.io.IO
+import akka.pattern.ask
 import akka.testkit.{ImplicitSender, TestActorRef, TestKit, TestProbe}
 import akka.util.Timeout
 import io.coral.actors.CoralActorFactory
 import io.coral.actors.Messages.{Emit, Trigger}
+import io.coral.api.ApiServiceActor
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
-import akka.pattern.ask
+import spray.can.Http
+
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
@@ -18,6 +22,11 @@ class TestHttpClientActor(_system: ActorSystem)
   with WordSpecLike
   with Matchers
   with BeforeAndAfterAll {
+
+  //Setup HTTP server for testing the client
+  val service = system.actorOf(Props[ApiServiceActor], "api")
+  IO(Http) ! Http.Bind(service, "localhost", 8111)
+
 
   def this() = this(ActorSystem("HttpClientActorSpec"))
 
@@ -33,22 +42,22 @@ class TestHttpClientActor(_system: ActorSystem)
   actorRef.underlyingActor.emitTargets += testProbe.ref
   implicit val timeout = Timeout(1.seconds)
 
+
   "a HttpClientActor" should {
-    /*
+
     "not be triggered by an incorrect JSON constructor" in {
       val triggerJson = parse("{}").asInstanceOf[JObject]
 
       actorRef ! Trigger(triggerJson)
-      expectNoMsg()
+      testProbe.expectNoMsg()
     }
-    */
 
     "execute a GET request on a given URL" in {
-      val triggerJson = parse("""{"url": "http://google.com", "method": "GET"}""").asInstanceOf[JObject]
+      val triggerJson = parse("""{"url": "http://localhost:8111", "method": "GET"}""").asInstanceOf[JObject]
 
       actorRef ! Trigger(triggerJson)
 
-      expectNoMsg(5.seconds)
+      testProbe.expectNoMsg(5.seconds)
 
       val actual = Await.result(actorRef.ask(Emit()), timeout.duration)
 
@@ -61,11 +70,11 @@ class TestHttpClientActor(_system: ActorSystem)
     }
 
     "emit nothing when the method is invalid" in {
-      val triggerJson = parse("""{"url": "http://google.com", "method": "jeMoeder"}""").asInstanceOf[JObject]
+      val triggerJson = parse("""{"url": "http://localhost:8111", "method": "jeMoeder"}""").asInstanceOf[JObject]
 
       actorRef ! Trigger(triggerJson)
 
-      expectNoMsg(5.seconds)
+      testProbe.expectNoMsg(5.seconds)
 
       val actual = Await.result(actorRef.ask(Emit()), timeout.duration)
 
@@ -74,6 +83,7 @@ class TestHttpClientActor(_system: ActorSystem)
         // Do nothing, success
         case _ => false
       }
+
       assert(correctFormat)
     }
   }
