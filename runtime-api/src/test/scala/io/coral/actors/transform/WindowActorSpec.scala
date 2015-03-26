@@ -12,7 +12,7 @@ import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class TestWindowActor(_system: ActorSystem) extends TestKit(_system)
+class WindowActorSpec(_system: ActorSystem) extends TestKit(_system)
     with ImplicitSender
     with WordSpecLike
     with Matchers
