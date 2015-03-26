@@ -12,7 +12,7 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 import akka.pattern.ask
 
-class IntegrationTestCassandraActor(_system: ActorSystem) extends TestKit(_system)
+class CassandraActorItSpec(_system: ActorSystem) extends TestKit(_system)
     with ImplicitSender
     with WordSpecLike
     with Matchers
