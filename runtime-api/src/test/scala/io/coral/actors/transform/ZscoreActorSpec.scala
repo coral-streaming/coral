@@ -1,16 +1,16 @@
 package io.coral.actors.transform
 
-import akka.actor.ActorSystem
+import akka.actor.{Actor, ActorSystem, Props}
 import akka.testkit.{ImplicitSender, TestActorRef, TestKit}
 import akka.util.Timeout
 import io.coral.actors.CoralActorFactory
-import io.coral.lib.SummaryStatistics
+import io.coral.actors.Messages.GetField
+import org.json4s.JsonDSL._
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.concurrent.duration._
-import scala.util.{Failure, Success}
 
 class ZscoreActorSpec(_system: ActorSystem)
   extends TestKit(_system)
@@ -28,23 +28,29 @@ class ZscoreActorSpec(_system: ActorSystem)
   implicit val timeout = Timeout(100.millis)
   implicit val formats = org.json4s.DefaultFormats
 
+  class MockStatsActor(var count: Long, var avg: Double, var sd: Double) extends Actor {
+    def receive = {
+      case GetField("count") => sender ! render(count)
+      case GetField("avg") => sender ! render(avg)
+      case GetField("sd") => sender ! render(sd)
+      case GetField(other) => throw new UnsupportedOperationException(other.toString)
+    }
+  }
+
+  def createMockStats(name: String, count: Long, avg: Double, sd: Double): MockStatsActor = {
+    val ref = TestActorRef[MockStatsActor](Props(new MockStatsActor(count, avg, sd)), name)
+    ref.underlyingActor
+  }
+
   def createZscoreActor(n: Int, by: String, field: String, score: Double): ZscoreActor = {
     val createJson = parse(
       s"""{ "type": "zscore",
          |"params": { "by": "${by}",
-                                    |"field": "${field}",
-                                                         |"score": ${score} } }""".stripMargin)
+                                           |"field": "${field}",
+                                                                |"score": ${score} } }""".stripMargin)
       .asInstanceOf[JObject]
     val props = CoralActorFactory.getProps(createJson).get
     val actorRef = TestActorRef[ZscoreActor](props, s"${n}")
-    actorRef.underlyingActor
-  }
-
-  def createStatsActor(n: Int, field: String): StatsActor = {
-    val createJson = parse( s"""{ "type": "stats", "params": { "field": "${field}" } }""")
-      .asInstanceOf[JObject]
-    val props = CoralActorFactory.getProps(createJson).get
-    val actorRef = TestActorRef[StatsActor](props, s"${n}")
     actorRef.underlyingActor
   }
 
@@ -70,20 +76,25 @@ class ZscoreActorSpec(_system: ActorSystem)
     // this should be better separated, even if only from a unit testing point of view
     "process trigger and collect data" in {
       val zscore = createZscoreActor(4, by = "dummy", field = "val", score = 6.1)
-      val stats = createStatsActor(5, field = "val")
-      (1 to 5).foreach { _ => stats.stats.append(3.0) }
-      (1 to 5).foreach { _ => stats.stats.append(1.0) }
-      (1 to 5).foreach { _ => stats.stats.append(4.0) }
-      (1 to 5).foreach { _ => stats.stats.append(2.0) }
-      println(s"\nstats count=${stats.stats.count} avg=${stats.stats.average} sd=${stats.stats.populationSd}")
-      println(s"\n${stats.self.path}")
-      zscore.collectSources = Map("stats" -> "/user/5")
-      implicit val fm = zscore.futureMonad
-      val x = zscore.getCollectInputField[Long]("stats", "", "count")
-      x.getOrElse(-1L).onComplete {
-        case Success(y) => println(s"\n>>>>>>>> ${y}")
-        case Failure(e) => println(s"\nFAILURE ${e}")
-      }
+      val mockStats = createMockStats("mock1", count = 20L, avg = 3.0, sd = 2.0)
+      zscore.collectSources = Map("stats" -> "/user/mock1")
+      zscore.trigger(parse( s"""{ "dummy": "", "val": 50.0 }""").asInstanceOf[JObject])
+      zscore.outlier should be(false)
+      mockStats.count = 21L // count > 20 before considering outlyer
+      zscore.trigger(parse( s"""{ "dummy": "", "val": 50.0 }""").asInstanceOf[JObject])
+      zscore.outlier should be(true)
+      zscore.trigger(parse( s"""{ "dummy": "", "val": 4.0 }""").asInstanceOf[JObject])
+      zscore.outlier should be(false)
+    }
+
+    "emit only when outlier is true" in {
+      val zscore = createZscoreActor(5, by = "dummy", field = "val", score = 1.0)
+      zscore.outlier = false
+      zscore.emit(parse( s"""{ "dummy": "", "val": 50.0 }""").asInstanceOf[JObject]) should
+        be(JNothing)
+      zscore.outlier = true
+      zscore.emit(parse( s"""{ "dummy": "", "val": 50.0 }""").asInstanceOf[JObject]) should
+        be(parse( s"""{ "dummy": "", "val": 50.0, "outlier": true }"""))
     }
   }
 }
