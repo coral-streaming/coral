@@ -30,7 +30,9 @@ object Dependencies {
     "ch.qos.logback"     % "logback-classic" % "1.0.13",
 
     // cassandra
-    "com.datastax.cassandra" % "cassandra-driver-core" % "2.1.4"
+    "com.datastax.cassandra" % "cassandra-driver-core" % "2.1.4",
+
+    "org.uncommons.maths" % "uncommons-maths" % "1.2.2a"
   )
 
   val allTestDependencies = Seq(
