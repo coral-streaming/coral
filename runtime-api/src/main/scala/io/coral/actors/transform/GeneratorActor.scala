@@ -13,7 +13,6 @@ import org.uncommons.maths.random.{DiscreteUniformGenerator, ContinuousUniformGe
 import scala.concurrent.duration._
 import scala.util.matching.Regex
 import org.uncommons.maths._
-
 import scala.util.matching.Regex.MatchIterator
 
 /**
@@ -49,14 +48,25 @@ object GeneratorActor {
 
     def getParams(json: JValue) = {
         for {
-        // The structure of the object to emit
+            // The structure of the object to emit
             format <- (json \ "format").extractOpt[JObject]
             rate <- (json \ "timer" \ "rate").extractOpt[Int]
-            times <- (json \ "timer" \ "times").extractOpt[Int]
-            delay <- (json \ "timer" \ "delay").extractOpt[Int]
+            times <- getValueOrZero(json \ "timer" \ "times")
+            delay <- getValueOrZero(json \ "timer" \ "delay")
+            if rate >= 0
         } yield {
             (format, rate, times, delay)
         }
+    }
+
+    def getValueOrZero(value: JValue): Option[Int] = {
+        val result: Int = value match {
+            case JInt(d) =>
+                if (d >= 0) d.toInt else 0
+            case _ => 0
+        }
+
+        Some(result)
     }
 
     def apply(json: JValue): Option[Props] = {
@@ -76,34 +86,39 @@ class GeneratorActor(json: JObject) extends CoralActor {
     override def timerDuration = ((1.0f / rate.toFloat) * 1000).toLong
 
     var startTime: Long = _
+    var count = 0
 
     override def preStart() {
         startTime = System.currentTimeMillis
         self ! TimeoutEvent
     }
 
-    def state = Map.empty
+    def state = Map(
+        ("rate", render(rate)),
+        ("times", render(times)),
+        ("delay", render(delay)),
+        ("format", render(format)),
+        ("count", render(count))
+    )
 
     def trigger = noProcess
-
     def emit = doNotEmit
-
-    var count = 0
 
     def timer = {
         val currentTime = System.currentTimeMillis
 
         // If this is true, we are not in the initial delay period any more
-        if ((currentTime - startTime) >= (delay * 1000)) {
-            count += 1
-
+        if ((currentTime - startTime) >= delay) {
             // Reached the maximum output number
-            if (count > times) {
+            val result = if (count > times || times == 0) {
                 self ! PoisonPill
                 JNothing
             } else {
                 generateData(format)
             }
+
+            count += 1
+            result
         } else {
             JNothing
         }
@@ -182,17 +197,24 @@ class GeneratorActor(json: JObject) extends CoralActor {
                 }
             case '[' => // ["e1", "e2", ...]
                 // Choose item from list randomly
+                if (!formatString.matches("""\[(,?('.*?'))+\]""")) {
+                    return JNothing
+                }
+
                 val items = if (formatString.contains(",")) {
                     {
                         for {
                             i <- formatString.replace("[", "").replace("]", "").split(",")
-                            i2 <- i.replace("'", "").trim()
                         } yield {
-                            i2
+                            i.replace("'", "").trim()
                         }
-                    }.toList
+                    }.toList.filter(i => !i.isEmpty)
                 } else {
                     List(formatString.replace("['", "").replace("']", "").trim())
+                }
+
+                if (items.size == 0) {
+                    return JNothing
                 }
 
                 val index = new DiscreteUniformGenerator(0, items.size - 1, new Random()).nextValue()
