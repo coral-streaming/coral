@@ -41,19 +41,26 @@ class UnlistActor(json: JObject) extends CoralActor with ActorLogging {
 
     def trigger = {
         json: JObject =>
-            val array = (json \ field).asInstanceOf[JArray]
+            val array = (json \ field)
 
-            array.arr.foreach(element => {
-                actorRefFactory.system.scheduler.schedule(0 millis, 0 millis) {
-                    //transmit(emit(element))
-                }
-            })
+            array match {
+                case JArray(a) =>
+                    // The system scheduler cannot be used here because
+                    // the order in which objects are sent can then not
+                    // be guaranteed.
+                    a.arr.foreach(element => {
+                        emitTargets.foreach(t => t ! element.asInstanceOf[JObject])
+                    })
+                case _ =>
+                    // Do nothing when not receiving any other object
+                    // than an array, including a JNothing
+            }
 
             OptionT.some(Future.successful({}))
     }
 
     def emit = {
         json: JObject =>
-
+            JNothing
     }
 }
