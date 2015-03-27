@@ -32,7 +32,7 @@ object CoralActorFactory {
         case "cassandra"  => CassandraActor(json)
         case "threshold"  => ThresholdActor(json)
         case "window"     => WindowActor(json)
-        case "generator"  => GeneratorActor(json)
+        case "unlist"     => UnlistActor(json)
       }
     } yield props
 
