@@ -3,7 +3,7 @@ package io.coral.actors
 import akka.actor.{ActorSystem, Props}
 import akka.testkit.{ImplicitSender, TestActorRef, TestKit, TestProbe}
 import akka.util.Timeout
-import io.coral.actors.Messages.{GetField, RegisterActor, UpdateProperties}
+import io.coral.actors.Messages._
 import org.json4s.JsonAST.JValue
 import org.json4s.JsonDSL._
 import org.json4s._
@@ -62,12 +62,12 @@ class CoralActorSpec(_system: ActorSystem)
 
   "A CoralActor" should {
 
-    "Require an implementation of the jsonDef function" in {
+    "Require an implementation of the 'jsonDef' function" in {
       val coral = createTestCoralActor( """{ "test": "jsonDef" }""")
       coral.jsonDef should be(parse( """{ "test": "jsonDef" }"""))
     }
 
-    "Have a askActor method to ask by name" in {
+    "Have an 'askActor' method to ask another actor by name" in {
       val coral = createTestCoralActor()
       val probe = TestProbe()
       val result = coral.askActor(probe.ref.path.toString, "ask")
@@ -76,14 +76,14 @@ class CoralActorSpec(_system: ActorSystem)
       assert(result.isCompleted && result.value == Some(Success("ask:response")))
     }
 
-    "Have a tellActor method to tell by name" in {
+    "Have a 'tellActor' method to tell another by name" in {
       val coral = createTestCoralActor()
       val probe = TestProbe()
       coral.tellActor(probe.ref.path.toString, "tell")
       probe.expectMsg("tell")
     }
 
-    "Get an actor response as OptionT" in {
+    "Get an actor response as OptionT via 'getActorResponse'" in {
       val coral = createTestCoralActor()
       val probe = TestProbe()
       val path = probe.ref.path.toString
@@ -104,10 +104,40 @@ class CoralActorSpec(_system: ActorSystem)
       probe.expectMsg(100 millis, "msg2")
     }
 
+    "Provide it's description for a 'Get' message" in {
+      val coral = createTestCoralActor()
+      coral.self ! Get()
+      expectMsg(render(("actors", render(Map(("def", coral.jsonDef), ("state", render(coral.state)))))))
+    }
+
+    "Handle any JSON message" in {
+      val coral = createTestCoralActor()
+      val probe = TestProbe()
+      val json = parse("{}")
+      val emitDefault = parse( """{ "test": "emit" }""")
+      coral.emitTargets += probe.ref
+      coral.self ! json
+      probe.expectMsg(emitDefault)
+    }
+
+    "Handle a 'Shunt' message" in {
+      val coral = createTestCoralActor()
+      val json = parse("{}")
+      val emitDefault = parse( """{ "test": "emit" }""")
+      coral.self ! Shunt(json.asInstanceOf[JObject])
+      expectMsg(emitDefault)
+    }
   }
 
   "A CoralActor trigger" should {
-    "Be defined in concrete implementations" in {
+
+    "Be activated after a 'Trigger' message" in {
+      val coral = createTestCoralActor()
+      coral.self ! Trigger(parse("{}").asInstanceOf[JObject])
+      expectNoMsg(100 millis)
+    }
+
+    "Be defined in concrete implementations of 'trigger'" in {
       val coral = createTestCoralActor()
       val result = coral.trigger(parse( """{ "a":"b" }""").asInstanceOf[JObject]) //should be(OptionT.some(Future.successful({})))
       whenReady(result.run) {
@@ -115,7 +145,7 @@ class CoralActorSpec(_system: ActorSystem)
       }
     }
 
-    "Get the trigger field as OptionT" in {
+    "Get the trigger field as OptionT in 'getTriggerInputField'" in {
       val coral = createTestCoralActor()
       val result = coral.getTriggerInputField[Double](parse("2.71"))
       whenReady(result.run) {
@@ -123,16 +153,15 @@ class CoralActorSpec(_system: ActorSystem)
       }
     }
 
-    "Ignore an UpdateProperties message without information" in {
+    "Ignore an 'UpdateProperties' message without information" in {
       val coral = createTestCoralActor()
       coral.self ! UpdateProperties(parse( """{}""").asInstanceOf[JObject])
       expectMsg(true)
     }
 
-    "Handle an UpdateProperties message with trigger connection" in {
+    "Handle an 'UpdateProperties' message with trigger connection" in {
       val coral = createTestCoralActor()
       val other = createTestCoralActor(name = "test")
-      println(s"#${other.self.path.toString}")
       coral.self ! UpdateProperties(parse( """{"input": {"trigger":{"in": {"type": "external"}}}}""").asInstanceOf[JObject])
       expectMsg(true)
       coral.self ! UpdateProperties(parse( """{"input": {"trigger":{"in": {"type": "actor", "source": "test"}}}}""").asInstanceOf[JObject])
@@ -140,23 +169,34 @@ class CoralActorSpec(_system: ActorSystem)
       expectMsg(true)
     }
 
+    "Ignore an 'UpdateProperties' message with trigger connection of unknown type" in {
+      val coral = createTestCoralActor()
+      coral.self ! UpdateProperties(parse( """{"input": {"trigger":{"in": {"type": "doesnotexist"}}}}""").asInstanceOf[JObject])
+      expectMsg(true)
+    }
   }
 
   "CoralActor emit" should {
 
-    "Be defined in concrete implementations" in {
+    "Be activated after a 'Emit' message" in {
+      val coral = createTestCoralActor()
+      coral.self ! Emit()
+      expectMsg(parse( """{ "test": "emit" }"""))
+    }
+
+    "Be defined in concrete implementations of 'emit'" in {
       val coral = createTestCoralActor()
       coral.emit(parse( """{  }""").asInstanceOf[JObject]) should be(parse( """{ "test": "emit" }"""))
     }
 
-    "Have process a RegisterActor message" in {
+    "Emit to actors registered with a 'RegisterActor' message" in {
       val coral = createTestCoralActor()
       val probe = TestProbe()
       coral.self ! RegisterActor(probe.ref)
       coral.emitTargets should be(SortedSet(probe.ref))
     }
 
-    "Have a transmit method" in {
+    "Have a 'transmit' method" in {
       val coral = createTestCoralActor()
       val probe1 = TestProbe()
       val probe2 = TestProbe()
@@ -166,18 +206,20 @@ class CoralActorSpec(_system: ActorSystem)
       coral.transmit(json)
       probe1.expectMsg(json)
       probe2.expectMsg(json)
+      coral.transmit(JNothing)
+      probe1.expectNoMsg(100 millis)
     }
 
   }
 
   "A CoralActor state" should {
 
-    "Be defined in concrete implementations" in {
+    "Be defined in concrete implementations of 'state'" in {
       val coral = createTestCoralActor()
       coral.state should be(Map("testkey" -> render("testvalue")))
     }
 
-    "Be accessible with a GetField() message" in {
+    "Be accessible with a 'GetField' message" in {
       val coral = createTestCoralActor()
       val json = parse( """{}""")
       coral.self ! GetField("testkey")
@@ -190,7 +232,7 @@ class CoralActorSpec(_system: ActorSystem)
 
   "CoralActor collect" should {
 
-    "Obtain state of other actors" in {
+    "Obtain state of other actors with 'getCollectInputField'" in {
       val coral = createTestCoralActor()
       val probe = TestProbe()
       val path = probe.ref.path.toString
@@ -203,7 +245,7 @@ class CoralActorSpec(_system: ActorSystem)
       }
     }
 
-    "Obtain state of other actors with subpath" in {
+    "Obtain state of other actors with subpath with 'getCollectInputField'" in {
       val coral = createTestCoralActor()
       val probe = TestProbe()
       val tmp = probe.ref.path.toString.split("/").reverse
@@ -218,7 +260,7 @@ class CoralActorSpec(_system: ActorSystem)
       }
     }
 
-    "Fail to obtain state of actors not in collectSources" in {
+    "Fail to obtain state of actors not in collectSources with 'getCollectInputField'" in {
       val coral = createTestCoralActor()
       val thrown = intercept[Exception] {
         val result = coral.getCollectInputField[Int]("test", "", "testField")
@@ -226,11 +268,19 @@ class CoralActorSpec(_system: ActorSystem)
       thrown.getMessage should be("Collect actor not defined")
     }
 
+    "Handle an 'UpdateProperties' message with collect connection" in {
+      val coral = createTestCoralActor()
+      //val other = createTestCoralActor(name = "test2")
+      coral.self ! UpdateProperties(parse( """{"input": {"collect":{"someref": {"source": 12}}}}""").asInstanceOf[JObject])
+      coral.collectSources should be(Map("someref" -> "/user/coral/12"))
+      expectMsg(true)
+    }
+
   }
 
   "A CoralActor timer" should {
 
-    "Be defined in concrete implementations" in {
+    "Be defined in concrete implementations of 'timer'" in {
       val coral = createTestCoralActor()
       coral.timer should be(parse( """{ "test": "timer" }"""))
     }
@@ -256,15 +306,18 @@ class CoralActorSpec(_system: ActorSystem)
       val coral = createTestCoralActor( s"""{ "timeout": { "duration": 5, "mode": "continue" } }""")
       val probe = TestProbe()
       coral.emitTargets = SortedSet(probe.ref)
-      println(s"\n${coral.timerMode}#")
       probe.expectMsg(parse( """{ "test": "timer" }"""))
     }
 
     "Ignore an unknown timer mode" in {
       val coral = createTestCoralActor( s"""{ "timeout": { "duration": 5, "mode": "doesnotexist" } }""")
+      val probe = TestProbe()
+      coral.emitTargets += probe.ref
       coral.timerMode should be(TimerNone)
+      coral.self ! TimeoutEvent
+      probe.expectMsg(parse( """{ "test": "timer" }"""))
+      probe.expectNoMsg(100 millis)
     }
-
 
   }
 }
