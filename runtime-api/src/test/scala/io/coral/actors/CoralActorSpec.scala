@@ -134,6 +134,32 @@ class CoralActorSpec(_system: ActorSystem)
       probe.expectMsg(expected)
     }
 
+    "Ignore an incomplete JSON message (that is, makes trigger returns nothing)" in {
+      val testJson: JValue = parse( """{ "test": "incomplete" }""")
+      class TestCoralActor extends MinimalCoralActor {
+        override def trigger: JObject => OptionT[Future, Unit] = _ => OptionT.none
+      }
+      val coral = createCoralActor(Props(new TestCoralActor))
+      val probe = TestProbe()
+      coral.emitTargets += probe.ref
+      coral.self ! testJson
+      probe.expectNoMsg(100 millis)
+    }
+
+    "Ignore an JSON message that makes trigger fail" in {
+      val testJson: JValue = parse( """{ "test": "fail" }""")
+      class TestCoralActor extends MinimalCoralActor {
+        override def trigger: JObject => OptionT[Future, Unit] = _ => OptionT.some(Future.failed({
+          new Exception
+        }))
+      }
+      val coral = createCoralActor(Props(new TestCoralActor))
+      val probe = TestProbe()
+      coral.emitTargets += probe.ref
+      coral.self ! testJson
+      probe.expectNoMsg(100 millis)
+    }
+
     "Handle a 'Shunt' message" in {
       val testJson: JValue = parse( """{ "test": "emit" }""")
       class TestCoralActor extends MinimalCoralActor {
@@ -146,9 +172,28 @@ class CoralActorSpec(_system: ActorSystem)
       expectMsg(expected)
     }
 
+    "Ignore a 'Shunt' message that triggers none" in {
+      val testJson: JValue = parse( """{ "test": "emit" }""")
+      class TestCoralActor extends MinimalCoralActor {
+        override def trigger: JObject => OptionT[Future, Unit] = _ => OptionT.none
+      }
+      val coral = createCoralActor(Props(new TestCoralActor))
+      val json = parse( """{ "something": "else" }""")
+      coral.self ! Shunt(json.asInstanceOf[JObject])
+      expectNoMsg(100 millis)
+    }
+
     "Have 'doNotEmit' produce JNothing" in {
       val coral = createCoralActor()
       coral.doNotEmit(parse( """{"a":"b"}""").asInstanceOf[JObject]) should be(JNothing)
+    }
+
+    "Have 'noProcess' produce empty future option" in {
+      val coral = createCoralActor()
+      val result = coral.noProcess(parse( """{"test": "whatever"}""").asInstanceOf[JObject])
+      whenReady(result.run) {
+        value => value should be(Some(()))
+      }
     }
   }
 
