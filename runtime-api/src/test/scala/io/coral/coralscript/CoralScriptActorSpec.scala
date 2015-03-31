@@ -11,7 +11,7 @@ import org.json4s.jackson.JsonMethods._
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 import scala.concurrent.duration._
 
-class TestCoralScriptActor (_system: ActorSystem) extends TestKit(_system)
+class CoralScriptActorSpec (_system: ActorSystem) extends TestKit(_system)
     with ImplicitSender
     with WordSpecLike
     with Matchers
@@ -34,21 +34,9 @@ class TestCoralScriptActor (_system: ActorSystem) extends TestKit(_system)
                     description: String
                 }
 
-                event BalanceInfo {
-                    accountId: Long,
-                    amount: Float,
-                    datetime: DateTime
-                }
-
-                entity Person {
-                    key: accountId
-                    age: collectAge(accountId)
-                    transactions: Array[Transaction]
-                    currentBalance: BalanceInfo.amount
-                }
 
                 collect collectAge(accountId) {
-                    from: db1Actor,
+                    from: db1Actor
                     with: "select age from customers where accountId = {accountId}"
                 }
 
@@ -123,6 +111,21 @@ class TestCoralScriptActor (_system: ActorSystem) extends TestKit(_system)
             val expected = parse("""{
                     "amount": Person.amount, "average": avgAmountPerDay
                 }""").asInstanceOf[JObject]
+        }
+
+        "Properly parse a single action" in {
+            val action1 = """action action1 = {
+                while (x < 10) {
+                    x + 1
+                }}"""
+
+            val probe = TestProbe()
+            val constructorString =
+                s"""{ "type": "coralscript", "params": { "script":
+                   |${quoteStringForJson(action1)} }}""".stripMargin
+            val constructor = parse(constructorString).asInstanceOf[JObject]
+            val props: Props = CoralActorFactory.getProps(constructor).get
+            val scriptActor = TestActorRef[CoralScriptActor](props)
         }
     }
 

@@ -12,7 +12,9 @@ case class OrExpression(left: Expression, right: Expression) extends Expression
 case class OutExpression(declaration: VariableDeclaration) extends Expression
 case class StandardNumericExpression(left: Expression, op: String, right: Expression) extends NumericExpression
 case class StringLiteralExpression(s: String) extends LiteralExpression
-case class TestingExpression(left: Expression, test: String, right: Expression) extends Expression
+case class TestingExpression(left: Expression, test: String, right: Expression) extends Expression {
+    println("testing expression, left: " + left.toString + ", test: " + test + ", right: " + right.toString)
+}
 
 abstract class Expression extends Statement {
     override def execute() {

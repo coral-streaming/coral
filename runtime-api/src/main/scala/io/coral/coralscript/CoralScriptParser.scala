@@ -22,20 +22,20 @@ object CoralScriptParser extends JavaTokenParsers with PackratParsers {
 
     /**===== STATEMENT =====*/
 	lazy val statement: P[Statement] =
-		(variable_declaration
+		(trigger_action
+        | trigger_condition
+        | variable_declaration
         | event_declaration
         | entity_declaration
         | collect_declaration
-        | emit_statement
-        | method_declaration
-        | feature
-        //| trigger_action
-        | trigger_condition
-        | expression
-        | statement_block
         | if_statement
         | while_statement
         | for_statement
+        | emit_statement
+        | method_declaration
+        | feature
+        | statement_block
+        | expression
         | "return" ~ expression ^^ { case "return" ~ e => ReturnStatement(e)}
         | "break" ^^ { case "break" => BreakStatement() }
         | "continue" ^^ { case "continue" => ContinueStatement() } )
@@ -47,8 +47,9 @@ object CoralScriptParser extends JavaTokenParsers with PackratParsers {
             case ("if" ~ "(" ~ condition ~ ")" ~ ifpart ~ "else" ~ elsepart)
                 => IfStatement(condition, ifpart, elsepart)}
     lazy val while_statement: P[WhileStatement] =
-        "while" ~ "(" ~ testing_expression ~ ")" ~ statement ^^ {
-            case ("while" ~ "(" ~ condition ~ ")" ~ s) => WhileStatement(condition, s) }
+        "while" ~ "(" ~ testing_expression ~ ")" ~ statement_block ^^ {
+            case ("while" ~ "(" ~ condition ~ ")" ~ s) =>
+                WhileStatement(condition, s) }
     lazy val for_statement: P[ForStatement] =
         "for" ~ "(" ~ variable_declaration ~ ";" ~ expression ~ ";" ~ expression ~ ")" ~ statement ^^ {
             case ("for" ~ "(" ~ declaration ~ ";" ~ middle ~ ";" ~ right ~ ";" ~ s)
@@ -65,9 +66,8 @@ object CoralScriptParser extends JavaTokenParsers with PackratParsers {
         identifier ~ "=" ~ expression ^^ {
             case (id ~ "=" ~ expr) => VariableDeclarator(id, expr)}
     lazy val identifier: P[Identifier] =
-        ident ^^ { case i => SimpleIdentifier(i)}
-    lazy val nested_json_identifier: P[JsonIdentifier] =
-        repsep(identifier, ".") ^^ { case i => JsonIdentifier(i)}
+        (repsep(ident, ".") ^^ { case i => Identifier(i) }
+        | ident ^^ { case i => println(i); Identifier(List(i)) })
 
     /**===== EVENT =====*/
     lazy val event_declaration: P[EventDeclaration] =
@@ -80,7 +80,7 @@ object CoralScriptParser extends JavaTokenParsers with PackratParsers {
         identifier ~ ":" ~ type_specifier ^^ {
             case v ~ ":" ~ t => EventVariable(v, t)}
     lazy val event_field: P[EventField] =
-        nested_json_identifier ^^ {
+        identifier ^^ {
             case i => EventField(i)}
 
     /**===== ENTITY =====*/
@@ -124,7 +124,7 @@ object CoralScriptParser extends JavaTokenParsers with PackratParsers {
         builtin_method | identifier ^^ {
             case i => SelectIdentifier(i)}
     lazy val builtin_method: P[BuiltinMethod] =
-        builtin_method_name ~ "(" ~ nested_json_identifier ~ ")" ^^ {
+        builtin_method_name ~ "(" ~ identifier ~ ")" ^^ {
             case name ~ "(" ~ field ~ ")" => BuiltinMethod(name, field)}
     lazy val table_expression: P[TableExpression] =
         from_clause ~ (where_clause?) ~ (group_by_clause?) /*~ having_clause? ~ order_clause? ~ window_clause?*/ ^^ {
@@ -164,8 +164,8 @@ object CoralScriptParser extends JavaTokenParsers with PackratParsers {
             case "collect" ~ id ~ "(" ~ list ~ ")" ~ "{" ~ block ~ "}"
                 => CollectDeclaration(id, list.orNull, block) }
     lazy val collect_block: P[CollectBlock] =
-        collect_from ~ "," ~ collect_with ^^ {
-            case f ~ "," ~ w => CollectBlock(f, w)}
+        collect_from ~ collect_with ^^ {
+            case f ~ w => CollectBlock(f, w)}
     lazy val collect_from: P[CollectFrom] =
         "from" ~ ":" ~ identifier ^^ {
             case "from" ~ ":" ~ id => CollectFrom(id) }
@@ -182,15 +182,15 @@ object CoralScriptParser extends JavaTokenParsers with PackratParsers {
             case ("{" ~ fields ~ "}") => EmitJson(fields)}
     lazy val emit_json_field: P[EmitJsonField] =
         string_literal ~ ":" ~ emit_json_value ^^ {
-            case (id ~ ":" ~ expr) => EmitJsonField(SimpleIdentifier(id), expr)}
+            case (id ~ ":" ~ expr) => EmitJsonField(Identifier(List(id)), expr)}
     lazy val emit_json_value: P[EmitJsonValue] =
         (string_literal
         | boolean_literal
         | integer_literal
         | float_literal
-        | nested_json_identifier
+        | identifier
         | expression
-        | identifier) ^^ {
+        ) ^^ {
             case value => EmitJsonValue(value) }
 
     /**===== TRIGGER =====*/
@@ -199,7 +199,8 @@ object CoralScriptParser extends JavaTokenParsers with PackratParsers {
             case "trigger" ~ a ~ "on" ~ c => TriggerDeclaration(a, c) }
     lazy val trigger_action: P[TriggerAction] =
         "action" ~ identifier ~ "=" ~ "{" ~ rep(trigger_statement) ~ "}" ^^ {
-            case "action" ~ id ~ "=" ~ "{" ~ statements ~ "}" => TriggerAction(id, statements)}
+            case "action" ~ id ~ "=" ~ "{" ~ statements ~ "}" =>
+                TriggerAction(id, statements)}
     lazy val trigger_condition: P[TriggerCondition] =
         "condition" ~ identifier ~ "=" ~ condition_block ^^ {
             case "condition" ~ id ~ "=" ~ b => TriggerCondition(id, b) }
@@ -207,20 +208,19 @@ object CoralScriptParser extends JavaTokenParsers with PackratParsers {
         "{" ~ rep(trigger_statement) ~ "}" ^^ {
             case "{" ~ s ~ "}" => ConditionBlock(s)}
     lazy val trigger_statement: P[TriggerStatement] =
-        (variable_declaration
-        | expression
+        (while_statement
+        | for_statement
         | if_statement
-        | while_statement
-        | for_statement) ^^ {
+        | variable_declaration
+        | expression) ^^ {
             case s => TriggerStatement(s)}
 
     /**===== EXPRESSION =====*/
 	lazy val expression: P[Expression] =
-		(numeric_expression
+        (identifier
+        | numeric_expression
         | testing_expression
         | literal_expression
-        | out_expression
-        | identifier
         | ("(" ~ expression  ~ ")") ^^ {
             case ("(" ~ e ~ ")") => e })
 	lazy val numeric_expression: P[NumericExpression] =
@@ -231,10 +231,10 @@ object CoralScriptParser extends JavaTokenParsers with PackratParsers {
 		| expression ~ ("+" | "+=" | "-" | "-=" | "*" | "*=" | "/" | "/=") ~ expression ^^ {
             case (left ~ op ~ right) => StandardNumericExpression(left, op, right) })
 	lazy val testing_expression: P[TestingExpression] =
-		(expression ~ (">" | "<" | ">=" | "<=" | "==" | "!=") ~ expression ^^ {
+		expression ~ (">" | "<" | ">=" | "<=" | "==" | "!=") ~ expression ^^ {
             case (left ~ test ~ right) => TestingExpression(left, test, right) }
-		| expression ~ ("&&" | "||") ~ expression ^^ {
-            case (left ~ op ~ right) => TestingExpression(left, op, right) })
+		/*| expression ~ ("&&" | "||") ~ expression ^^ {
+            case (left ~ op ~ right) => TestingExpression(left, op, right) })*/
 	lazy val literal_expression: P[LiteralExpression] =
 		(float_literal ^^ {
             case f => FloatLiteralExpression(f.toFloat) }
@@ -257,7 +257,7 @@ object CoralScriptParser extends JavaTokenParsers with PackratParsers {
         | "Float"
         | "Long"
         | "String"
-        | "DateTime")
+        | "DateTime") ^^ { case x => println(x); x }
     lazy val builtin_method_name =
         ("avg"
         | "max"

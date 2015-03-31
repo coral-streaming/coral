@@ -5,12 +5,12 @@ import org.scalatest.FunSuite
 import scala.util.parsing.combinator.PackratParsers
 import scala.util.parsing.input.CharSequenceReader
 
-class TestStatements extends FunSuite with PackratParsers {
+class CoralScriptStatementsSpec extends FunSuite with PackratParsers {
 	test("single assignment") {
 		val script = "int a = 1\n\n"
 		val result = CoralScriptParser.parse(script)
 		assert(result == CoralScript(List(VariableDeclaration("int",
-			VariableDeclarator(SimpleIdentifier("a"), IntegerLiteralExpression(1))))))
+			VariableDeclarator(Identifier(List("a")), IntegerLiteralExpression(1))))))
 	}
 
 	test("multiple assignments") {
@@ -18,8 +18,8 @@ class TestStatements extends FunSuite with PackratParsers {
 
 		val result = CoralScriptParser.parse(script)
 		assert(result == CoralScript(List(VariableDeclaration("float",
-			VariableDeclarator(SimpleIdentifier("a"), FloatLiteralExpression(323.12f))),
-			VariableDeclaration("int", VariableDeclarator(SimpleIdentifier("x"),
+			VariableDeclarator(Identifier(List("a")), FloatLiteralExpression(323.12f))),
+			VariableDeclaration("int", VariableDeclarator(Identifier(List("x")),
 				IntegerLiteralExpression(10))))))
 	}
 
@@ -31,28 +31,28 @@ class TestStatements extends FunSuite with PackratParsers {
 
 		val result = CoralScriptParser.parse(script)
 		assert(result == CoralScript(List(
-			VariableDeclaration("int", VariableDeclarator(SimpleIdentifier("x"), IntegerLiteralExpression(10))),
-			VariableDeclaration("int", VariableDeclarator(SimpleIdentifier("y"), IntegerLiteralExpression(12))),
-			VariableDeclaration("int", VariableDeclarator(SimpleIdentifier("z"), StandardNumericExpression(SimpleIdentifier("x"),
-				"+", StandardNumericExpression(SimpleIdentifier("y"), "*", IntegerLiteralExpression(2))))),
-			OutExpression(VariableDeclaration("int", VariableDeclarator(SimpleIdentifier("bla"),
-				StandardNumericExpression(SimpleIdentifier("z"), "+", IntegerLiteralExpression(3))))))))
+			VariableDeclaration("int", VariableDeclarator(Identifier(List("x")), IntegerLiteralExpression(10))),
+			VariableDeclaration("int", VariableDeclarator(Identifier(List("y")), IntegerLiteralExpression(12))),
+			VariableDeclaration("int", VariableDeclarator(Identifier(List("z")), StandardNumericExpression(Identifier(List("x")),
+				"+", StandardNumericExpression(Identifier(List("y")), "*", IntegerLiteralExpression(2))))),
+			OutExpression(VariableDeclaration("int", VariableDeclarator(Identifier(List("bla")),
+				StandardNumericExpression(Identifier(List("z")), "+", IntegerLiteralExpression(3))))))))
 	}
 
 	test("simple assignments") {
 		val script1 = "int x = 10\n"
 		val result1 = parse(CoralScriptParser.variable_declaration, script1)
-		assert(result1 == VariableDeclaration("int", VariableDeclarator(SimpleIdentifier("x"),
+		assert(result1 == VariableDeclaration("int", VariableDeclarator(Identifier(List("x")),
 			IntegerLiteralExpression(10))))
 
 		val script2 = "int y = 20" // without \n
 		val result2 = parse(CoralScriptParser.variable_declaration, script2)
-		assert(result2 == VariableDeclaration("int", VariableDeclarator(SimpleIdentifier("y"),
+		assert(result2 == VariableDeclaration("int", VariableDeclarator(Identifier(List("y")),
 			IntegerLiteralExpression(20))))
 
 		val script3 = "int z = 10 + 20\n"
 		val result3 = parse(CoralScriptParser.variable_declaration, script3)
-		assert(result3 == VariableDeclaration("int", VariableDeclarator(SimpleIdentifier("z"),
+		assert(result3 == VariableDeclaration("int", VariableDeclarator(Identifier(List("z")),
 			StandardNumericExpression(IntegerLiteralExpression(10),
 				"+", IntegerLiteralExpression(20)))))
 	}
@@ -66,11 +66,11 @@ class TestStatements extends FunSuite with PackratParsers {
 			"   int b = 12\n" +
 			"}"
 		val result = parse(CoralScriptParser.if_statement, script)
-		assert(result == IfStatement(TestingExpression(SimpleIdentifier("x"), "==", IntegerLiteralExpression(10)),
-			StatementBlock(List(VariableDeclaration("int", VariableDeclarator(SimpleIdentifier("y"), IntegerLiteralExpression(20))),
-			VariableDeclaration("int", VariableDeclarator(SimpleIdentifier("z"), StandardNumericExpression(SimpleIdentifier("y"), "+",
+		assert(result == IfStatement(TestingExpression(Identifier(List("x")), "==", IntegerLiteralExpression(10)),
+			StatementBlock(List(VariableDeclaration("int", VariableDeclarator(Identifier(List("y")), IntegerLiteralExpression(20))),
+			VariableDeclaration("int", VariableDeclarator(Identifier(List("z")), StandardNumericExpression(Identifier(List("y")), "+",
 				IntegerLiteralExpression(5)))))),
-			StatementBlock(List(VariableDeclaration("int", VariableDeclarator(SimpleIdentifier("b"),
+			StatementBlock(List(VariableDeclaration("int", VariableDeclarator(Identifier(List("b")),
 				IntegerLiteralExpression(12)))))))
 	}
 
