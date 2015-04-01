@@ -30,7 +30,7 @@ object LookupActor {
 
 class LookupActor(json: JObject) extends CoralActor with ActorLogging {
   def jsonDef = json
-  val (key,lookup, function) = LookupActor.getParams(json).get
+  val (key, lookup, function) = LookupActor.getParams(json).get
 
   def state =  Map.empty
 
@@ -44,7 +44,6 @@ class LookupActor(json: JObject) extends CoralActor with ActorLogging {
       for {
       // from trigger data
         value <- getTriggerInputField[String](json \ key)
-
       } yield {
         // compute (local variables & update state)
         lookupObject = lookup.get(value)
@@ -53,9 +52,6 @@ class LookupActor(json: JObject) extends CoralActor with ActorLogging {
 
   def emit = {
     json: JObject =>
-
-      //emit resulting json
-
       function match {
         case "enrich" => json merge render(lookupObject.getOrElse(JNothing))
         case "filter" => lookupObject map (_ => json) getOrElse(JNull)
