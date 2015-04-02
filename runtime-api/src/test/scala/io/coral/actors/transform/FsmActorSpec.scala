@@ -40,26 +40,26 @@ class FsmActorSpec(_system: ActorSystem)
       s"""{
          |"type": "fsm",
          |"params": {
-         |  "key": "transactionsize",
-         |  "table": {
-         |    "normal": {
-         |      "small": "normal",
-         |      "large": "normal",
-         |      "x-large": "suspicious"
-         |    },
-         |    "suspicious": {
-         |      "small": "normal",
-         |      "large": "suspicious",
-         |      "x-large": "alarm",
-         |      "oeps": "unknown"
-         |    },
-         |    "alarm":{
-         |      "small": "suspicious",
-         |      "large": "alarm",
-         |      "x-large": "alarm"
-         |    }
-         |  },
-         |  "s0": "normal"
+         | "key": "transactionsize",
+         | "table": {
+         |   "normal": {
+         |     "small": "normal",
+         |     "large": "normal",
+         |     "x-large": "suspicious"
+         |   },
+         |   "suspicious": {
+         |     "small": "normal",
+         |     "large": "suspicious",
+         |     "x-large": "alarm",
+         |     "oeps": "unknown"
+         |   },
+         |   "alarm":{
+         |     "small": "suspicious",
+         |     "large": "alarm",
+         |     "x-large": "alarm"
+         |   }
+         | },
+         | "s0": "normal"
          |} }""".stripMargin)
     createFsmActor(json)
   }
@@ -101,6 +101,19 @@ class FsmActorSpec(_system: ActorSystem)
     }
 
     "Not instantiate with a json without key/table/s0" in {
+      val json = parse(
+        """{ "type": "fsm",
+          |  "params": {
+          |    "key": "a",
+          |    "table": {"aa": {"bb":"cc"}},
+          |    "s0": "does not exist in able" } }""".stripMargin)
+      val props = FsmActor(json)
+      intercept[ActorInitializationException] {
+        new FsmActor(json.asInstanceOf[JObject])
+      }
+    }
+
+    "Not instantiate with a json with invalid s0" in {
       val json = parse( """{ "test": "whatever" }""")
       intercept[ActorInitializationException] {
         new FsmActor(json.asInstanceOf[JObject])
