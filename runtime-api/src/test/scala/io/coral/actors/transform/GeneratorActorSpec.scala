@@ -40,8 +40,8 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
                     "field3": "U(100)"
                 }, "timer": {
                     "rate": 10,
-                    "times": 100,
-                    "delay": 2000
+                    "times": 1,
+                    "delay": 0
                 } } """).asInstanceOf[JObject]
 
       val props = CoralActorFactory.getProps(definition).get
@@ -70,16 +70,14 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
                     "field3": "U(100.743)"
                 }, "timer": {
                     "rate": 10,
-                    "times": 100,
-                    "delay": 2000
+                    "times": 1,
+                    "delay": 0
                 } } """).asInstanceOf[JObject]
 
       val props = CoralActorFactory.getProps(definition).get
       val generator = TestActorRef[GeneratorActor](props)
       val probe = TestProbe()
       generator.underlyingActor.emitTargets += probe.ref
-
-      probe.expectNoMsg(2 seconds)
 
       probe.receiveOne(1.second) match {
         case JObject(List(
@@ -105,8 +103,8 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
                     }
                 }, "timer": {
                     "rate": 10,
-                    "times": 100,
-                    "delay": 2000
+                    "times": 1,
+                    "delay": 0
                 }
             } """).asInstanceOf[JObject]
 
@@ -115,15 +113,13 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
       val probe = TestProbe()
       generator.underlyingActor.emitTargets += probe.ref
 
-      probe.expectNoMsg(2 seconds)
-
       probe.receiveOne(1.second) match {
         case JObject(List(("field1", JDouble(_)),
         ("field2", JString(_)),
         ("field3", JObject(List(
-        ("nested1", JDouble(_)),
-        ("nested2", JDouble(_)),
-        ("nested3", JDouble(_))))))) =>
+          ("nested1", JDouble(_)),
+          ("nested2", JDouble(_)),
+          ("nested3", JDouble(_))))))) =>
         // Do nothing, success
         case other =>
           fail("Invalid tree created")
@@ -143,8 +139,8 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
                     }
                 }, "timer": {
                     "rate": 10,
-                    "times": 100,
-                    "delay": 2000
+                    "times": 1,
+                    "delay": 0
                 }
             } """).asInstanceOf[JObject]
 
@@ -170,8 +166,8 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
                     }
                 }, "timer": {
                     "rate": 10,
-                    "times": 100,
-                    "delay": 2000
+                    "times": 1,
+                    "delay": 0
                 }
             } """).asInstanceOf[JObject]
 
@@ -191,8 +187,8 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
                     "field2": "[[''a', 'b,, 'c']",
                 }, "timer": {
                     "rate": 10,
-                    "times": 100,
-                    "delay": 2000
+                    "times": 1,
+                    "delay": 0
                 }
             } """).asInstanceOf[JObject]
 
@@ -212,8 +208,8 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
                     "field2": "[]",
                 }, "timer": {
                     "rate": 10,
-                    "times": 100,
-                    "delay": 2000
+                    "times": 1,
+                    "delay": 0
                 }
             } """).asInstanceOf[JObject]
 
@@ -234,8 +230,8 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
                     "field3": "U(100)"
                 }, "timer": {
                     "rate": -20,
-                    "times": 100,
-                    "delay": 3000
+                    "times": 1,
+                    "delay": 0
                 } } """).asInstanceOf[JObject]
 
       val props = CoralActorFactory.getProps(definition)
@@ -251,8 +247,8 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
                     "field3": "U(100)"
                 }, "timer": {
                     "rate": "notAnInteger",
-                    "times": 100,
-                    "delay": 3000
+                    "times": 1,
+                    "delay": 0
                 } } """).asInstanceOf[JObject]
 
       val props = CoralActorFactory.getProps(definition)
@@ -267,8 +263,8 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
                     "field2": "['a', 'b', 'c']",
                     "field3": "U(100)"
                 }, "timer": {
-                    "times": 100,
-                    "delay": 3000
+                    "times": 1,
+                    "delay": 0
                 } } """).asInstanceOf[JObject]
 
       val props = CoralActorFactory.getProps(definition)
@@ -308,7 +304,7 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
                     "field3": "U(100)"
                 }, "timer": {
                     "rate": 20,
-                    "times": 100,
+                    "times": 1,
                     "delay": -3000
                 } } """).asInstanceOf[JObject]
 
@@ -321,7 +317,7 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
       assert(method == JInt(20))
 
       val number = Await.result(generator.ask(GetField("times")), duration)
-      assert(number == JInt(100))
+      assert(number == JInt(1))
 
       val sliding = Await.result(generator.ask(GetField("delay")), duration)
       assert(sliding == JInt(0))
@@ -348,18 +344,18 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
       val value = probe.receiveN(3, Timeout(100.millis).duration).toSeq
       value match {
         case Seq(
-        JObject(List(
-        ("field1", JDouble(_)),
-        ("field2", JString(_)),
-        ("field3", JDouble(_)))),
-        JObject(List(
-        ("field1", JDouble(_)),
-        ("field2", JString(_)),
-        ("field3", JDouble(_)))),
-        JObject(List(
-        ("field1", JDouble(_)),
-        ("field2", JString(_)),
-        ("field3", JDouble(_))))) =>
+          JObject(List(
+            ("field1", JDouble(_)),
+            ("field2", JString(_)),
+            ("field3", JDouble(_)))),
+          JObject(List(
+            ("field1", JDouble(_)),
+            ("field2", JString(_)),
+            ("field3", JDouble(_)))),
+          JObject(List(
+            ("field1", JDouble(_)),
+            ("field2", JString(_)),
+            ("field3", JDouble(_))))) =>
         // Do nothing, success
         case other =>
           fail("Invalid tree created")
@@ -377,7 +373,7 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
                     "field3": "U(100)"
                 }, "timer": {
                     "rate": 10,
-                    "times": 100
+                    "times": 1
                 } } """).asInstanceOf[JObject]
 
       val props = CoralActorFactory.getProps(definition).get
@@ -389,9 +385,9 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
       val value = probe.receiveOne(500.millis)
       value match {
         case JObject(List(
-        ("field1", JDouble(_)),
-        ("field2", JString(_)),
-        ("field3", JDouble(_)))) =>
+          ("field1", JDouble(_)),
+          ("field2", JString(_)),
+          ("field3", JDouble(_)))) =>
         // Do nothing, success
         case other =>
           println(other)
@@ -408,7 +404,7 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
                     "field3": "U(100)"
                 }, "timer": {
                     "rate": 10,
-                    "times": 100,
+                    "times": 1,
                     "delay": 3000
                 } } """).asInstanceOf[JObject]
 
@@ -422,9 +418,9 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
       val value = probe.receiveOne(1.seconds)
       value match {
         case JObject(List(
-        ("field1", JDouble(_)),
-        ("field2", JString(_)),
-        ("field3", JDouble(_)))) =>
+          ("field1", JDouble(_)),
+          ("field2", JString(_)),
+          ("field3", JDouble(_)))) =>
         // Do nothing, success
         case other =>
           fail("Invalid tree created")
@@ -453,18 +449,18 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
       val value = probe.receiveN(3, Timeout(100.millis).duration).toSeq
       value match {
         case Seq(
-        JObject(List(
-        ("field1", JDouble(_)),
-        ("field2", JString(_)),
-        ("field3", JDouble(_)))),
-        JObject(List(
-        ("field1", JDouble(_)),
-        ("field2", JString(_)),
-        ("field3", JDouble(_)))),
-        JObject(List(
-        ("field1", JDouble(_)),
-        ("field2", JString(_)),
-        ("field3", JDouble(_))))) =>
+          JObject(List(
+            ("field1", JDouble(_)),
+            ("field2", JString(_)),
+            ("field3", JDouble(_)))),
+          JObject(List(
+            ("field1", JDouble(_)),
+            ("field2", JString(_)),
+            ("field3", JDouble(_)))),
+          JObject(List(
+            ("field1", JDouble(_)),
+            ("field2", JString(_)),
+            ("field3", JDouble(_))))) =>
         // Do nothing, success
         case other =>
           fail("Invalid tree created")
