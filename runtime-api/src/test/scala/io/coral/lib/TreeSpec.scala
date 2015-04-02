@@ -1,6 +1,5 @@
 package io.coral.lib
 
-import io.coral.lib.Tree
 import org.scalatest._
 
 import scala.collection.mutable.ArrayBuffer

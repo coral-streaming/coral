@@ -4,6 +4,7 @@ import akka.actor.{Props, ActorSystem}
 import akka.testkit.{TestKit, ImplicitSender}
 import akka.util.Timeout
 import io.coral.actors.Messages.{DeleteAllActors, Delete, ListActors, CreateActor}
+import io.coral.api.DefaultModule
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
@@ -18,7 +19,7 @@ class RuntimeActorSpec(_system: ActorSystem) extends TestKit(_system)
   with BeforeAndAfterAll {
 
   def this() = this(ActorSystem("MySpec"))
-  val runtime = system.actorOf(Props[RuntimeActor], "coral")
+  val runtime = system.actorOf(Props(classOf[RuntimeActor], new DefaultModule()), "coral")
 
   override def afterAll() {
     TestKit.shutdownActorSystem(system)

@@ -8,15 +8,16 @@ import akka.actor.Props
 class DefaultActorPropFactory extends ActorPropFactory {
   def getProps(actorType: String, params: JValue): Option[Props] = {
     actorType match {
-      case "fsm" => FsmActor(params)
-      case "zscore" => ZscoreActor(params)
-      case "stats" => StatsActor(params)
-      case "lookup" => LookupActor(params)
-      case "httpserver" => HttpServerActor(params)
+      case "fsm"        => FsmActor(params)
+      case "zscore"     => ZscoreActor(params)
+      case "stats"      => StatsActor(params)
+      case "lookup"     => LookupActor(params)
+      case "httpserver" => HttpBroadcastActor(params)
       case "httpclient" => HttpClientActor(params)
-      case "cassandra" => CassandraActor(params)
-      //case "threshold" => ThresholdActor(params)
-      case "window" => WindowActor(params)
+      case "cassandra"  => CassandraActor(params)
+      case "threshold"  => ThresholdActor(params)
+      case "window"     => WindowActor(params)
+      case "generator"  => GeneratorActor(params)
       case _ => None
     }
   }

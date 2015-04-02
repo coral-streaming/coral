@@ -21,8 +21,8 @@ object GroupByActor {
     }
   }
 
-  def apply(json: JValue): Option[Props] = {
-    getParams(json).map(_ => Props(classOf[GroupByActor], json))
+  def apply(json: JValue)(implicit injector: Injector): Option[Props] = {
+    getParams(json).map(_ => Props(classOf[GroupByActor], json, injector))
   }
 }
 
