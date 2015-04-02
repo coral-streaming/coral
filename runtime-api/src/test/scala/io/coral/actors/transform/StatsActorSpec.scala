@@ -4,12 +4,12 @@ import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestActorRef, TestKit}
 import akka.util.Timeout
 import io.coral.actors.CoralActorFactory
+import io.coral.api.DefaultModule
 import org.json4s.JsonAST.JValue
 import org.json4s.JsonDSL._
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
-
 import scala.concurrent.duration._
 
 class StatsActorSpec(_system: ActorSystem)
@@ -27,6 +27,8 @@ class StatsActorSpec(_system: ActorSystem)
 
   implicit val timeout = Timeout(100.millis)
   JValue
+  
+  implicit val injector = new DefaultModule()
 
   def createStatsActor: StatsActor = {
     val createJson = parse( """{ "type": "stats", "params": { "field": "val" } }""")

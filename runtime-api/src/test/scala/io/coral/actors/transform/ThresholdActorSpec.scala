@@ -3,9 +3,8 @@ package io.coral.actors.transform
 // scala
 
 import io.coral.actors.CoralActorFactory
-
+import io.coral.api.DefaultModule
 import scala.concurrent.duration._
-
 // akka
 import akka.actor.ActorSystem
 import akka.testkit._
@@ -17,7 +16,6 @@ import org.json4s.jackson.JsonMethods._
 
 // scalatest
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
-
 
 class ThresholdActorSpec(_system: ActorSystem) extends TestKit(_system)
   with ImplicitSender
@@ -37,6 +35,8 @@ class ThresholdActorSpec(_system: ActorSystem) extends TestKit(_system)
       """{ "type": "threshold", "params":
       |{ "key": "key1", "threshold": 10.5 } }"""
       .stripMargin).asInstanceOf[JObject]
+    
+    implicit val injector = new DefaultModule()
 
     // test invalid definition json as well !!!
     val props = CoralActorFactory.getProps(createJson).get
