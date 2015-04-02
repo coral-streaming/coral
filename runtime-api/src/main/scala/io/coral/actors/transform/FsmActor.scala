@@ -47,7 +47,7 @@ class FsmActor(json: JObject) extends CoralActor with ActorLogging {
         value <- getTriggerInputField[String](json \ key)
       } yield {
         // compute (local variables & update state)
-        val e = table.getOrElse(s, s0).asInstanceOf[Map[String, String]]
+        val e = table.getOrElse(s, table(s0))
         s = e.getOrElse(value, s)
       }
   }
