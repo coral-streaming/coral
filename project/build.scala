@@ -19,19 +19,30 @@ object Packaging {
 
 object TopLevelBuild extends Build {
 
-  lazy val coral = Project (id = Settings.appName, base = file ("."))
-    .aggregate(runtimeApi)
+  val projectSettings =
+    Settings.buildSettings      ++
+    Packaging.packagingSettings ++
+    Revolver.settings           ++
+    Seq (
+      resolvers           ++= Resolvers.allResolvers,
+      libraryDependencies ++= Dependencies.allDependencies
+    )
 
-  lazy val runtimeApi = Project (
+  lazy val coral = Project (
+    id = Settings.appName,
+    base = file (".")
+  ).aggregate(coralCore, coralApi)
+
+  lazy val coralApi = Project (
     id = "runtime-api",
     base = file ("runtime-api"),
-    settings = Settings.buildSettings ++
-      Packaging.packagingSettings ++
-      Revolver.settings ++
-      Seq (
-        resolvers ++= Resolvers.allResolvers,
-        libraryDependencies ++= Dependencies.allDependencies
-      )
+    settings = projectSettings
+  ).configs( IntegrationTest ).settings( Defaults.itSettings : _*)
+
+  lazy val coralCore = Project (
+    id = "coral-core",
+    base = file ("coral-core"),
+    settings = projectSettings
   ).configs( IntegrationTest ).settings( Defaults.itSettings : _*)
 }
 
