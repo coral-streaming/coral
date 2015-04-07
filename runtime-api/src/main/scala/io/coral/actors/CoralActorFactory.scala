@@ -12,7 +12,7 @@ import scaldi.Injector
 object CoralActorFactory {
   
 	def getProps(json: JValue)(implicit injector: Injector) = {
-    val actorPropFactories: List[ActorPropFactory] = injectAllOfType [ActorPropFactory]
+    val actorPropFactories: List[ActorPropFactory] = inject [List[ActorPropFactory]]
     
 		implicit val formats = org.json4s.DefaultFormats
 

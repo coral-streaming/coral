@@ -9,12 +9,10 @@ import io.coral.actors.DefaultActorPropFactory
 class DefaultModule(implicit system: ActorSystem) extends Module {
   private val ActorPropFactoriesConfigPath = "injections.actorPropFactories"
 
-  for (actorPropFactory <- createActorPropFactories) {
-    bind[ActorPropFactory] identifiedBy actorPropFactory._1 to actorPropFactory._2
-  }
+  bind[List[ActorPropFactory]] to createActorPropFactories
 
-  private def createActorPropFactories: List[(String, ActorPropFactory)] = {
-    getActorPropFactoryClassNames.map(name => (name, Class.forName(name).newInstance.asInstanceOf[ActorPropFactory]))
+  private def createActorPropFactories: List[ActorPropFactory] = {
+    getActorPropFactoryClassNames.map(Class.forName(_).newInstance.asInstanceOf[ActorPropFactory])
   }
 
   private def getActorPropFactoryClassNames: List[String] = {
