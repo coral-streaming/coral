@@ -36,7 +36,7 @@ class ThresholdActorSpec(_system: ActorSystem) extends TestKit(_system)
       |{ "key": "key1", "threshold": 10.5 } }"""
       .stripMargin).asInstanceOf[JObject]
     
-    implicit val injector = new DefaultModule()
+    implicit val injector = new DefaultModule(system.settings.config)
 
     // test invalid definition json as well !!!
     val props = CoralActorFactory.getProps(createJson).get

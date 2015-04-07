@@ -28,11 +28,11 @@ class GroupByActorSpec(_system: ActorSystem)
     TestKit.shutdownActorSystem(system)
   }
 
-  val runtime = system.actorOf(Props(classOf[RuntimeActor], new DefaultModule()), "coral")
+  val runtime = system.actorOf(Props(classOf[RuntimeActor], new DefaultModule(system.settings.config)), "coral")
 
   implicit val timeout = Timeout(100 millis)
   implicit val formats = org.json4s.DefaultFormats
-  implicit val injector = new DefaultModule()
+  implicit val injector = new DefaultModule(system.settings.config)
 
   // here is a dependency on the stats actor
   // in the current situation (the CoralActorFactory) it seems unavoidable to depend in some tests on an existing actor instead of injecting a test actor

@@ -20,7 +20,7 @@ class ZscoreActorSpec(_system: ActorSystem)
   with Matchers
   with BeforeAndAfterAll {
 
-  implicit val injector = new DefaultModule()
+  implicit val injector = new DefaultModule(system.settings.config)
 
   def this() = this(ActorSystem("coral"))
 

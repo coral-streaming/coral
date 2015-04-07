@@ -22,7 +22,7 @@ class LookupActorSpec(_system: ActorSystem) extends TestKit(_system)
 
     def this() = this(ActorSystem("StatsActorSpec"))
 
-    implicit val injector = new DefaultModule()
+    implicit val injector = new DefaultModule(system.settings.config)
 
     override def afterAll() {
         TestKit.shutdownActorSystem(system)

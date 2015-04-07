@@ -33,7 +33,7 @@ class HttpClientActorSpec(_system: ActorSystem)
     TestKit.shutdownActorSystem(system)
   }
 
-  implicit val injector = new DefaultModule()
+  implicit val injector = new DefaultModule(system.settings.config)
   
   val testProbe = TestProbe()
   val instantiationJson = parse( """{ "type": "httpclient", "params": { "url": "http://google.com" } }""")

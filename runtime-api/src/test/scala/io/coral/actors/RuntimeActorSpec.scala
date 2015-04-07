@@ -19,7 +19,7 @@ class RuntimeActorSpec(_system: ActorSystem) extends TestKit(_system)
   with BeforeAndAfterAll {
 
   def this() = this(ActorSystem("MySpec"))
-  val runtime = system.actorOf(Props(classOf[RuntimeActor], new DefaultModule()), "coral")
+  val runtime = system.actorOf(Props(classOf[RuntimeActor], new DefaultModule(system.settings.config)), "coral")
 
   override def afterAll() {
     TestKit.shutdownActorSystem(system)

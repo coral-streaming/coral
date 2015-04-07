@@ -10,7 +10,8 @@ import scaldi.Module
 
 class CoralActorFactorySpec(_system: ActorSystem) extends TestKit(_system)
   with WordSpecLike
-  with Matchers with BeforeAndAfterAll {
+  with Matchers
+  with BeforeAndAfterAll {
 
   def this() = this(ActorSystem("testSystem"))
 
@@ -51,7 +52,7 @@ class CoralActorFactorySpec(_system: ActorSystem) extends TestKit(_system)
      }
 
     "create a GroupActor when the type is group" in {
-      val json = parse("""{ "type": "group" }""")
+      val json = parse("""{ "group": {"by": "value" } }""")
       implicit val injector = new Module {}
       assert(CoralActorFactory.getProps(json).get.actorClass == classOf[GroupByActor])
     }

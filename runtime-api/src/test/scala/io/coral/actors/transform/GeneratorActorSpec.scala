@@ -23,7 +23,7 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
   with BeforeAndAfterAll {
 
   implicit val timeout = Timeout(1.seconds)
-  implicit val injector = new DefaultModule()
+  implicit val injector = new DefaultModule(system.settings.config)
   val duration = timeout.duration
 
   def this() = this(ActorSystem("testSystem"))
