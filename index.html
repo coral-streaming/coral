@@ -1,0 +1,17 @@
+---
+layout: default
+title: Coral wiki
+---
+
+<div class="row">
+    <div class="col-md-12">
+        <H1>Coral Wiki index page</H1>
+    </div>
+    {% for topic in site.posts %}
+    <div class="row">
+        <div class="col-md-12">
+            <a>{{ topic.title }}</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
