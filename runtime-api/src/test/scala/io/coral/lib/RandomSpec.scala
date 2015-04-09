@@ -4,20 +4,10 @@ import org.scalatest.{Matchers, WordSpecLike}
 
 class RandomSpec extends WordSpecLike with Matchers {
 
-  // Note: we do not test the underlying source of random numbers here
-  case class NotSoRandomDouble(xs: Double*) extends java.util.Random {
-    var i = -1
-
-    override def nextDouble(): Double = {
-      i += 1
-      xs(i)
-    }
-  }
-
   "The Random object" should {
 
     "provide a stream of uniformly distributed doubles" in {
-      val source = NotSoRandomDouble(0.3, 0.8)
+      val source = NotSoRandom(0.3, 0.8)
       val random = new Random(source)
       val stream = random.uniform()
       stream.head should be(0.3) // as example of simple use case
@@ -25,14 +15,14 @@ class RandomSpec extends WordSpecLike with Matchers {
     }
 
     "provide a stream of uniformly distributed doubles with scale" in {
-      val source = NotSoRandomDouble(0.3, 0.8)
+      val source = NotSoRandom(0.3, 0.8)
       val random = new Random(source)
       val stream = random.uniform(2.0, 6.0)
       stream.take(2).toList should be(List(3.2, 5.2))
     }
 
     "provide a stream of weighted true/false values (binomial values)" in {
-      val source = NotSoRandomDouble(0.3, 0.8, 0.299999, 0.0, 1.0)
+      val source = NotSoRandom(0.3, 0.8, 0.299999, 0.0, 1.0)
       val random = new Random(source)
       val stream = random.binomial(0.3)
       stream.take(5).toList should be(List(false, false, true, true, false))
