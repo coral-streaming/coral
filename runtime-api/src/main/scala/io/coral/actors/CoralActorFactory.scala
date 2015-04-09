@@ -30,6 +30,7 @@ object CoralActorFactory {
         case "httpbroadcast" => HttpBroadcastActor(json)
         case "httpclient" => HttpClientActor(json)
         case "cassandra"  => CassandraActor(json)
+        case "sample"     => SampleActor(json)
         case "threshold"  => ThresholdActor(json)
         case "window"     => WindowActor(json)
         case "generator"  => GeneratorActor(json)

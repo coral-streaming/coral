@@ -80,6 +80,16 @@ class CoralActorFactorySpec extends WordSpecLike with Matchers {
       props.get.actorClass should be(classOf[HttpClientActor])
     }
 
+    "Provide a SampleActor for type 'stats'" in {
+      val json =
+        """{
+          |"type": "sample",
+          |"params": { "fraction": 0.5 }
+          |}""".stripMargin
+      val props = CoralActorFactory.getProps(parse(json))
+      props.get.actorClass should be(classOf[SampleActor])
+    }
+
     "Provide a StatsActor for type 'stats'" in {
       val json =
         """{
