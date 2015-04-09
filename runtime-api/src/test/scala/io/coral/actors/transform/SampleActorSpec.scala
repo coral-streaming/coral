@@ -10,7 +10,7 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.concurrent.duration._
-import scala.languageFeature.postfixOps
+import scala.language.postfixOps
 
 class SampleActorSpec(_system: ActorSystem)
   extends TestKit(_system)
