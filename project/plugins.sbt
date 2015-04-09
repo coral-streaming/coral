@@ -1,4 +1,4 @@
-scalaVersion := "2.10.4"
+scalaVersion := "2.10.5"
 
 resolvers ++= Seq(
   "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/",
@@ -15,4 +15,8 @@ resolvers += Classpaths.sbtPluginReleases
 
 addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.0.4")
 
-addSbtPlugin("org.scoverage" % "sbt-coveralls" % "1.0.0.BETA1")
+// the following plugin is built from source locally
+// using sources from a sbt-coveralls fork at git://github.com/coral-streaming/sbt-coveralls
+// check project/project/build.scala and http://www.scala-sbt.org/0.13.5/docs/Extending/Plugins.html 1d)
+//
+// addSbtPlugin("org.scoverage" % "sbt-coveralls" % "1.0.0.BETA1")

@@ -2,9 +2,8 @@ package io.coral.actors
 
 //json
 
-import io.coral.actors.database.CassandraActor
 import org.json4s._
-import io.coral.actors.transform._
+import io.coral.actors.transform.GroupByActor
 import akka.actor.Props
 import scaldi.Injectable._
 import scaldi.Injector

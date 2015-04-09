@@ -12,7 +12,7 @@ class DefaultActorPropFactory extends ActorPropFactory {
       case "zscore"     => ZscoreActor(params)
       case "stats"      => StatsActor(params)
       case "lookup"     => LookupActor(params)
-      case "httpserver" => HttpBroadcastActor(params)
+      case "httpbroadcast" => HttpBroadcastActor(params)
       case "httpclient" => HttpClientActor(params)
       case "cassandra"  => CassandraActor(params)
       case "threshold"  => ThresholdActor(params)

@@ -1,79 +1,90 @@
 package io.coral.actors
 
-import akka.actor.{Actor, ActorSystem, Props}
-import akka.testkit.TestKit
+import akka.actor.{Props, Actor}
 import io.coral.actors.transform.GroupByActor
-import org.json4s.JsonAST.JValue
-import org.json4s.jackson.JsonMethods._
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import org.json4s._
+import org.json4s.native.JsonMethods._
+import org.scalatest.{Matchers, WordSpecLike}
 import scaldi.Module
 
-class CoralActorFactorySpec(_system: ActorSystem) extends TestKit(_system)
-  with WordSpecLike
-  with Matchers
-  with BeforeAndAfterAll {
+class CoralActorFactorySpec extends WordSpecLike with Matchers {
 
-  def this() = this(ActorSystem("testSystem"))
+  implicit val formats = org.json4s.DefaultFormats
 
-  override def afterAll() {
-    TestKit.shutdownActorSystem(system)
-  }
+  "The CoralActorFactor" should {
 
-  "The CoralActorFactory" should {
-
-     "create no Props when no corresponding actor is defined" in {
-       implicit val injector = new Module {}
-       val json = parse(""""{"type":"nonexisting"}""")
-       assert(CoralActorFactory.getProps(json) == None)
-     }
-
-     "create Props when the actor is defined in a factory" in {
-       implicit val injector = new Module {
-         bind[List[ActorPropFactory]] to List(new FirstActorPropFactory())
-       }
-       val json = parse("""{ "type": "actorOne" }""")
-       assert(CoralActorFactory.getProps(json).get.actorClass == classOf[ActorOne])
-     }
-
-     "create Props when the actor is defined in one of the given factories" in {
-       implicit val injector = new Module {
-         bind[List[ActorPropFactory]] to List(new FirstActorPropFactory(), new SecondActorPropFactory())
-       }
-       val json = parse("""{ "type": "actorTwo" }""")
-       assert(CoralActorFactory.getProps(json).get.actorClass == classOf[ActorTwo])
-     }
-
-     "create Props for the first actor found in one of the given factories" in {
-       implicit val injector = new Module {
-         bind[List[ActorPropFactory]] to List(new FirstActorPropFactory(), new SecondActorPropFactory())
-       }
-       val json = parse("""{ "type": "actorOne" }""")
-       assert(CoralActorFactory.getProps(json).get.actorClass == classOf[ActorOne])
-     }
-
-    "create a GroupActor when the type is group" in {
-      val json = parse("""{ "group": {"by": "value" } }""")
+    "Provide nothing for invalid JSON" in {
       implicit val injector = new Module {}
-      assert(CoralActorFactory.getProps(json).get.actorClass == classOf[GroupByActor])
+      val json = """{}"""
+      val props = CoralActorFactory.getProps(parse(json))
+      props should be(None)
+    }
+
+    "Provide a GroupByActor for any type with group by clause" in {
+      val json =
+        """{
+          |"type": "stats",
+          |"params": { "field": "val" },
+          |"group": { "by": "somefield" }
+          |}""".stripMargin
+      implicit val injector = new Module {}
+      val props = CoralActorFactory.getProps(parse(json))
+      props.get.actorClass should be(classOf[GroupByActor])
+    }
+
+    "Provide nothing for unknown type" in {
+      implicit val injector = new Module {}
+      val json = """{"type": "nonexisting"}"""
+      val props = CoralActorFactory.getProps(parse(json))
+      props should be(None)
+    }
+
+    "Provide an actor when the actor is defined in a factory" in {
+      implicit val injector = new Module {
+        bind[List[ActorPropFactory]] to List(new FirstActorPropFactory())
+      }
+      val json = """{"type": "actorOne"}"""
+      val props = CoralActorFactory.getProps(parse(json))
+      props.get.actorClass should be(classOf[ActorOne])
+    }
+
+    "Provide an actor when the actor is defined in one of the given factories" in {
+      implicit val injector = new Module {
+        bind[List[ActorPropFactory]] to List(new FirstActorPropFactory(), new SecondActorPropFactory())
+      }
+      val json = """{"type": "actorTwo"}"""
+      val props = CoralActorFactory.getProps(parse(json))
+      props.get.actorClass should be(classOf[ActorTwo])
+    }
+
+    "Provide the first actor found in one of the given factories" in {
+      implicit val injector = new Module {
+        bind[List[ActorPropFactory]] to List(new FirstActorPropFactory(), new SecondActorPropFactory())
+      }
+      val json =
+        """{"type": "actorOne"}"""
+      val props = CoralActorFactory.getProps(parse(json))
+      props.get.actorClass should be(classOf[ActorOne])
+    }
+
+  }
+
+  class FirstActorPropFactory extends ActorPropFactory {
+    override def getProps(actorType: String, params: JValue): Option[Props] = {
+      actorType match {
+        case "actorOne" => Some(Props[ActorOne])
+        case _ => None
+      }
     }
   }
-}
 
-class FirstActorPropFactory extends ActorPropFactory {
-  override def getProps(actorType: String, params: JValue): Option[Props] = {
-    actorType match {
-      case "actorOne" => Some(Props(classOf[ActorOne]))
-      case _ => None
-    }
-  }
-}
-
-class SecondActorPropFactory extends ActorPropFactory {
-  override def getProps(actorType: String, params: JValue): Option[Props] = {
-    actorType match {
-      case "actorOne" => Some(Props(classOf[ActorOneAlternative]))
-      case "actorTwo" => Some(Props(classOf[ActorTwo]))
-      case _ => None
+  class SecondActorPropFactory extends ActorPropFactory {
+    override def getProps(actorType: String, params: JValue): Option[Props] = {
+      actorType match {
+        case "actorOne" => Some(Props[ActorOneAlternative])
+        case "actorTwo" => Some(Props[ActorTwo])
+        case _ => None
+      }
     }
   }
 }

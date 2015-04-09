@@ -30,7 +30,7 @@ class RuntimeActorSpec(_system: ActorSystem) extends TestKit(_system)
       runtime ! DeleteAllActors()
       expectNoMsg()
 
-      val json1 = parse("""{"type": "httpserver" }""").asInstanceOf[JObject]
+      val json1 = parse("""{"type": "httpbroadcast" }""").asInstanceOf[JObject]
       runtime ! CreateActor(json1)
       val id1 = receiveOne(500.millisecond).asInstanceOf[Option[Long]]
 
@@ -64,7 +64,7 @@ class RuntimeActorSpec(_system: ActorSystem) extends TestKit(_system)
       runtime ! DeleteAllActors()
       expectNoMsg()
 
-      val json1 = parse("""{"type": "httpserver" }""").asInstanceOf[JObject]
+      val json1 = parse("""{"type": "httpbroadcast" }""").asInstanceOf[JObject]
       runtime ! CreateActor(json1)
       val id1 = receiveOne(500.millisecond).asInstanceOf[Option[Long]]
 
