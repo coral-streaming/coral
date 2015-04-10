@@ -15,6 +15,7 @@ case class StringLiteralExpression(s: String) extends LiteralExpression
 case class TestingExpression(left: Expression, test: String, right: Expression) extends Expression {
     println("testing expression, left: " + left.toString + ", test: " + test + ", right: " + right.toString)
 }
+case class MethodCall(id: Identifier, list: IdentifierList) extends Expression
 
 abstract class Expression extends Statement {
     override def execute() {

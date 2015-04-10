@@ -23,7 +23,7 @@ case class CoralScript(statements: List[Statement]) {
 
     var alreadyParsed = false
 
-	def execute() {
+	def prepare() {
         /**
             A CoralScript consists of the following elements:
 
@@ -75,7 +75,7 @@ case class CoralScript(statements: List[Statement]) {
                 case method: MethodDeclaration =>
                     methods.put(method.id.toString, method)
                 case trigger: TriggerDeclaration =>
-                    triggers.put(trigger.action.id.toString, trigger)
+                    triggers.put(trigger.action.toString, trigger)
                 case collect: CollectDeclaration =>
                     collects.put(collect.id.toString, collect)
                 case other =>

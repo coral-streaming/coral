@@ -6,14 +6,14 @@ import scala.util.parsing.combinator.PackratParsers
 import scala.util.parsing.input.CharSequenceReader
 
 class CoralScriptStatementsSpec extends FunSuite with PackratParsers {
-	test("single assignment") {
+	test("single correct assignment to int") {
 		val script = "int a = 1\n\n"
 		val result = CoralScriptParser.parse(script)
 		assert(result == CoralScript(List(VariableDeclaration("int",
 			VariableDeclarator(Identifier(List("a")), IntegerLiteralExpression(1))))))
 	}
 
-	test("multiple assignments") {
+	test("multiple correct assignments") {
 		val script = "float a = 323.12\nint x = 10"
 
 		val result = CoralScriptParser.parse(script)
@@ -27,7 +27,7 @@ class CoralScriptStatementsSpec extends FunSuite with PackratParsers {
 		val script = "int x = 10\n" +
 			"int y = 12\n" +
 			"int z = x + y * 2\n" +
-			"out int bla = z + 3\n"
+			"int bla = z + 3\n"
 
 		val result = CoralScriptParser.parse(script)
 		assert(result == CoralScript(List(
@@ -35,8 +35,8 @@ class CoralScriptStatementsSpec extends FunSuite with PackratParsers {
 			VariableDeclaration("int", VariableDeclarator(Identifier(List("y")), IntegerLiteralExpression(12))),
 			VariableDeclaration("int", VariableDeclarator(Identifier(List("z")), StandardNumericExpression(Identifier(List("x")),
 				"+", StandardNumericExpression(Identifier(List("y")), "*", IntegerLiteralExpression(2))))),
-			OutExpression(VariableDeclaration("int", VariableDeclarator(Identifier(List("bla")),
-				StandardNumericExpression(Identifier(List("z")), "+", IntegerLiteralExpression(3))))))))
+            VariableDeclaration("int",VariableDeclarator(Identifier(List("bla")),
+                StandardNumericExpression(Identifier(List("z")), "+", IntegerLiteralExpression(3)))))))
 	}
 
 	test("simple assignments") {
@@ -73,6 +73,146 @@ class CoralScriptStatementsSpec extends FunSuite with PackratParsers {
 			StatementBlock(List(VariableDeclaration("int", VariableDeclarator(Identifier(List("b")),
 				IntegerLiteralExpression(12)))))))
 	}
+
+    test("event1") {
+        val event = """event Transaction {
+                transactionId: long,
+                accountId: long,
+                amount: float,
+                datetime: datetime,
+                description: string
+            }"""
+
+        val result = parse(CoralScriptParser.event_declaration, event)
+        assert(result == EventDeclaration(Identifier(List("Transaction")), EventBlock(List(
+            EventVariable(Identifier(List("transactionId")), "long"),
+            EventVariable(Identifier(List("accountId")), "long"),
+            EventVariable(Identifier(List("amount")), "float"),
+            EventVariable(Identifier(List("datetime")), "datetime"),
+            EventVariable(Identifier(List("description")), "string")))))
+    }
+
+    test("incorrect event") {
+        val event = """event Transaction {
+                transactionId: long,
+                accountId: long,
+                amount: float,
+                datetime: datetime,
+                description:
+            }"""
+
+        intercept[java.lang.RuntimeException] {
+            val result = parse(CoralScriptParser.event_declaration, event)
+        }
+    }
+
+    test("entity1") {
+        val entity =
+            """entity Person {
+               key: accountId
+               age: collectAge(accountId)
+               transactions: Array[Transaction]
+               currentBalance: BalanceInfo.amount
+            }"""
+
+        val result = parse(CoralScriptParser.entity_declaration, entity)
+        assert(result == EntityDeclaration(Identifier(List("Person")),
+            EntityBlock(List(
+                EntityVariable(Identifier(List("key")),
+                    EntityDefinition(EventField(Identifier(List("accountId"))))),
+                EntityVariable(Identifier(List("age")),EntityDefinition(EntityCollect(
+                    MethodCall(Identifier(List("collectAge")), IdentifierList(List(Identifier(List("accountId")))))))),
+                EntityVariable(Identifier(List("transactions")),
+                    EntityDefinition(EntityArray(Identifier(List("Transaction"))))),
+                EntityVariable(Identifier(List("currentBalance")),
+                    EntityDefinition(EventField(Identifier(List("BalanceInfo","amount")))))))))
+    }
+
+    test("collect1") {
+        val collect =
+            """collect collectAge(accountId) {
+                from: db1Actor
+                with: "select age from customers where accountId = {accountId}"
+            }"""
+
+        val result = parse(CoralScriptParser.collect_declaration, collect)
+        val expected = CollectDeclaration(
+            Identifier(List("collectAge")), IdentifierList(List(Identifier(List("accountId")))),
+            CollectBlock(CollectFrom(Identifier(List("db1Actor"))),
+                CollectWith("select age from customers where accountId = {accountId}")))
+        assert(result == expected)
+    }
+
+    test("collect2") {
+        val collect =
+            """collect collectAge() {
+                from: otherActor
+                with: "select something from someTable"
+            }"""
+
+        val result = parse(CoralScriptParser.collect_declaration, collect)
+        val expected = CollectDeclaration(
+            Identifier(List("collectAge")), IdentifierList(List()),
+            CollectBlock(CollectFrom(Identifier(List("otherActor"))),
+                CollectWith("select something from someTable")))
+        assert(result == expected)
+    }
+
+    test("feature1") {
+        val feature =
+            """feature avgAmountPerDay {
+              select avg(Person.transactions.amount)
+              from Person
+              group by day
+            }"""
+
+        val result = parse(CoralScriptParser.feature, feature)
+        val expected = FeatureDeclaration(Identifier(List("avgAmountPerDay")),
+            SelectStatement(false, SelectList(Left(List(BuiltinMethod("avg",
+                Identifier(List("Person","transactions","amount")))))),
+                TableExpression(FromClause(TableReferenceList(List(
+                    TableReference(Identifier(List("Person")), null)))),
+                    null, GroupByClause(List(Identifier(List("day")))))))
+        assert(result == expected)
+    }
+
+    test("action1") {
+        val action =
+            """action action1 = {
+                   emit { "transactionId": Transaction.transactionId, "outlier": true }
+            }"""
+
+        val result = parse(CoralScriptParser.trigger_action, action)
+        val expected = TriggerAction(Identifier(List("action1")),
+            List(TriggerStatement(EmitStatement(
+                EmitJson(List(EmitJsonField(Identifier(List("transactionId")),
+                    EmitJsonValue(Identifier(List("Transaction","transactionId")))),
+                    EmitJsonField(Identifier(List("outlier")),EmitJsonValue("true"))))))))
+
+        assert(result == expected)
+    }
+
+    test("condition1") {
+        val condition =
+            """condition condition1 = {
+                   Transaction.amount > max(avgAmountPerDay)
+            }"""
+
+        val result = parse(CoralScriptParser.trigger_condition, condition)
+        val expected =
+            TriggerCondition(Identifier(List("condition1")),
+                ConditionBlock(List(TriggerStatement(TestingExpression(Identifier(List("Transaction", "amount")),
+                    ">", MethodCall(Identifier(List("max")),
+                        IdentifierList(List(Identifier(List("avgAmountPerDay"))))))))))
+        assert(result == expected)
+    }
+
+    test("trigger1") {
+        val trigger = """trigger action1 on condition1"""
+        val result = parse(CoralScriptParser.trigger_declaration, trigger)
+        val expected = TriggerDeclaration(Identifier(List("action1")), Identifier(List("condition1")))
+        assert(result == expected)
+    }
 
 	def parse[T <: Statement](subParser: CoralScriptParser.Parser[T], script: String): T = {
 		CoralScriptParser.phrase(subParser)(new PackratReader(new CharSequenceReader(script))).get

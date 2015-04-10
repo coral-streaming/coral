@@ -10,6 +10,7 @@ case class WhileStatement(condition: TestingExpression, body: Statement) extends
     println("while statement, condition: " + condition.toString + ", body: " + body.toString)
 }
 case class MethodDeclaration(id: Identifier, statements: StatementBlock) extends Statement
+case class Assignment(id: Identifier, expression: Expression) extends Statement
 
 abstract class Statement {
 

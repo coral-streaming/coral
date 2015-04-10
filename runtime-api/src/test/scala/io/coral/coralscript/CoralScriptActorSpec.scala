@@ -25,6 +25,21 @@ class CoralScriptActorSpec (_system: ActorSystem) extends TestKit(_system)
     implicit val timeout = Timeout(1.seconds)
 
     "a CoralScriptActor" should {
+        "Properly parse a single action" in {
+            val action1 = """action action1 = {
+                while (x < 10) {
+                    x = x + 1
+                }}"""
+
+            val probe = TestProbe()
+            val constructorString =
+                s"""{ "type": "coralscript", "params": { "script":
+                   |${quoteStringForJson(action1)} }}""".stripMargin
+            val constructor = parse(constructorString).asInstanceOf[JObject]
+            val props: Props = CoralActorFactory.getProps(constructor).get
+            val scriptActor = TestActorRef[CoralScriptActor](props)
+        }
+
         "Properly parse script1 and act on it" in {
             val script1 = """event Transaction {
                     transactionId: Long,
@@ -34,6 +49,18 @@ class CoralScriptActorSpec (_system: ActorSystem) extends TestKit(_system)
                     description: String
                 }
 
+                event BalanceInfo {
+                    accountId: Long,
+                    amount: Float,
+                    datetime: DateTime
+                }
+
+                entity Person {
+                    key: accountId
+                    age: collectAge(accountId)
+                    transactions: Array[Transaction]
+                    currentBalance: BalanceInfo.amount
+                }
 
                 collect collectAge(accountId) {
                     from: db1Actor
@@ -71,27 +98,29 @@ class CoralScriptActorSpec (_system: ActorSystem) extends TestKit(_system)
             scriptActor.underlyingActor.emitTargets += probe.ref
 
             val transaction1 = parse("""{
-                    "datatype": "transaction",
+                    "datatype": "Transaction",
+                    "transactionId": 11,
                     "accountId": 1234,
                     "amount": 54.20,
                     "datetime": "29-03-2015 18:41:23.582",
                     "description": "Esso"
                 }""").asInstanceOf[JObject]
             val transaction2 = parse("""{
-                    "datatype": "transaction",
+                    "datatype": "Transaction",
+                    "transactionId": 12,
                     "accountId": 5678,
                     "amount": 120.53,
                     "datetime": "29-03-2015 18:42:23.582",
                     "description": "Albert Heijn"
                 }""").asInstanceOf[JObject]
             val balanceInfo1 = parse("""{
-                    "datatype": "balance",
+                    "datatype": "BalanceInfo",
                     "accountId": 1234,
                     "amount": 2943.18,
                     "datetime": "27-03-2015 10:18:12.883"
                 }""").asInstanceOf[JObject]
             val balanceInfo2 = parse("""{
-                    "datatype": "balance",
+                    "datatype": "BalanceInfo",
                     "accountId": 1234,
                     "amount": 2943.18,
                     "datetime": "27-03-2015 10:18:12.883"
@@ -109,23 +138,8 @@ class CoralScriptActorSpec (_system: ActorSystem) extends TestKit(_system)
             scriptActor ! Trigger(balanceInfo2)
 
             val expected = parse("""{
-                    "amount": Person.amount, "average": avgAmountPerDay
+                    "amount": 100, "average": 20.6
                 }""").asInstanceOf[JObject]
-        }
-
-        "Properly parse a single action" in {
-            val action1 = """action action1 = {
-                while (x < 10) {
-                    x + 1
-                }}"""
-
-            val probe = TestProbe()
-            val constructorString =
-                s"""{ "type": "coralscript", "params": { "script":
-                   |${quoteStringForJson(action1)} }}""".stripMargin
-            val constructor = parse(constructorString).asInstanceOf[JObject]
-            val props: Props = CoralActorFactory.getProps(constructor).get
-            val scriptActor = TestActorRef[CoralScriptActor](props)
         }
     }
 

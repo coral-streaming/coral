@@ -3,10 +3,11 @@ package io.coral.actors.transform
 import akka.actor.Props
 import io.coral.actors.CoralActor
 import io.coral.coralscript._
-import org.json4s.JValue
+import io.coral.coralscript.model.{EntityData, EventData}
+import org.joda.time.DateTime
 import org.json4s.JsonAST.{JValue, JObject}
 import org.json4s._
-
+import scala.collection.mutable.{Map => mMap, ListBuffer}
 import scala.concurrent.Future
 import scalaz.OptionT
 
@@ -32,9 +33,14 @@ class CoralScriptActor(json: JObject) extends CoralActor {
 
     val scriptString = CoralScriptActor.getParams(json).get
     var script: CoralScript = _
+    // A list with all current entities
+    var entities = mMap.empty[String, EntityData]
+    // A list with all previous events up to a certain amount
+    var events = mMap.empty[String, ListBuffer[EventData]]
 
     override def preStart() {
         script = CoralScriptParser.parse(scriptString)
+        script.prepare()
     }
 
     def emit = doNotEmit
@@ -51,7 +57,10 @@ class CoralScriptActor(json: JObject) extends CoralActor {
              *    5) Recalculate all changed conditions
              *    6) Find out which triggers are triggered because of updated conditions
              */
-            val event: EventDeclaration = matchEvent(json)
+            val event: EventData = matchEvent(json)
+
+            val instance = events.getOrElseUpdate(event.id, ListBuffer.empty[EventData])
+
             updateEntities(event)
             recalculateFeatures()
             val changedConditions = recalculateConditions()
@@ -69,42 +78,47 @@ class CoralScriptActor(json: JObject) extends CoralActor {
      *         When no matching EventDeclaration is found, an
      *         IllegalArgumentException is thrown.
      */
-    def matchEvent(json: JObject): EventDeclaration = {
+    def matchEvent(json: JObject): EventData = {
         // We assume that an event matches if all fields required
         // are present in the JSON at root level and that all
         // values can be converted to their definitions in the event.
-        val typeName = (json \ "datatype").toString
+        val JString(typeName) = json \ "datatype"
 
-        script.event_defs(typeName) match {
+        script.events(typeName) match {
             case EventDeclaration(_, block) =>
-                block.block.foreach(variable => {
+                // Look up each variable with definition
+                val result = new EventData(typeName, block.block.map(variable => {
                     val id = variable.id.toString
                     val typeSpec = variable.typeSpec
 
-                    json \ id match {
+                    val value = json \ id match {
                         // When the variable is not found in
                         // the trigger json, something is wrong
                         case JNull =>
                             throw new IllegalArgumentException(id.toString)
                         case valid =>
-                            val value = typeSpec match {
-                                case "Boolean" => false // valid.getAs[Boolean]
-                                case "Int" => 0 // valid.getAs[Int]
-                                case "Float" => 0.0f //valid.getAs[Float]
-                                case "Long" => 0L // valid.getAs[Long]
-                                case "String" => "" //valid.getAs[String]
-                                case "DateTime" => // getDateTime(valid)
+                            typeSpec match {
+                                case "Boolean" => valid.extract[Boolean]
+                                case "Int" => valid.extract[Int]
+                                case "Float" => valid.extract[Float]
+                                case "Long" => valid.extract[Long]
+                                case "String" => valid.extract[String]
+                                case "DateTime" => extractDateTime(valid)
                                 case _ => throw new IllegalArgumentException(typeSpec)
                             }
                     }
-                })
 
-                // Here all variables are present and are of the
-                // right type that is defined in the event.
-                null
+                    (id, value)
+                }).toMap[String, Any])
+
+                result
             case null =>
                 throw new IllegalArgumentException(typeName)
         }
+    }
+
+    def extractDateTime(valid: JValue): DateTime =  {
+        null
     }
 
     /**
@@ -113,7 +127,7 @@ class CoralScriptActor(json: JObject) extends CoralActor {
      * this event, do nothing.
      * @param event The event to use to update the entities.
      */
-    def updateEntities(event: EventDeclaration) {
+    def updateEntities(event: EventData) {
         // Find all entities that uses information from this event.
         // For each of these entities, find out if it is:
         //    1) Using a value from an event directly, in this case: just fill it in;
@@ -122,7 +136,48 @@ class CoralScriptActor(json: JObject) extends CoralActor {
         //       - Add the item to the array of the entity with the right join key
         //    3) Uses a collect definition to another actor, in this case:
         //       ask the actor for the information
+        script.entities.foreach(entity => {
+            // This is the key that links data to this instance
+            val key = entity._2.getKey
+            key match { case None => throw new IllegalArgumentException("missing key"); case _ => }
 
+            // Iterate over all variables/fields in the entity
+            val instance = entities.getOrElseUpdate(entity._1,
+                EntityData(entity._1, key.get, mMap.empty[String, Any]))
+
+            entity._2.block.block.foreach(v => {
+                // These are the only 3 possibilities
+                v.definition match {
+                    case EntityDefinition(EntityArray(id)) =>
+                        // Add the item to the array, if applicable
+                        if (event.id == id.toString) {
+                            instance.data.put(v.id.toString, event)
+                        }
+                    case EntityDefinition(EntityCollect(call)) =>
+                        // Always recollect data, independent of field?
+                        collectData(call)
+                    // ...
+                    case EntityDefinition(EventField(id)) if v.id.toString != "key" =>
+                        // In the case of a simple event field, always fill in the latest one
+                        // id.list(0) is the base object of the field
+                        if (event.id == id.i(0)) {
+                            val latest: Option[ListBuffer[EventData]] = events.get(event.id)
+                            if (latest.isDefined) {
+                                val key = ""
+                                val value = latest.get.head.data(key)
+                                // Update the instance with this data
+                                instance.data.put(key, value)
+                            }
+                        }
+                    case _ =>
+                        println("Can not process entity update with event")
+                }
+            })
+        })
+    }
+
+    def collectData(call: MethodCall): Any = {
+        null
     }
 
     /**
