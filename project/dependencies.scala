@@ -42,6 +42,9 @@ object Dependencies {
     //akka
     "com.typesafe.akka" %% "akka-testkit"    % akkaVersion % "it,test",
 
+    // cassandra
+    "org.cassandraunit" % "cassandra-unit"   % "2.1.3.1" % "it,test",
+
     //testing
     "org.scalatest"     %% "scalatest"       % "2.2.1" % "it,test"
   )
