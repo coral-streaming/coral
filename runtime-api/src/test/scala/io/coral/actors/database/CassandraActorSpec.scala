@@ -21,7 +21,7 @@ class CassandraActorSpec(_system: ActorSystem) extends TestKit(_system)
 
   val EmbeddedCassandraPort = 9142
 
-  implicit val timeout = Timeout(1.seconds)
+  implicit val timeout = Timeout(2.seconds)
   val duration = timeout.duration
 
   def this() = this(ActorSystem("CassandraActorSpec"))
