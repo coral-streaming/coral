@@ -11,77 +11,75 @@ import org.json4s.jackson.JsonMethods.{render, compact}
 // coral
 import io.coral.actors.CoralActor
 
-
 object ZscoreActor {
-  implicit val formats = org.json4s.DefaultFormats
+	implicit val formats = org.json4s.DefaultFormats
 
-  def getParams(json: JValue) = {
-    for {
-    // from json actor definition
-    // possible parameters server/client, url, etc
-      by <- (json \ "params" \ "by").extractOpt[String]
-      field <- (json \ "params" \ "field").extractOpt[String]
-      score <- (json \ "params" \ "score").extractOpt[Double]
-    } yield {
-      (by, field, score)
-    }
-  }
-
-  def apply(json: JValue): Option[Props] = {
-    getParams(json).map(_ => Props(classOf[ZscoreActor], json))
-    // todo: take better care of exceptions and error handling
-  }
-
+	def getParams(json: JValue) = {
+		for {
+			// from json actor definition
+			// possible parameters server/client, url, etc
+			by <- (json \ "params" \ "by").extractOpt[String]
+			field <- (json \ "params" \ "field").extractOpt[String]
+			score <- (json \ "params" \ "score").extractOpt[Double]
+		} yield {
+			(by, field, score)
+		}
+	}
+    
+	def apply(json: JValue): Option[Props] = {
+		getParams(json).map(_ => Props(classOf[ZscoreActor], json))
+		// todo: take better care of exceptions and error handling
+	}
 }
 
 // metrics actor example
 class ZscoreActor(json: JObject) extends CoralActor {
-  def jsonDef = json
-  val (by, field, score) = ZscoreActor.getParams(jsonDef).get
-  var outlier: Boolean = false
-  def state = Map.empty
+	def jsonDef = json
+	val (by, field, score) = ZscoreActor.getParams(jsonDef).get
+	var outlier: Boolean = false
+	def state = Map.empty
 
-  def timer = notSet
+	def timer = notSet
 
-  def trigger = {
-    json: JObject =>
-      for {
-      // from trigger data
-        subpath <- getTriggerInputField[String](json \ by)
-        value <- getTriggerInputField[Double](json \ field)
+	def trigger = {
+		json: JObject =>
+			for {
+				// from trigger data
+				subpath <- getTriggerInputField[String](json \ by)
+				value <- getTriggerInputField[Double](json \ field)
+                
+				// from other actors
+                count <- getCollectInputField[Long]("stats", subpath, "count")
+                avg   <- getCollectInputField[Double]("stats", subpath, "avg")
+                std   <- getCollectInputField[Double]("stats", subpath, "sd")
 
-        // from other actors
-        count <- getCollectInputField[Long]("stats", subpath, "count")
-        avg   <- getCollectInputField[Double]("stats", subpath, "avg")
-        std   <- getCollectInputField[Double]("stats", subpath, "sd")
+				//alternative syntax from other actors multiple fields
+				//(avg,std) <- getActorField[Double](s"/user/events/histogram/$city", List("avg", "sd"))
+			} yield {
+				// compute (local variables & update state)
+				val th = avg + score * std
+				outlier = (value > th) & (count > 20)
+			}
+	}
 
-      //alternative syntax from other actors multiple fields
-      //(avg,std) <- getActorField[Double](s"/user/events/histogram/$city", List("avg", "sd"))
-      } yield {
-        // compute (local variables & update state)
-        val th = avg + score * std
-        outlier = (value > th) & (count > 20)
-      }
-  }
+	def emit = {
+		json: JObject =>
+			outlier match {
+				case true =>
+					// produce emit my results (dataflow)
+					// need to define some json schema, maybe that would help
+					val result = ("outlier" -> outlier)
 
-  def emit = {
-    json: JObject =>
-      outlier match {
-        case true =>
-          // produce emit my results (dataflow)
-          // need to define some json schema, maybe that would help
-          val result = ("outlier" -> outlier)
+					// what about merging with input data?
+					val js = render(result) merge json
 
-          // what about merging with input data?
-          val js = render(result) merge json
+					//logs the outlier
+					log.warning(compact(js))
 
-          //logs the outlier
-          log.warning(compact(js))
+					//emit resulting json
+					js
 
-          //emit resulting json
-          js
-
-        case _ => JNothing
-      }
-  }
+				case _ => JNothing
+			}
+	}
 }

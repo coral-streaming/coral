@@ -6,23 +6,7 @@ import time
 import random 
 
 api = 'http://localhost:8000'
-#api = 'http://natalinobusa-coral.herokuapp.com'
 headers = {'content-type': 'application/json'}
-
-def post(path, payload={}) :
-  r = requests.post(api+path, data=json.dumps(payload), headers=headers)
-  if (r.text):
-    print json.dumps(json.loads(r.text), indent=2)
-
-def get(path) :
-  r = requests.get(api+path, headers=headers)
-  if (r.text):
-    print json.dumps(json.loads(r.text), indent=2)
-
-def delete(path) :
-  r = requests.delete(api+path, headers=headers)
-  if (r.text):
-    print json.dumps(json.loads(r.text), indent=2)
 
 generator = {
   "Amsterdam": {'mu':100, 'sigma':20},
@@ -39,7 +23,3 @@ def randEvent() :
   amount = random.gauss(generator[city]['mu'],generator[city]['sigma'])
   event = {'account':'NL'+str(account), 'amount':amount, 'city':city }
   return event
-
-while(1):
-    post('/api/actors/1/in',randEvent() )
-    time.sleep(0.01)

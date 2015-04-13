@@ -10,5 +10,9 @@ case class VariableInitializer()
 case class Identifier(i: List[String]) extends Expression {
     println(this.getClass.toString + ": " + i.toString)
 
+	override val evaluate = {
+
+	}
+
     override def toString = i.mkString(".")
 }

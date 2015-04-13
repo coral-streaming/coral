@@ -21,6 +21,8 @@ object Boot extends App {
   val interface = system.settings.config getString "service.interface"
   val port = system.settings.config getInt "service.port"
 
+  println("Binding to interface " + interface + " and port " + port)
+
   // start a new HTTP server with our service actor as the handler
   IO(Http) ! Http.Bind(service, interface, port)
 }

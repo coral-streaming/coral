@@ -12,9 +12,4 @@ case class WhileStatement(condition: TestingExpression, body: Statement) extends
 case class MethodDeclaration(id: Identifier, statements: StatementBlock) extends Statement
 case class Assignment(id: Identifier, expression: Expression) extends Statement
 
-abstract class Statement {
-
-    def execute() {
-
-    }
-}
+abstract class Statement

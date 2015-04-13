@@ -35,6 +35,7 @@ object CoralScriptParser extends JavaTokenParsers with PackratParsers {
             | for_statement
             | emit_statement
             | method_declaration
+            | method_call
             | feature
             | statement_block
             | "return" ~ expression ^^ { case "return" ~ e => ReturnStatement(e)}
@@ -94,10 +95,6 @@ object CoralScriptParser extends JavaTokenParsers with PackratParsers {
         identifier ~ ":" ~ type_specifier ^^ {
             case v ~ ":" ~ t => EventVariable(v, t)
         }
-    lazy val event_field: P[EventField] =
-        identifier ^^ {
-            case i => EventField(i)
-        }
 
     /** ===== ENTITY ===== */
     lazy val entity_declaration: P[EntityDeclaration] =
@@ -118,6 +115,10 @@ object CoralScriptParser extends JavaTokenParsers with PackratParsers {
         }
     lazy val entity_object: P[EntityObject] =
         entity_array | entity_collect | event_field
+    lazy val event_field: P[EventField] =
+        identifier ^^ {
+            case i => EventField(i)
+        }
     lazy val entity_array: P[EntityArray] =
         "Array" ~ "[" ~ identifier ~ "]" ^^ {
             case ("Array" ~ "[" ~ id ~ "]") => EntityArray(id)
@@ -283,31 +284,26 @@ object CoralScriptParser extends JavaTokenParsers with PackratParsers {
             case ("(" ~ e ~ ")") => e
         })
     lazy val numeric_expression: P[NumericExpression] =
-        ("-" ~ numeric_expression ^^ {
-            case (min ~ right) => NegationExpression(right)
+        "-" ~ numeric_expression ^^ {
+            case (min ~ right) => NegExpr(right)
+        } | numeric_expression ~ ("++" | "--") ^^ {
+            case (left ~ incr) => IncExpr(left, incr)
+        } | expression ~ ("+" | "+=" | "-" | "-=" | "*" | "*=" | "/" | "/=") ~ expression ^^ {
+            case (left ~ op ~ right) => StandardNumExpr(left, op, right)
         }
-            | expression ~ ("++" | "--") ^^ {
-            case (left ~ incr) => IncrementExpression(left, incr)
-        }
-            | expression ~ ("+" | "+=" | "-" | "-=" | "*" | "*=" | "/" | "/=") ~ expression ^^ {
-            case (left ~ op ~ right) => StandardNumericExpression(left, op, right)
-        })
     lazy val testing_expression: P[TestingExpression] =
         expression ~ (">" | "<" | ">=" | "<=" | "==" | "!=") ~ expression ^^ {
             case (left ~ test ~ right) => TestingExpression(left, test, right)
-        }
-    /*| expression ~ ("&&" | "||") ~ expression ^^ {
-        case (left ~ op ~ right) => TestingExpression(left, op, right) })*/
+        } | expression ~ ("&&" | "||") ~ expression ^^ {
+            case (left ~ op ~ right) => TestingExpression(left, op, right) }
     lazy val literal_expression: P[LiteralExpression] =
-        (float_literal ^^ {
-            case f => FloatLiteralExpression(f.toFloat)
+        float_literal ^^ {
+            case f => FloatLitExpr(f.toFloat)
+        } | integer_literal ^^ {
+            case i => IntLitExpr(i.toInt)
+        } | stringLiteral ^^ {
+            case s => StrLitExpr(s)
         }
-            | integer_literal ^^ {
-            case i => IntegerLiteralExpression(i.toInt)
-        }
-            | stringLiteral ^^ {
-            case s => StringLiteralExpression(s)
-        })
     lazy val method_call: P[MethodCall] =
         identifier ~ parameter_list ^^ {
             case i ~ list => MethodCall(i, list)

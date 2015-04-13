@@ -17,8 +17,4 @@ case class TableReferenceList(list: List[TableReference])
 case class WhereClause(test: TestingExpression)
 case class WindowClause()
 
-case class FeatureDeclaration(id: Identifier, select: SelectStatement) extends Statement {
-    override def execute() {
-
-    }
-}
+case class FeatureDeclaration(id: Identifier, select: SelectStatement) extends Statement

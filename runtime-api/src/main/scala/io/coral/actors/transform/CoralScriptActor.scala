@@ -9,6 +9,7 @@ import org.json4s.JsonAST.{JValue, JObject}
 import org.json4s._
 import scala.collection.mutable.{Map => mMap, ListBuffer}
 import scala.concurrent.Future
+import scala.util.matching.Regex.Match
 import scalaz.OptionT
 
 object CoralScriptActor {
@@ -35,7 +36,7 @@ class CoralScriptActor(json: JObject) extends CoralActor {
     var script: CoralScript = _
     // A list with all current entities
     var entities = mMap.empty[String, EntityData]
-    // A list with all previous events up to a certain amount
+    // A list with all previous events
     var events = mMap.empty[String, ListBuffer[EventData]]
 
     override def preStart() {
@@ -58,13 +59,10 @@ class CoralScriptActor(json: JObject) extends CoralActor {
              *    6) Find out which triggers are triggered because of updated conditions
              */
             val event: EventData = matchEvent(json)
-
-            val instance = events.getOrElseUpdate(event.id, ListBuffer.empty[EventData])
-
+            addToEvents(event)
             updateEntities(event)
             recalculateFeatures()
-            val changedConditions = recalculateConditions()
-            val triggeredTriggers = findTriggeredTriggers(changedConditions)
+            val triggeredTriggers = findTriggeredTriggers()
             executeActions(triggeredTriggers)
 
             OptionT.some(Future.successful({}))
@@ -72,7 +70,8 @@ class CoralScriptActor(json: JObject) extends CoralActor {
 
     /**
      * Find out to which event a json object belongs. If no object
-     * is found, throw an exception.
+     * is found, throw an exception. Returns a new object EventData
+     * with a map with all values in it.
      * @param json The json object to find the event declaration for.
      * @return An EventDeclaration if a matching event is found.
      *         When no matching EventDeclaration is found, an
@@ -98,12 +97,12 @@ class CoralScriptActor(json: JObject) extends CoralActor {
                             throw new IllegalArgumentException(id.toString)
                         case valid =>
                             typeSpec match {
-                                case "Boolean" => valid.extract[Boolean]
-                                case "Int" => valid.extract[Int]
-                                case "Float" => valid.extract[Float]
-                                case "Long" => valid.extract[Long]
-                                case "String" => valid.extract[String]
-                                case "DateTime" => extractDateTime(valid)
+                                case "boolean" => valid.extract[Boolean]
+                                case "int" => valid.extract[Int]
+                                case "float" => valid.extract[Float]
+                                case "long" => valid.extract[Long]
+                                case "string" => valid.extract[String]
+                                case "datetime" => extractDateTime(valid)
                                 case _ => throw new IllegalArgumentException(typeSpec)
                             }
                     }
@@ -119,6 +118,20 @@ class CoralScriptActor(json: JObject) extends CoralActor {
 
     def extractDateTime(valid: JValue): DateTime =  {
         null
+    }
+
+    /**
+     * Adds an event to the map of events.
+     * @param event The event to add
+     */
+    def addToEvents(event: EventData) {
+        // Verbose.
+        if (events.contains(event.id)) {
+            events.get(event.id).get += event
+        } else {
+            val listbuffer = ListBuffer.empty[EventData]
+            listbuffer += event
+        }
     }
 
     /**
@@ -154,9 +167,8 @@ class CoralScriptActor(json: JObject) extends CoralActor {
                             instance.data.put(v.id.toString, event)
                         }
                     case EntityDefinition(EntityCollect(call)) =>
-                        // Always recollect data, independent of field?
-                        collectData(call)
-                    // ...
+                        val collectedData = collectData(call)
+                        instance.data.put(v.id.toString, collectedData)
                     case EntityDefinition(EventField(id)) if v.id.toString != "key" =>
                         // In the case of a simple event field, always fill in the latest one
                         // id.list(0) is the base object of the field
@@ -176,9 +188,48 @@ class CoralScriptActor(json: JObject) extends CoralActor {
         })
     }
 
+    /**
+     * Collects data with a given collect method definition.
+     * @param call The method to use to collect the data
+     * @return The object that was collected
+     */
     def collectData(call: MethodCall): Any = {
-        null
+        val name = call.id
+        val params = call.list
+
+        val collectProc: CollectDeclaration =
+			script.collect_defs.getOrElse(name.toString, null)
+
+        if (collectProc == null) {
+            null
+        } else {
+			// The name of the actor to get the data from
+			val fromActorName = collectProc.block.collectFrom.name.toString
+			// The query to execute to get the data
+			var collectWith = collectProc.block.collectWith.info
+			// Replace any parameters in the query string
+
+			collectWith = replaceParams(collectWith, params)
+        }
     }
+
+	/**
+	 * Replace a parameter denoted with {param} with the actual
+	 * value of the parameter.
+	 * @param collectWith The collectWith definition with parameter fields in it
+	 * @param params The list of actual parameter values
+	 * @return The original string but with parameter values replaced.
+	 */
+	def replaceParams(collectWith: String, params: IdentifierList): String = {
+		val regex = """\{(.+)\}"""".r
+		val matchResult = regex.findAllMatchIn(collectWith)
+
+		matchResult.foreach(m => {
+			val paramName = m.group(1)
+		})
+
+		null
+	}
 
     /**
      * Recalculate features based on incoming information.
@@ -196,19 +247,30 @@ class CoralScriptActor(json: JObject) extends CoralActor {
      * If a condition is false, the triggers will not be triggered.
      * @return A list of all conditions that evaluate to true.
      */
-    def recalculateConditions(): List[TriggerCondition] = {
-        List()
-    }
+    def findTriggeredTriggers(): List[TriggerDeclaration] = {
+		val result = ListBuffer.empty[TriggerDeclaration]
 
-    /**
-     * Based on the list of conditions that are sure to evaluate to true,
-     * give a list of triggers that need to be triggered because of the
-     * changed conditions.
-     * @param changedConditions The conditions that evaluate to true.
-     * @return A list of all triggers of which the actions need to be executed.
-     */
-    def findTriggeredTriggers(changedConditions: List[TriggerCondition]): List[TriggerDeclaration] = {
-        List()
+    	script.trigger_defs.foreach(t => {
+			val triggerName = t._1
+			val triggerDefinition = t._2
+			val conditionName = triggerDefinition.condition.toString
+			val condition = script.condition_defs.getOrElse(conditionName, null)
+
+			if (condition != null) {
+				// Can there be multiple expressions in the block?
+				condition.statements.block.foreach(s => {
+					// It should be an expression so it returns a value
+					//val returnValue = s.s.execute().asInstanceOf[Boolean]
+
+					//if (returnValue == true) {
+					//	// We have a condition that evaluates to true
+					//	result += t._2
+					//}
+				})
+			}
+		})
+
+		result.toList
     }
 
     /**

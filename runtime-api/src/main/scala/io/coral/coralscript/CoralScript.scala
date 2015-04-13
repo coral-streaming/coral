@@ -11,15 +11,11 @@ case class CoralScript(statements: List[Statement]) {
     var method_defs = mMap.empty[String, MethodDeclaration]
     var trigger_defs = mMap.empty[String, TriggerDeclaration]
     var collect_defs = mMap.empty[String, CollectDeclaration]
+	var condition_defs = mMap.empty[String, TriggerCondition]
 
     // The actual values of the objects
     var events = mMap.empty[String, EventDeclaration]
     var entities = mMap.empty[String, EntityDeclaration]
-    var features = mMap.empty[String, FeatureDeclaration]
-    var actions = mMap.empty[String, TriggerAction]
-    var methods = mMap.empty[String, MethodDeclaration]
-    var triggers = mMap.empty[String, TriggerDeclaration]
-    var collects = mMap.empty[String, CollectDeclaration]
 
     var alreadyParsed = false
 
@@ -69,19 +65,21 @@ case class CoralScript(statements: List[Statement]) {
                 case entity: EntityDeclaration =>
                     entities.put(entity.id.toString, entity)
                 case feature: FeatureDeclaration =>
-                    features.put(feature.id.toString, feature)
+                    feature_defs.put(feature.id.toString, feature)
                 case action: TriggerAction =>
-                    actions.put(action.id.toString, action)
+                    action_defs.put(action.id.toString, action)
                 case method: MethodDeclaration =>
-                    methods.put(method.id.toString, method)
+                    method_defs.put(method.id.toString, method)
                 case trigger: TriggerDeclaration =>
-                    triggers.put(trigger.action.toString, trigger)
+                    trigger_defs.put(trigger.action.toString, trigger)
                 case collect: CollectDeclaration =>
-                    collects.put(collect.id.toString, collect)
+                    collect_defs.put(collect.id.toString, collect)
+				case condition: TriggerCondition =>
+					condition_defs.put(condition.id.toString, condition)
                 case other =>
                     // Separate statements and expressions
                     // not yet processed go here.
-                    other.execute()
+                    //other.execute()
             }
 
             alreadyParsed = true

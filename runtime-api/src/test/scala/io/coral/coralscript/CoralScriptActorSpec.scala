@@ -11,7 +11,7 @@ import org.json4s.jackson.JsonMethods._
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 import scala.concurrent.duration._
 
-class CoralScriptActorSpec (_system: ActorSystem) extends TestKit(_system)
+class CoralScriptActorSpec(_system: ActorSystem) extends TestKit(_system)
     with ImplicitSender
     with WordSpecLike
     with Matchers
@@ -42,22 +42,22 @@ class CoralScriptActorSpec (_system: ActorSystem) extends TestKit(_system)
 
         "Properly parse script1 and act on it" in {
             val script1 = """event Transaction {
-                    transactionId: Long,
-                    accountId: Long,
-                    amount: Float,
-                    datetime: DateTime,
-                    description: String
+                    transactionId: long,
+                    accountId: long,
+                    amount: float,
+                    datetime: datetime,
+                    description: string
                 }
 
                 event BalanceInfo {
-                    accountId: Long,
-                    amount: Float,
-                    datetime: DateTime
+                    accountId: long,
+                    amount: float,
+                    datetime: datetime
                 }
 
                 entity Person {
                     key: accountId
-                    age: collectAge(accountId)
+                    age: collectAge(accountIdValue)
                     transactions: Array[Transaction]
                     currentBalance: BalanceInfo.amount
                 }
@@ -73,12 +73,13 @@ class CoralScriptActorSpec (_system: ActorSystem) extends TestKit(_system)
                     group by day
                 }
 
-                action action1 = {
-                    while (x < 10) {
-                        println(x)
-                    }
+                function action1() {
+					int x = 12
+					while (x < 10) {
+	 					x = x + 1
+	   				}
 
-                    emit { "transactionId": Transaction.transactionId, "outlier": true }
+                    emit ({"transactionId": Transaction.transactionId, "outlier": true })
                 }
 
                 condition condition1 = {

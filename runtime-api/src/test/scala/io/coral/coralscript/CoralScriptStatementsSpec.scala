@@ -10,7 +10,7 @@ class CoralScriptStatementsSpec extends FunSuite with PackratParsers {
 		val script = "int a = 1\n\n"
 		val result = CoralScriptParser.parse(script)
 		assert(result == CoralScript(List(VariableDeclaration("int",
-			VariableDeclarator(Identifier(List("a")), IntegerLiteralExpression(1))))))
+			VariableDeclarator(Identifier(List("a")), IntLitExpr(1))))))
 	}
 
 	test("multiple correct assignments") {
@@ -18,9 +18,9 @@ class CoralScriptStatementsSpec extends FunSuite with PackratParsers {
 
 		val result = CoralScriptParser.parse(script)
 		assert(result == CoralScript(List(VariableDeclaration("float",
-			VariableDeclarator(Identifier(List("a")), FloatLiteralExpression(323.12f))),
+			VariableDeclarator(Identifier(List("a")), FloatLitExpr(323.12f))),
 			VariableDeclaration("int", VariableDeclarator(Identifier(List("x")),
-				IntegerLiteralExpression(10))))))
+				IntLitExpr(10))))))
 	}
 
 	test("script1") {
@@ -31,30 +31,30 @@ class CoralScriptStatementsSpec extends FunSuite with PackratParsers {
 
 		val result = CoralScriptParser.parse(script)
 		assert(result == CoralScript(List(
-			VariableDeclaration("int", VariableDeclarator(Identifier(List("x")), IntegerLiteralExpression(10))),
-			VariableDeclaration("int", VariableDeclarator(Identifier(List("y")), IntegerLiteralExpression(12))),
-			VariableDeclaration("int", VariableDeclarator(Identifier(List("z")), StandardNumericExpression(Identifier(List("x")),
-				"+", StandardNumericExpression(Identifier(List("y")), "*", IntegerLiteralExpression(2))))),
+			VariableDeclaration("int", VariableDeclarator(Identifier(List("x")), IntLitExpr(10))),
+			VariableDeclaration("int", VariableDeclarator(Identifier(List("y")), IntLitExpr(12))),
+			VariableDeclaration("int", VariableDeclarator(Identifier(List("z")), StandardNumExpr(Identifier(List("x")),
+				"+", StandardNumExpr(Identifier(List("y")), "*", IntLitExpr(2))))),
             VariableDeclaration("int",VariableDeclarator(Identifier(List("bla")),
-                StandardNumericExpression(Identifier(List("z")), "+", IntegerLiteralExpression(3)))))))
+                StandardNumExpr(Identifier(List("z")), "+", IntLitExpr(3)))))))
 	}
 
 	test("simple assignments") {
 		val script1 = "int x = 10\n"
 		val result1 = parse(CoralScriptParser.variable_declaration, script1)
 		assert(result1 == VariableDeclaration("int", VariableDeclarator(Identifier(List("x")),
-			IntegerLiteralExpression(10))))
+			IntLitExpr(10))))
 
 		val script2 = "int y = 20" // without \n
 		val result2 = parse(CoralScriptParser.variable_declaration, script2)
 		assert(result2 == VariableDeclaration("int", VariableDeclarator(Identifier(List("y")),
-			IntegerLiteralExpression(20))))
+			IntLitExpr(20))))
 
 		val script3 = "int z = 10 + 20\n"
 		val result3 = parse(CoralScriptParser.variable_declaration, script3)
 		assert(result3 == VariableDeclaration("int", VariableDeclarator(Identifier(List("z")),
-			StandardNumericExpression(IntegerLiteralExpression(10),
-				"+", IntegerLiteralExpression(20)))))
+			StandardNumExpr(IntLitExpr(10),
+				"+", IntLitExpr(20)))))
 	}
 
 	test("ifstatement1") {
@@ -66,12 +66,54 @@ class CoralScriptStatementsSpec extends FunSuite with PackratParsers {
 			"   int b = 12\n" +
 			"}"
 		val result = parse(CoralScriptParser.if_statement, script)
-		assert(result == IfStatement(TestingExpression(Identifier(List("x")), "==", IntegerLiteralExpression(10)),
-			StatementBlock(List(VariableDeclaration("int", VariableDeclarator(Identifier(List("y")), IntegerLiteralExpression(20))),
-			VariableDeclaration("int", VariableDeclarator(Identifier(List("z")), StandardNumericExpression(Identifier(List("y")), "+",
-				IntegerLiteralExpression(5)))))),
+		assert(result == IfStatement(TestingExpression(Identifier(List("x")), "==", IntLitExpr(10)),
+			StatementBlock(List(VariableDeclaration("int", VariableDeclarator(Identifier(List("y")), IntLitExpr(20))),
+			VariableDeclaration("int", VariableDeclarator(Identifier(List("z")), StandardNumExpr(Identifier(List("y")), "+",
+				IntLitExpr(5)))))),
 			StatementBlock(List(VariableDeclaration("int", VariableDeclarator(Identifier(List("b")),
-				IntegerLiteralExpression(12)))))))
+				IntLitExpr(12)))))))
+	}
+
+    test("if statement nested while") {
+        val script =
+            "if (x == 10) {\n" +
+                "   while (y < 20) {\n" +
+                "      int z = y + 5\n" +
+                "   }\n" +
+                "} else {\n" +
+                "   int b = 12\n" +
+                "}"
+        val result = parse(CoralScriptParser.if_statement, script)
+
+        assert(result == IfStatement(TestingExpression(Identifier(List("x")),"==", IntLitExpr(10)),
+            StatementBlock(List(WhileStatement(TestingExpression(Identifier(List("y")),"<",IntLitExpr(20)),
+                StatementBlock(List(VariableDeclaration("int",VariableDeclarator(Identifier(List("z")),
+                    StandardNumExpr(Identifier(List("y")),"+",IntLitExpr(5))))))))),
+            StatementBlock(List(VariableDeclaration("int", VariableDeclarator(Identifier(List("b")),
+                IntLitExpr(12)))))))
+    }
+
+	test("expression1") {
+		val script = "10"
+		val result = parse(CoralScriptParser.expression, script)
+		assert(result == IntLitExpr(10))
+
+		val answer = result.evaluate
+		assert(answer == 10)
+	}
+
+	test("expression2") {
+		val script = "10 > 20 && 5 < 1"
+		val result = parse(CoralScriptParser.expression, script)
+		val returnValue = result.evaluate
+		assert(returnValue == false)
+	}
+
+	test("expression3") {
+		val script = "10 < 20 || 5 > 10"
+		val result = parse(CoralScriptParser.expression, script)
+		val returnValue = result.evaluate
+		assert(returnValue == true)
 	}
 
     test("event1") {
@@ -102,8 +144,14 @@ class CoralScriptStatementsSpec extends FunSuite with PackratParsers {
             }"""
 
         intercept[java.lang.RuntimeException] {
-            val result = parse(CoralScriptParser.event_declaration, event)
+            parse(CoralScriptParser.event_declaration, event)
         }
+    }
+
+    test("empty event") {
+        val event = """event Transaction {}"""
+        val result = parse(CoralScriptParser.event_declaration, event)
+        assert(result == EventDeclaration(Identifier(List("Transaction")), EventBlock(List())))
     }
 
     test("entity1") {
@@ -126,6 +174,59 @@ class CoralScriptStatementsSpec extends FunSuite with PackratParsers {
                     EntityDefinition(EntityArray(Identifier(List("Transaction"))))),
                 EntityVariable(Identifier(List("currentBalance")),
                     EntityDefinition(EventField(Identifier(List("BalanceInfo","amount")))))))))
+    }
+
+    test("entity2") {
+        val entity =
+            """entity Person {
+               field: collectSomething(accountId)
+            }"""
+
+        val result = parse(CoralScriptParser.entity_declaration, entity)
+        assert(result == EntityDeclaration(Identifier(List("Person")),
+            EntityBlock(List(
+                EntityVariable(Identifier(List("field")),
+                    EntityDefinition(EntityCollect(MethodCall(Identifier(List("collectSomething")),
+                        IdentifierList(List(Identifier(List("accountId"))))))))))))
+    }
+
+    test("entity3") {
+        val entity =
+            """entity Person {
+               field: Array[Transaction]
+            }"""
+
+        val result = parse(CoralScriptParser.entity_declaration, entity)
+        assert(result == EntityDeclaration(Identifier(List("Person")),
+            EntityBlock(List(
+                EntityVariable(Identifier(List("field")),
+                    EntityDefinition(EntityArray(Identifier(List("Transaction")))))))))
+    }
+
+    test("entity4") {
+        val entity =
+            """entity Person {
+               field: Array[BalanceInfo.amount]
+            }"""
+
+        val result = parse(CoralScriptParser.entity_declaration, entity)
+        assert(result == EntityDeclaration(Identifier(List("Person")),
+            EntityBlock(List(
+                EntityVariable(Identifier(List("field")),
+                    EntityDefinition(EntityArray(Identifier(List("BalanceInfo", "amount")))))))))
+    }
+
+    test("entity5") {
+        val entity =
+            """entity Person {
+               field: BalanceInfo.amount
+            }"""
+
+        val result = parse(CoralScriptParser.entity_declaration, entity)
+        assert(result == EntityDeclaration(Identifier(List("Person")),
+            EntityBlock(List(
+                EntityVariable(Identifier(List("field")),
+                    EntityDefinition(EntityArray(Identifier(List("BalanceInfo", "amount")))))))))
     }
 
     test("collect1") {
@@ -204,6 +305,25 @@ class CoralScriptStatementsSpec extends FunSuite with PackratParsers {
                 ConditionBlock(List(TriggerStatement(TestingExpression(Identifier(List("Transaction", "amount")),
                     ">", MethodCall(Identifier(List("max")),
                         IdentifierList(List(Identifier(List("avgAmountPerDay"))))))))))
+        assert(result == expected)
+    }
+
+    test("condition2") {
+        val condition =
+            """condition condition1 = {
+                   Transaction.amount > min(avgAmountPerDay) && Transaction.amount < max(avgAmountPerDay)
+            }"""
+
+        val result = parse(CoralScriptParser.trigger_condition, condition)
+        val expected =
+            TriggerCondition(Identifier(List("condition1")),
+                ConditionBlock(List(TriggerStatement(TestingExpression(Identifier(List("Transaction", "amount")), ">",
+                    TestingExpression(MethodCall(Identifier(List("min")),
+                    IdentifierList(List(Identifier(List("avgAmountPerDay"))))), "&&",
+                    TestingExpression(Identifier(List("Transaction", "amount")), "<",
+                    MethodCall(Identifier(List("max")),
+                    IdentifierList(List(Identifier(List("avgAmountPerDay"))))))))))))
+
         assert(result == expected)
     }
 

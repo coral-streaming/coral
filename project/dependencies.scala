@@ -32,7 +32,9 @@ object Dependencies {
     // cassandra
     "com.datastax.cassandra" % "cassandra-driver-core" % "2.1.4",
 
-    "org.uncommons.maths" % "uncommons-maths" % "1.2.2a"
+    "org.uncommons.maths" % "uncommons-maths" % "1.2.2a",
+
+    "joda-time" % "joda-time" % "2.7"
   )
 
   val allTestDependencies = Seq(

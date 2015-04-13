@@ -1,6 +1,5 @@
 from httpMethods import *
 
-# Create the graph (profiling tags)
 post('/api/actors', {"type":"httpserver"})
 post('/api/actors', {"type":"stats", "timeout":{"duration":60, "mode":"continue"}, "params":{"field": "amount"}, "group":{"by":"tag"}})
 post('/api/actors', {"type":"zscore",    "params":{"by":"tag", "field": "amount","score" : 6.0}})

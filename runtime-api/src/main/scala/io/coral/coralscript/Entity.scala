@@ -5,14 +5,15 @@ case class EntityArray(id: Identifier) extends EntityObject
 case class EntityCollect(call: MethodCall) extends EntityObject
 case class IdentifierList(list: List[Identifier]) extends EntityObject
 case class EntityBlock(block: List[EntityVariable])
-case class EntityDefinition(obj: EntityObject)
-case class EntityVariable(id: Identifier, definition: EntityDefinition)
+case class EntityKey(id: Identifier)
+case class EntityDefinition(obj: EntityObject) {
+    println("entity definition")
+}
+case class EntityVariable(id: Identifier, definition: EntityDefinition) {
+    println("entity variable")
+}
 
 case class EntityDeclaration(id: Identifier, block: EntityBlock) extends Statement {
-    override def execute() {
-
-    }
-
     /**
      * Retrieve the key field for a given entity. The key field
      * is the field that is used to link all other fields together.

@@ -13,6 +13,8 @@ class RuntimeActor extends Actor with ActorLogging {
     case CreateActor(json) =>
       val props = CoralActorFactory.getProps(json)
 
+      println("Creating new actor")
+
       val actorId = props map { p =>
         count += 1
         val id = count
@@ -28,6 +30,7 @@ class RuntimeActor extends Actor with ActorLogging {
       count += 1
       sender ! Some(count)
     case ListActors() =>
+      println("LISTING ACTORS!!!")
       sender ! actors.keys.toList
     case Delete(id: Long) =>
       actors.get(id).map { a => actorRefFactory.actorSelection(a) ! PoisonPill }
