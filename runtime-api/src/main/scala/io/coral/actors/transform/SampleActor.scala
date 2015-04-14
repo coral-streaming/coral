@@ -4,7 +4,7 @@ import akka.actor.Props
 import io.coral.actors.CoralActor
 import io.coral.lib.Random
 import org.json4s.JsonAST.JNothing
-import org.json4s.{JValue, JObject}
+import org.json4s.{JObject, JValue}
 
 import scala.concurrent.Future
 import scalaz.OptionT
@@ -16,12 +16,7 @@ object SampleActor {
   def getParams(json: JValue) = {
     for {
       fraction <- (json \ "params" \ "fraction").extractOpt[Double]
-        .orElse(
-          for {
-            percentage <- (json \ "params" \ "percentage").extractOpt[Double]
-          } yield {
-            percentage / 100.0
-          })
+        .orElse((json \ "params" \ "percentage").extractOpt[Double].map(p => 0.01 * p))
     } yield {
       fraction
     }
