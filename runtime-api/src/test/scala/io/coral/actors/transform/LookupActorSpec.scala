@@ -6,6 +6,7 @@ import akka.testkit.{ImplicitSender, TestActorRef, TestKit}
 import akka.util.Timeout
 import io.coral.actors.CoralActorFactory
 import io.coral.actors.Messages.Shunt
+import io.coral.api.DefaultModule
 import org.json4s.JsonAST.JObject
 import org.json4s._
 import org.json4s.native.JsonMethods._
@@ -21,6 +22,8 @@ class LookupActorSpec(_system: ActorSystem) extends TestKit(_system)
   with BeforeAndAfterAll {
 
   def this() = this(ActorSystem("StatsActorSpec"))
+
+  implicit val injector = new DefaultModule(system.settings.config)
 
   override def afterAll() {
     TestKit.shutdownActorSystem(system)

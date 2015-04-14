@@ -5,6 +5,7 @@ import akka.testkit.{ImplicitSender, TestActorRef, TestKit}
 import akka.util.Timeout
 import io.coral.actors.CoralActorFactory
 import io.coral.actors.Messages.GetField
+import io.coral.api.DefaultModule
 import org.json4s.JsonDSL._
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
@@ -18,6 +19,8 @@ class ZscoreActorSpec(_system: ActorSystem)
   with WordSpecLike
   with Matchers
   with BeforeAndAfterAll {
+
+  implicit val injector = new DefaultModule(system.settings.config)
 
   def this() = this(ActorSystem("coral"))
 

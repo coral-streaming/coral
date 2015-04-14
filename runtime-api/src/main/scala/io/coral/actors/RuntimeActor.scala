@@ -3,8 +3,9 @@ package io.coral.actors
 import io.coral.actors.Messages._
 import scala.collection.immutable.SortedMap
 import akka.actor._
+import scaldi.Injector
 
-class RuntimeActor extends Actor with ActorLogging {
+class RuntimeActor(implicit injector: Injector) extends Actor with ActorLogging {
   def actorRefFactory = context
   var actors = SortedMap.empty[Long, ActorPath]
   var count = 0L

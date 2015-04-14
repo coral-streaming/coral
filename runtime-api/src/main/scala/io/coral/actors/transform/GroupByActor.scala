@@ -2,18 +2,13 @@ package io.coral.actors.transform
 
 // scala
 import scala.collection.immutable.SortedMap
-
-// akka
 import akka.actor.{ActorLogging, Props}
-
-//json goodness
 import org.json4s._
 import org.json4s.JsonDSL._
 import org.json4s.jackson.JsonMethods._
-
-// coral
 import io.coral.actors.{CoralActor, CoralActorFactory}
 import io.coral.actors.Messages._
+import scaldi.Injector
 
 object GroupByActor {
   implicit val formats = org.json4s.DefaultFormats
@@ -26,12 +21,12 @@ object GroupByActor {
     }
   }
 
-  def apply(json: JValue): Option[Props] = {
-    getParams(json).map(_ => Props(classOf[GroupByActor], json))
+  def apply(json: JValue)(implicit injector: Injector): Option[Props] = {
+    getParams(json).map(_ => Props(classOf[GroupByActor], json, injector))
   }
 }
 
-class GroupByActor(json: JObject) extends CoralActor with ActorLogging {
+class GroupByActor(json: JObject)(implicit injector: Injector) extends CoralActor with ActorLogging {
   def jsonDef = json
   val by = GroupByActor.getParams(json).get
   val Diff(_, _, jsonChildrenDef) = jsonDef diff JObject(("group", json \ "group"))

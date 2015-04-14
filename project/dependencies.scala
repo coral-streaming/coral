@@ -32,6 +32,9 @@ object Dependencies {
     // cassandra
     "com.datastax.cassandra" % "cassandra-driver-core" % "2.1.4",
 
+    // dependency injection
+    "org.scaldi" %% "scaldi-akka" % "0.5.3",
+
     "org.uncommons.maths" % "uncommons-maths" % "1.2.2a"
   )
 
