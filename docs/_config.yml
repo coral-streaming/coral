@@ -19,5 +19,5 @@ name: Coral
 highlighter: pygments
 markdown: redcarpet
 redcarpet:
-  extensions: ['with_toc_data', 'smart']
+  extensions: ['with_toc_data', 'smart', 'tables']
 baseurl: http://coral-streaming.github.io/
