@@ -17,11 +17,10 @@ layout: default
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
+# Coral Streaming Analytics
 
-# Overview
-
-Coral is a real-time analytics and data science platform. It transforms streaming events and extract patterns from data via RESTful APIs.
-Built on Spray, Akka and Spark. It can be used to collect and process events in realtime to provide key insights and enable systems to act in milliseconds.
-Coral provides a way to define event-driven dataflows by means of RESTful webapi calls. A library of ready-made processing elements (aka coral actors)
-is available for basic functions such as filtering, expressions, database accesses, and statistical operators. Event processing can be defined as a set
-of run-time coral actors. Coral scales to millions of events per second with high availability.
+Coral's real time analytics data pipeline consists of loosely coupled [actors](/actors/overview/).
+An actor is a share-nothing processing element which receive and emits messages via messages mailboxes. Data is transfered between actors has binary json,
+and each actor interpret the relevant part of the message according to its given configuration.Each actor is functionally separate from its neighboring actors.
+Events are transported asynchronously across a pipeline of loosely coupled actors. This provides a better scaling model with higher reliability and scalability.
+The topology can be changed without restarting the cluster.

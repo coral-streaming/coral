@@ -25,9 +25,11 @@ bin/
 # Idea
 .idea/
 .idea_modules/
+/coral.iml
 
 # Mac 
 .DS_Store
 
 # Generated docs
 /docs/_site
+/docs/Gemfile.lock
