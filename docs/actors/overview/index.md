@@ -31,8 +31,10 @@ name         | class | description
 `httpbroadcast` | [HttpBroadcastActor](/actors/httpbroadcast/) | pass (HTTP supplied) JSON to other actors
 `httpclient` | [HttpClientActor](/actors/httpclient/) | post to a service URL
 `lookup`     | [LookupActor](/actors/lookup/) | find data for a key value
+`sample`	 | [SampleActor](/actors/sample/) | emit only a fraction of the supplied data
 `stats`      | [StatsActor](/actors/stats/) | accumulate some basic statistics
 `threshold`  | [ThresholdActor](/actors/threshold/) | emit only when a specified field value exceeds a threshold
+`unlist`	 | [UnlistActor](/actors/unlist/) | emits elements of an array separately
 `window`     | [WindowActor](/actors/window/) | collect input objects and emit only when reaching a certain number or a certain time
 `zscore`     | [ZscoreActor](/actors/zscore/) | determine if a value is an outlier according to the Z-score statistic
 
