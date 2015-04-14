@@ -7,12 +7,11 @@ import akka.testkit.{ImplicitSender, TestActorRef, TestKit, TestProbe}
 import akka.util.Timeout
 import io.coral.actors.CoralActorFactory
 import io.coral.actors.Messages.{Emit, Trigger}
-import io.coral.api.ApiServiceActor
+import io.coral.api.{DefaultModule, ApiServiceActor}
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 import spray.can.Http
-
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
@@ -34,6 +33,8 @@ class HttpClientActorSpec(_system: ActorSystem)
     TestKit.shutdownActorSystem(system)
   }
 
+  implicit val injector = new DefaultModule(system.settings.config)
+  
   val testProbe = TestProbe()
   val instantiationJson = parse( """{ "type": "httpclient", "params": { "url": "http://google.com" } }""")
     .asInstanceOf[JObject]

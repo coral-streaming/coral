@@ -3,16 +3,17 @@
 
 package io.coral.api
 
-import akka.actor.{ActorSystem, Props}
+import akka.actor.ActorSystem
+import akka.actor.Props
 import akka.io.IO
 import io.coral.actors.RuntimeActor
 import spray.can.Http
 
 object Boot extends App {
   implicit val system = ActorSystem()
-
+  
   // create the coral actor
-  val coral = system.actorOf(Props[RuntimeActor], "coral")
+  val coral = system.actorOf(Props(classOf[RuntimeActor], new DefaultModule(system.settings.config)), "coral")
 
   // create and start our service actor
   val service = system.actorOf(Props[ApiServiceActor], "api")

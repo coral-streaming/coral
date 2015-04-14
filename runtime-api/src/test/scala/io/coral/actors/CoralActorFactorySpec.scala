@@ -1,10 +1,11 @@
 package io.coral.actors
 
-import io.coral.actors.database.CassandraActor
-import io.coral.actors.transform._
+import akka.actor.{Props, Actor}
+import io.coral.actors.transform.GroupByActor
 import org.json4s._
 import org.json4s.native.JsonMethods._
 import org.scalatest.{Matchers, WordSpecLike}
+import scaldi.Module
 
 class CoralActorFactorySpec extends WordSpecLike with Matchers {
 
@@ -13,7 +14,9 @@ class CoralActorFactorySpec extends WordSpecLike with Matchers {
   "The CoralActorFactor" should {
 
     "Provide nothing for invalid JSON" in {
-      val props = CoralActorFactory.getProps(parse( """{}"""))
+      implicit val injector = new Module {}
+      val json = """{}"""
+      val props = CoralActorFactory.getProps(parse(json))
       props should be(None)
     }
 
@@ -24,112 +27,82 @@ class CoralActorFactorySpec extends WordSpecLike with Matchers {
           |"params": { "field": "val" },
           |"group": { "by": "somefield" }
           |}""".stripMargin
+      implicit val injector = new Module {}
       val props = CoralActorFactory.getProps(parse(json))
       props.get.actorClass should be(classOf[GroupByActor])
     }
 
-    "Provide a CassandraActor for type 'cassandra'" in {
+    "Provide nothing for unknown type" in {
+      implicit val injector = new Module {}
+      val json = """{"type": "nonexisting"}"""
+      val props = CoralActorFactory.getProps(parse(json))
+      props should be(None)
+    }
+
+    "Provide an actor when the actor is defined in a factory" in {
+      implicit val injector = new Module {
+        bind[List[ActorPropFactory]] to List(new FirstActorPropFactory())
+      }
+      val json = """{"type": "actorOne"}"""
+      val props = CoralActorFactory.getProps(parse(json))
+      props.get.actorClass should be(classOf[ActorOne])
+    }
+
+    "Provide an actor when the actor is defined in one of the given factories" in {
+      implicit val injector = new Module {
+        bind[List[ActorPropFactory]] to List(new FirstActorPropFactory(), new SecondActorPropFactory())
+      }
+      val json = """{"type": "actorTwo"}"""
+      val props = CoralActorFactory.getProps(parse(json))
+      props.get.actorClass should be(classOf[ActorTwo])
+    }
+
+    "Provide the first actor found in one of the given factories" in {
+      implicit val injector = new Module {
+        bind[List[ActorPropFactory]] to List(new FirstActorPropFactory(), new SecondActorPropFactory())
+      }
       val json =
-        """{
-          |"type": "cassandra",
-          |           "seeds": ["0.0.0.0"], "keyspace": "test"
-          |}""".stripMargin
-      // should be: "params": { "seeds": ["0.0.0.0"], "keyspace": "test" }
+        """{"type": "actorOne"}"""
       val props = CoralActorFactory.getProps(parse(json))
-      props.get.actorClass should be(classOf[CassandraActor])
-    }
-
-    "Provide an FsmActor for type 'fsm'" in {
-      val json =
-        """{
-          |"type": "fsm",
-          |"params": {
-          |   "key": "transactionsize",
-          |   "table": {
-          |     "normal": {
-          |       "small": "normal"
-          |     }
-          |   },
-          |   "s0": "normal"
-          |}}""".stripMargin
-      val props = CoralActorFactory.getProps(parse(json))
-      props.get.actorClass should be(classOf[FsmActor])
-    }
-
-    "Provide a GeneratorActor for type 'generator'" in {
-      val json =
-        """{
-          |"type": "generator",
-          |"format": {  }
-          |"timer": { "rate": 1 }
-          | }""".stripMargin
-      // wrongly does not have params
-      val props = CoralActorFactory.getProps(parse(json))
-      props.get.actorClass should be(classOf[GeneratorActor])
-    }
-
-    "Provide a HttpBroadcastActor for type 'httpbroadcast'" in {
-      val json = """{ "type": "httpbroadcast" }""".stripMargin
-      val props = CoralActorFactory.getProps(parse(json))
-      props.get.actorClass should be(classOf[HttpBroadcastActor])
-    }
-
-    "Provide a HttpClientActor for type 'httpclient'" in {
-      val json = """{ "type": "httpclient" }""".stripMargin
-      val props = CoralActorFactory.getProps(parse(json))
-      props.get.actorClass should be(classOf[HttpClientActor])
-    }
-
-    "Provide a SampleActor for type 'stats'" in {
-      val json =
-        """{
-          |"type": "sample",
-          |"params": { "fraction": 0.5 }
-          |}""".stripMargin
-      val props = CoralActorFactory.getProps(parse(json))
-      props.get.actorClass should be(classOf[SampleActor])
-    }
-
-    "Provide a StatsActor for type 'stats'" in {
-      val json =
-        """{
-          |"type": "stats",
-          |"params": { "field": "val" }
-          |}""".stripMargin
-      val props = CoralActorFactory.getProps(parse(json))
-      props.get.actorClass should be(classOf[StatsActor])
-    }
-
-    "Provide a ThresholdActor for type 'threshold'" in {
-      val json =
-        """{
-          |"type": "threshold",
-          |"params": { "key": "key1", "threshold": 1.618 }
-          |}""".stripMargin
-      val props = CoralActorFactory.getProps(parse(json))
-      props.get.actorClass should be(classOf[ThresholdActor])
-    }
-
-    "Provide a WindowActor for type 'window'" in {
-      val json =
-        """{
-          |"type": "window",
-          |"params": { "method": "count", "number": 1 }
-          |}""".stripMargin
-      val props = CoralActorFactory.getProps(parse(json))
-      props.get.actorClass should be(classOf[WindowActor])
-    }
-
-    "Provide a ZscoreActor for type 'zscore'" in {
-      val json =
-        """{
-          |"type": "zscore",
-          |"params": { "by": "tag", "field": "val", "score": 3.141 }
-          |}""".stripMargin
-      val props = CoralActorFactory.getProps(parse(json))
-      props.get.actorClass should be(classOf[ZscoreActor])
+      props.get.actorClass should be(classOf[ActorOne])
     }
 
   }
 
+  class FirstActorPropFactory extends ActorPropFactory {
+    override def getProps(actorType: String, params: JValue): Option[Props] = {
+      actorType match {
+        case "actorOne" => Some(Props[ActorOne])
+        case _ => None
+      }
+    }
+  }
+
+  class SecondActorPropFactory extends ActorPropFactory {
+    override def getProps(actorType: String, params: JValue): Option[Props] = {
+      actorType match {
+        case "actorOne" => Some(Props[ActorOneAlternative])
+        case "actorTwo" => Some(Props[ActorTwo])
+        case _ => None
+      }
+    }
+  }
+}
+
+class ActorOne extends Actor {
+  override def receive = {
+    case _ =>
+  }
+}
+
+class ActorTwo extends Actor {
+  override def receive = {
+    case _ =>
+  }
+}
+
+class ActorOneAlternative extends Actor {
+  override def receive = {
+    case _ =>
+  }
 }
