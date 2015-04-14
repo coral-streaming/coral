@@ -1,7 +1,7 @@
 package io.coral.actors.transform
 
 import akka.actor.{ActorSystem, Props}
-import akka.testkit.{ImplicitSender, TestActorRef, TestKit}
+import akka.testkit.{ImplicitSender, TestActorRef, TestKit, TestProbe}
 import akka.util.Timeout
 import io.coral.lib.{NotSoRandom, Random}
 import org.json4s._
@@ -116,9 +116,21 @@ class SampleActorSpec(_system: ActorSystem)
       val json = parse( """{ "something": "whatever" }""").asInstanceOf[JObject]
       val actor = arbitrarySampleActor()
       actor.pass = false
-      actor.emit(json) should be (JNothing)
+      actor.emit(json) should be(JNothing)
       actor.pass = true
-      actor.emit(json) should be (json)
+      actor.emit(json) should be(json)
+    }
+
+    "Should have trigger and emit cooperate" in {
+      val actor = notSoRandomSampleActor(fraction = 0.7, randoms = 0.6, 0.8)
+      val ref = actor.self
+      val json = parse( """{ "something": "whatever" }""").asInstanceOf[JObject]
+      val probe = TestProbe()
+      actor.emitTargets += probe.ref
+      ref ! json
+      probe.expectMsg(json)
+      ref ! json
+      probe.expectNoMsg(100 millis)
     }
 
   }
