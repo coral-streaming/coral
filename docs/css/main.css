@@ -225,3 +225,4 @@ ul.documentation-list {
   height: 100px;
   margin-top: -100px;
 }
+td, th {padding: 6px}
