@@ -4,6 +4,7 @@ import io.coral.actors.database.CassandraActor
 import io.coral.actors.transform._
 import org.json4s.native.JsonMethods._
 import org.scalatest.{Matchers, WordSpecLike}
+import scala.language.postfixOps
 
 class DefaultActorPropFactorySpec
   extends WordSpecLike
@@ -67,6 +68,16 @@ class DefaultActorPropFactorySpec
       val json = """{ "type": "httpclient" }""".stripMargin
       val props = factory.getProps("httpclient" ,parse(json))
       props.get.actorClass should be(classOf[HttpClientActor])
+    }
+
+    "Provide a SampleActor for type 'threshold'" in {
+      val json =
+        """{
+          |"type": "sample",
+          |"params": { "fraction": 0.1010010001 }
+          |}""".stripMargin
+      val props = factory.getProps("sample", parse(json))
+      props.get.actorClass should be(classOf[SampleActor])
     }
 
     "Provide a StatsActor for type 'stats'" in {
