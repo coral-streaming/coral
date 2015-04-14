@@ -28,3 +28,6 @@ bin/
 
 # Mac 
 .DS_Store
+
+# Generated docs
+/docs/_site

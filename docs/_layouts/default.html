@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Coral {% if page.title %}- {{page.title}}{% endif %}</title>
+    <link href='/css/ropa-sans.css' rel='stylesheet' type='text/css'/>
+    <link href="/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="/css/font-awesome.min.css" rel="stylesheet"/>
+    <link href="/css/main.css" rel="stylesheet"/>
+    <link href="/css/syntax.css" rel="stylesheet"/>
+    <script src="/js/jquery-1.11.1.min.js"></script>
+  </head>
+  <body>
+    <div class="wrapper">
+      <div class="wrapper-content">
+
+        <div class="masthead">
+          <div class="container">
+            <div class="masthead-logo">
+              <a href="/" class="logo">coral</a>
+            </div>
+            <div class="masthead-icons">
+              <div class="pull-right">                
+                <a href="https://github.com/coral-streaming/coral" target="_blank"><i class="fa fa-code masthead-icon" style="font-weight: bold;"></i></a>                
+              </div>
+            </div>
+          </div><!-- /.container -->
+        </div>
+
+        <div class="container">
+          <div class="menu">
+			<h1><i class="fa fa-home"></i> Overview</h1>
+			<ul>
+				<li><a href="/overview/why/{{ navLink }}">Why Coral?</a></li>
+				<li><a href="/overview/streaming/{{ navLink }}">Coral Streaming Analytics</a></li>
+				<li><a href="/overview/architecture/{{ navLink }}">Architecture</a></li>
+			</ul>
+            <h1><i class="fa fa-rocket"></i> Getting Started</h1>
+            <ul>
+              <li><a href="/startup/download/{{ navLink }}">Downloading</a></li>
+              <li><a href="/startup/start/{{ navLink }}">Compiling and starting</a></li>
+			  <li><a href="/startup/run/{{ navLink }}">Running</a></li>
+            </ul>
+
+            <h1><i class="fa fa-cog"></i> Actors</h1>
+            <ul>
+			  <li><a href="/actors/overview/{{ navLink }}">Overview</a></li>
+              <li><a href="/actors/cassandra/{{ navLink }}">CassandraActor</a></li>			  
+			  <li><a href="/actors/fsm/{{ navLink }}">FsmActor</a></li>
+			  <li><a href="/actors/generator/{{ navLink }}">GeneratorActor</a></li>
+			  <li><a href="/actors/groupby/{{ navLink }}">GroupByActor</a></li>
+			  <li><a href="/actors/httpbroadcast/{{ navLink }}">HttpBroadcastActor</a></li>
+			  <li><a href="/actors/httpclient/{{ navLink }}">HttpClientActor</a></li>
+			  <li><a href="/actors/lookup/{{ navLink }}">LookupActor</a></li>
+			  <li><a href="/actors/sample/{{ navLink }}">SampleActor</a></li>
+			  <li><a href="/actors/stats/{{ navLink }}">StatsActor</a></li>
+			  <li><a href="/actors/treshold/{{ navLink }}">ThresholdActor</a></li>
+			  <li><a href="/actors/unlist/{{ navLink }}">UnlistActor</a></li>
+			  <li><a href="/actors/window/{{ navLink }}">WindowActor</a></li>
+			  <li><a href="/actors/zscore/{{ navLink }}">ZscoreActor</a></li>
+            </ul>
+
+          </div>
+
+          <div class="content">
+            {{content}}
+          </div>
+        </div>
+
+      </div><!-- /.wrapper-content -->
+    </div><!-- /.wrapper -->
+
+    <div class="footer">
+      <div class="container">
+        <!-- nothing for now. -->
+      </div>
+    </div>
+	
+  </body>
+</html>
