@@ -27,11 +27,12 @@ object CoralActorFactory {
         case "zscore"     => ZscoreActor(json)
         case "stats"      => StatsActor(json)
         case "lookup"     => LookupActor(json)
-        case "httpserver" => HttpServerActor(json)
+        case "httpbroadcast" => HttpBroadcastActor(json)
         case "httpclient" => HttpClientActor(json)
         case "cassandra"  => CassandraActor(json)
         case "threshold"  => ThresholdActor(json)
         case "window"     => WindowActor(json)
+        case "generator"  => GeneratorActor(json)
       }
     } yield props
 

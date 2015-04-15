@@ -16,7 +16,24 @@
             </div>
         </div>
         <div class="row content">
-            <div class="col-md-12">
+            <div class="col-md-3">
+                {% assign topics =  site.posts | group_by: "topic" %}
+                {% for topic in topics %}
+                <div class="row">
+                    <div class="col-md-12">
+                        <h3>{{ topic.name }}</h3>
+                    </div>
+                </div>
+                {% for item in topic.items %}
+                <div class="row">
+                    <div class="col-md-12">
+                        <a href="{{item.url}}">{{ item.title }}</a>
+                    </div>
+                </div>
+                {% endfor %}
+                {% endfor %}
+            </div>
+            <div class="col-md-9">
                 {{ content }}
             </div>
         </div>

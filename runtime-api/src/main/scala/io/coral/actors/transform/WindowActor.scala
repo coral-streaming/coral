@@ -9,6 +9,7 @@ import org.json4s.jackson.JsonMethods._
 import scala.collection.mutable.Queue
 import scala.concurrent.Future
 import scala.concurrent.duration._
+import scala.language.postfixOps
 import scala.util.Try
 import scalaz.OptionT
 import akka.actor.Props
@@ -98,6 +99,7 @@ object WindowActor {
                 } else {
                     i.toInt
                 }
+            case _ => throw new IllegalArgumentException("number")
         }
 
         Some(value)
@@ -115,6 +117,7 @@ object WindowActor {
                 } else {
                     i.toInt
                 }
+            case _ => throw new IllegalArgumentException("number")
         }
 
         Some(value)

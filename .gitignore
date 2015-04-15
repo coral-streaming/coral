@@ -25,9 +25,14 @@ bin/
 # Idea
 .idea/
 .idea_modules/
+/coral.iml
 
 # Mac 
 .DS_Store
 
 # Jekyll
 _site/*
+
+# Generated docs
+/docs/_site
+/docs/Gemfile.lock

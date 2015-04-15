@@ -7,19 +7,4 @@ title: Coral wiki
     <div class="col-md-12">
         <H1>Coral Wiki index page</H1>
     </div>
-    {% assign topics =  site.posts | group_by: "topic" %}
-    {% for topic in topics %}
-    <div class="row">
-        <div class="col-md-12">
-            <h3>{{ topic.name }}</h3>
-        </div>
-    </div>
-        {% for item in topic.items %}
-        <div class="row">
-            <div class="col-md-12">
-                <a href="{{item.url}}">{{ item.title }}</a>
-            </div>
-        </div>
-        {% endfor %}
-    {% endfor %}
 </div>
