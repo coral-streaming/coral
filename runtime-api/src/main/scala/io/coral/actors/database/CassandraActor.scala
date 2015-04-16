@@ -30,7 +30,7 @@ object CassandraActor {
             seeds <- (json \ "seeds").extractOpt[List[String]]
             keyspace <- (json \ "keyspace").extractOpt[String]
         } yield {
-            (seeds, keyspace)
+            (seeds, (json \ "port").extractOpt[Int], keyspace)
         }
     }
 
@@ -42,10 +42,10 @@ object CassandraActor {
 class CassandraActor(json: JObject) extends CoralActor with CassandraHelper {
     def jsonDef = json
 
-    var (seeds, keyspace) = CassandraActor.getParams(json).get
+    var (seeds, port, keyspace) = CassandraActor.getParams(json).get
 
     override def preStart() {
-        ensureConnection(seeds, keyspace)
+        ensureConnection(seeds, port, keyspace)
     }
 
     var cluster: Cluster = _
@@ -65,7 +65,7 @@ class CassandraActor(json: JObject) extends CoralActor with CassandraHelper {
 
     def trigger = {
         json: JObject =>
-            ensureConnection(seeds, keyspace)
+            ensureConnection(seeds, port, keyspace)
 
             try {
                 val query = (json \ "query").extractOpt[String].get.trim()
@@ -76,7 +76,7 @@ class CassandraActor(json: JObject) extends CoralActor with CassandraHelper {
                 if (query.startsWith("use keyspace")) {
                     log.info("Changing keyspace, updating schema")
                     keyspace = query.substring(13, query.length - 1)
-                    ensureConnection(seeds, keyspace)
+                    ensureConnection(seeds, port, keyspace)
                     getSchema(session, keyspace)
                 } else {
                     val data = session.execute(query)
@@ -121,16 +121,26 @@ class CassandraActor(json: JObject) extends CoralActor with CassandraHelper {
      * do nothing. If the given keyspace is not the same as the
      * keyspace of the session, reconnect to the new keyspace.
      * @param seeds The seed nodes to connect to
+     * @param port The port to use, None to use the default port
      * @param keyspace The keyspace to connect to
      */
-    def ensureConnection(seeds: List[String], keyspace: String) {
+    def ensureConnection(seeds: List[String], port: Option[Int], keyspace: String) {
         // No need to connect if already having a valid session object
         if (session == null || session.isClosed || session.getLoggedKeyspace != keyspace) {
             log.info("CassandraActor not yet connected. Connecting now...")
-            cluster = Cluster.builder().addContactPoints(seeds: _*).build()
+            cluster = createCluster(seeds, port)
             session = cluster.connect(keyspace)
             schema = getSchema(session, keyspace)
         }
+    }
+
+    private def createCluster(seeds: List[String], port: Option[Int]): Cluster = {
+        val builder = Cluster.builder()
+        if (port.isDefined) {
+            builder.withPort(port.get)
+        }
+        builder.addContactPoints(seeds: _*)
+        builder.build()
     }
 }
 
