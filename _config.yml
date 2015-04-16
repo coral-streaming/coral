@@ -1,6 +1,6 @@
 
 permalink: none
 
-url://http://coral-streaming.github.io/
-baseurl: coral
+url: "http://coral-streaming.github.io"
+baseurl: "/coral"
 
