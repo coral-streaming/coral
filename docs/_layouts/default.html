@@ -7,6 +7,8 @@
     <script src="/lib/jquery/jquery-1.11.2.min.js"></script>
     <script src="/lib/bootstrap/js/bootstrap.min.js"></script>
     <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css" type="text/css">
+
+    <link rel="stylesheet" href="/css/custom.css" type="text/css">
 </head>
 <body>
     <div class="container">
@@ -16,7 +18,7 @@
             </div>
         </div>
         <div class="row content">
-            <div class="col-md-3">
+            <div class="col-md-2">
                 {% assign topics =  site.posts | group_by: "topic" %}
                 {% for topic in topics %}
                 <div class="row">
@@ -33,7 +35,7 @@
                 {% endfor %}
                 {% endfor %}
             </div>
-            <div class="col-md-9">
+            <div class="col-md-10">
                 {{ content }}
             </div>
         </div>
