@@ -4,17 +4,17 @@
     <meta charset="UTF-8">
     <title>Coral Wiki</title>
 
-    <script src="/lib/jquery/jquery-1.11.2.min.js"></script>
-    <script src="/lib/bootstrap/js/bootstrap.min.js"></script>
-    <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css" type="text/css">
+    <script src="lib/jquery/jquery-1.11.2.min.js"></script>
+    <script src="lib/bootstrap/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="lib/bootstrap/css/bootstrap.min.css" type="text/css">
 
-    <link rel="stylesheet" href="/css/custom.css" type="text/css">
+    <link rel="stylesheet" href="css/custom.css" type="text/css">
 </head>
 <body>
     <div class="container">
         <div class="row">
             <div class="col-md-12">
-                <H1><img src="/img/coralLogo.png" style="height:36px; top:-5px; position: relative;">CORAL WIKI</H1>
+                <H1><img src="img/coralLogo.png" style="height:36px; top:-5px; position: relative;">CORAL WIKI</H1>
             </div>
         </div>
         <div class="row content">
@@ -29,7 +29,7 @@
                 {% for item in topic.items %}
                 <div class="row">
                     <div class="col-md-12">
-                        <a href="{{item.url}}">{{ item.title }}</a>
+                        <a href="{{ site.baseurl }}{{item.url}}">{{ item.title }}</a>
                     </div>
                 </div>
                 {% endfor %}
