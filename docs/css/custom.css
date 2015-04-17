@@ -2,3 +2,9 @@ body {
     overflow-y: scroll;
     font-size: 14px;
 }
+
+table, th, td {
+    border: 1px solid #AAB;
+    padding: 3px;
+}
+

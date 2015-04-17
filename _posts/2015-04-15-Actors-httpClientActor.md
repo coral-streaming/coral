@@ -51,6 +51,7 @@ DELETE
   "payload": ""
 }
 ```
+
 ## Emit
 The `HttpClientActor` emits a json with the '**status**', '**header**' and '**body**' of the respons of the http method that was triggered.
 
