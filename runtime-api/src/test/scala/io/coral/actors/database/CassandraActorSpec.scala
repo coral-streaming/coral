@@ -1,25 +1,23 @@
 package io.coral.actors.database
 
 import akka.actor.{ActorRef, ActorSystem, Props}
-import io.coral.actors.Messages.{GetField, Shunt}
-import io.coral.actors.transform.SampleActor
-import org.cassandraunit.utils.EmbeddedCassandraServerHelper
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
-
-import akka.testkit.{ImplicitSender, TestActorRef, TestKit, TestProbe}
+import akka.testkit.{TestActorRef, ImplicitSender, TestKit}
 import akka.util.Timeout
+import io.coral.actors.Messages.{GetField, Shunt}
+import org.cassandraunit.utils.EmbeddedCassandraServerHelper
 import org.json4s._
-import org.json4s.jackson.JsonMethods._
+import org.json4s.native.JsonMethods._
+import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import akka.pattern.ask
 
 class CassandraActorSpec(_system: ActorSystem) extends TestKit(_system)
-  with ImplicitSender
-  with WordSpecLike
-  with Matchers
-  with BeforeAndAfterAll {
+with ImplicitSender
+with WordSpecLike
+with Matchers
+with BeforeAndAfterAll {
 
   val EmbeddedCassandraPort = 9142
 
@@ -214,28 +212,17 @@ class CassandraActorSpec(_system: ActorSystem) extends TestKit(_system)
   private def prepareDatabase() {
     scripts.foreach(script => {
       val json = parse(script).asInstanceOf[JObject]
-      cassandra ! json
-      expectNoMsg(50.millis)
+      cassandra.underlyingActor.jsonData(json)
     })
   }
 
-  def arbitrarySampleActor(): SampleActor = {
-    val json = parse(
-      """{ "type": "sample",
-        |  "params": { "fraction": 0.707 } }
-      """.stripMargin)
-    val props = SampleActor(json).get
-    TestActorRef[SampleActor](props).underlyingActor
-  }
-
   private def createCassandraActor() = {
-    val json = parse(
-      s"""
-         | "seeds": ["127.0.0.1"],
-         | "port": $EmbeddedCassandraPort,
-         | "keyspace": "system" }
-       """.stripMargin)
-    val props = CassandraActor(json).get
-    TestActorRef[CassandraActor](props)
+    val json = parse(s"""{ "seeds": ["127.0.0.1"], "port": $EmbeddedCassandraPort, "keyspace": "system" }""")
+
+    val props = CassandraActor(json)
+    assert(props.isDefined)
+
+    val propsVal = props.get
+    TestActorRef[CassandraActor](propsVal)
   }
 }

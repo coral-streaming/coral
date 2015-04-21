@@ -2,24 +2,18 @@ package io.coral.actors.database
 
 import akka.actor.Props
 import com.datastax.driver.core._
-import org.json4s.JValue
-import org.json4s.JsonAST.JValue
 
-import scala.concurrent.{Promise, Future}
+import scala.concurrent.Future
 
 //json goodness
 import org.json4s._
 import org.json4s.JsonDSL._
-import org.json4s.jackson.JsonMethods._
+import org.json4s.jackson.JsonMethods.render
 
 // coral
 import io.coral.actors.CoralActor
 
-import scalaz.{OptionT, Monad}
-import scalaz.OptionT._
-
-import org.json4s.DefaultFormats
-import org.json4s.native.Serialization.write
+import scalaz.OptionT
 import scala.collection.mutable.{ListBuffer => mList}
 
 object CassandraActor {
