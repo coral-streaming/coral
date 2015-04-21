@@ -192,7 +192,7 @@ trait CoralActor extends Actor with ActorLogging {
 
       r.onSuccess {
         case Some(_) => transmit(emit(json))
-        case None => log.warning("some variables are not available")
+        case None => log.warning("some variables are not available while processing json")
       }
 
       r.onFailure {
@@ -209,11 +209,11 @@ trait CoralActor extends Actor with ActorLogging {
           transmit(result)
           if (result != JNothing) s ! result
 
-        case None => log.warning("some variables are not available")
+        case None => log.warning("some variables are not available while doing shunt")
       }
 
       r.onFailure {
-        case e => println(e)
+        case e => log.error(e, "shunt failed")
       }
     case Trigger(json) =>
       trigger(json).run

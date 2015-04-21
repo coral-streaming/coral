@@ -68,6 +68,7 @@ class CassandraActor(json: JObject) extends CoralActor with CassandraHelper {
             ensureConnection(seeds, port, keyspace)
 
             try {
+                lastQuery = ""
                 val query = (json \ "query").extractOpt[String].get.trim()
                 lastQuery = query
 

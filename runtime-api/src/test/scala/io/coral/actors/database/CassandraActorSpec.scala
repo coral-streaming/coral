@@ -205,7 +205,13 @@ class CassandraActorSpec(_system: ActorSystem) extends TestKit(_system)
       val queryString = "select * from testkeyspace.test1 where col1 = 'somevalue';"
       val query = parse(s"""{ "otherfield": "$queryString" } """).asInstanceOf[JObject]
       val actual = Await.result(cassandra.ask(Shunt(query)), Timeout(2.seconds).duration)
-      println(actual)
+      val expected = parse(
+        s"""{
+           "query": "",
+           "success": false,
+           "error": "None.get"
+         }""".stripMargin).asInstanceOf[JObject]
+      assert(actual == expected)
     }
   }
 
