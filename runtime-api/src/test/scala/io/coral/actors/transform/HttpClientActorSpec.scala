@@ -55,40 +55,6 @@ class HttpClientActorSpec(_system: ActorSystem)
       actorRef ! triggerJson
       testProbe.expectNoMsg()
     }
-
-    "execute a GET request on a given URL" in {
-      val triggerJson = parse("""{"url": "http://localhost:8111", "method": "GET"}""").asInstanceOf[JObject]
-
-      actorRef ! triggerJson
-
-      testProbe.expectNoMsg(5.seconds)
-
-//      val actual = Await.result(actorRef.ask(Emit()), timeout.duration)
-//
-//      val correctFormat:Boolean = actual match {
-//        case JObject(List(("status", JString(_)), ("headers", JString(_)), ("body", JString(_)))) => true
-//          // Do nothing, success
-//        case _ => false
-//      }
-//      assert(correctFormat)
-    }
-
-    "emit nothing when the method is invalid" in {
-      val triggerJson = parse("""{"url": "http://localhost:8111", "method": "jeMoeder"}""").asInstanceOf[JObject]
-
-      actorRef ! triggerJson
-
-      testProbe.expectNoMsg(5.seconds)
-
-//      val actual = Await.result(actorRef.ask(Emit()), timeout.duration)
-//
-//      val correctFormat:Boolean = actual match {
-//        case JNothing => true
-//        // Do nothing, success
-//        case _ => false
-//      }
-//
-//      assert(correctFormat)
-    }
   }
+
 }
