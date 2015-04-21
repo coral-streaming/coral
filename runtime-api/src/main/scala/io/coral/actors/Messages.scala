@@ -19,12 +19,6 @@ object Messages {
     // Execute trigger and emit for given value
     case class Shunt(json: JObject)
 
-    // Execute trigger function without emit
-    case class Trigger(json: JObject)
-
-    // Execute emit without json
-    case class Emit()
-
     // Get single field from state map
     case class GetField(field: String)
 

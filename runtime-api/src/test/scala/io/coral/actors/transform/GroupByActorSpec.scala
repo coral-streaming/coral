@@ -30,7 +30,7 @@ class GroupByActorSpec(_system: ActorSystem)
 
   val runtime = system.actorOf(Props(classOf[RuntimeActor], new DefaultModule(system.settings.config)), "coral")
 
-  implicit val timeout = Timeout(100 millis)
+  implicit val timeout = Timeout(100.millis)
   implicit val formats = org.json4s.DefaultFormats
   implicit val injector = new DefaultModule(system.settings.config)
 
