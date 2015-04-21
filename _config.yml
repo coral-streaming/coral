@@ -1,4 +1,6 @@
-layouts: ./docs/_layouts
+plugins:     ./docs/_plugins
+data_source: ./_posts
+layouts:     ./docs/_layouts
 
 permalink: none
 
