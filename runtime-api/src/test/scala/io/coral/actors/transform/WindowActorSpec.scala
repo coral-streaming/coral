@@ -211,6 +211,79 @@ class WindowActorSpec(_system: ActorSystem) extends TestKit(_system)
       probe.expectMsg(expected)
     }
 
+    "Properly perform ('time', 1, 1)" in {
+      val construct = parse(
+        """
+          | { "type": "window",
+          | "params" : { "method": "time", "number": 1000, "sliding": 1000 }}
+          | """.stripMargin).asInstanceOf[JObject]
+
+      val props = WindowActor(construct).get
+      val windowActor = TestActorRef[WindowActor](props)
+
+      // subscribe the testprobe for emitting
+      val probe = TestProbe()
+      windowActor.underlyingActor.emitTargets += probe.ref
+
+      for (i <- 1 to 10) {
+        val json = parse( s"""{ "name": "object$i" } """).asInstanceOf[JObject]
+        windowActor ! json
+        Thread.sleep(300)
+      }
+
+      var expected = parse(
+        """{ "data": [
+          |{ "name" : "object1" },
+          |{ "name" : "object2" },
+          |{ "name" : "object3" },
+          |{ "name" : "object4" }]}""".stripMargin)
+      probe.expectMsg(Timeout(2.seconds).duration, expected)
+
+      expectNoMsg(1.second)
+
+      expected = parse(
+        """{ "data": [
+          |{ "name" : "object5" },
+          |{ "name" : "object6" },
+          |{ "name" : "object7" }]}""".stripMargin)
+      probe.expectMsg(Timeout(2.seconds).duration, expected)
+    }
+
+    "Properly perform ('time', 3, 1)" in {
+      val construct = parse(
+        """
+          | { "type": "window",
+          | "params" : { "method": "time", "number": 3000, "sliding": 1000 }}
+          | """.stripMargin).asInstanceOf[JObject]
+
+      val props = WindowActor(construct).get
+      val windowActor = TestActorRef[WindowActor](props)
+
+      // subscribe the testprobe for emitting
+      val probe = TestProbe()
+      windowActor.underlyingActor.emitTargets += probe.ref
+
+      for (i <- 1 to 10) {
+        val json = parse(s"""{ "name": "object$i" } """.stripMargin).asInstanceOf[JObject]
+        windowActor ! json
+        Thread.sleep(1000)
+      }
+
+      var expected = parse(
+        """{ "data": [
+          |{ "name" : "object1" },
+          |{ "name" : "object2" },
+          |{ "name" : "object3" }]}""".stripMargin)
+      probe.expectMsg(Timeout(4.seconds).duration, expected)
+
+      expected = parse(
+        """{ "data": [
+          |{ "name" : "object2" },
+          |{ "name" : "object3" },
+          |{ "name" : "object4" }]}""".stripMargin)
+      probe.expectMsg(Timeout(7.seconds).duration, expected)
+    }
+
     "Not emit the window before the window size is reached" in {
       val construct = parse(
         """{ "type": "window", "params" : { "method":
