@@ -49,8 +49,8 @@ class ZscoreActorSpec(_system: ActorSystem)
     val createJson = parse(
       s"""{ "type": "zscore",
          |"params": { "by": "${by}",
-                                           |"field": "${field}",
-                                                                |"score": ${score} } }""".stripMargin)
+         |"field": "${field}",
+         |"score": ${score} } }""".stripMargin)
       .asInstanceOf[JObject]
     val props = CoralActorFactory.getProps(createJson).get
     val actorRef = TestActorRef[ZscoreActor](props, s"${n}")

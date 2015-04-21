@@ -203,11 +203,12 @@ class CoralActorSpec(_system: ActorSystem)
       val testJson: JValue = parse( """{ "test": "trigger" }""")
       class TestCoralActor extends MinimalCoralActor {
         var wasExecuted = false
-
         override def trigger: JObject => OptionT[Future, Unit] = _ => OptionT.some(Future.successful(wasExecuted = true))
       }
+
       val coral = createCoralActor(Props(new TestCoralActor))
-      coral.self ! Trigger(parse("{}").asInstanceOf[JObject])
+
+      coral.jsonData(parse("{}").asInstanceOf[JObject])
       expectNoMsg(100 millis)
       coral.asInstanceOf[TestCoralActor].wasExecuted should be(true)
     }
@@ -259,16 +260,6 @@ class CoralActorSpec(_system: ActorSystem)
   }
 
   "CoralActor emit" should {
-
-    "Be activated after a 'Emit' message" in {
-      val testJson: JValue = parse( """{ "test": "emit2" }""")
-      class TestCoralActor extends MinimalCoralActor {
-        override def emit: JObject => JValue = json => testJson.merge(json)
-      }
-      val coral = createCoralActor(Props(new TestCoralActor))
-      coral.self ! Emit()
-      expectMsg(testJson)
-    }
 
     "Be defined in concrete implementations of 'emit'" in {
       val testJson: JValue = parse( """{ "test": "input" }""")

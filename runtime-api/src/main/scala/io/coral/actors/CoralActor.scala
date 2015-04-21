@@ -151,7 +151,7 @@ trait CoralActor extends Actor with ActorLogging {
     }
   }
 
-  def propertiesHandling: Receive = {
+  def propHandling: Receive = {
     case UpdateProperties(json) =>
       // update trigger
       triggerSource = (json \ "input" \ "trigger" \ "in" \ "type").extractOpt[String]
@@ -215,19 +215,14 @@ trait CoralActor extends Actor with ActorLogging {
       r.onFailure {
         case e => println(e)
       }
-    case Trigger(json) =>
-      trigger(json).run
-    case Emit() =>
-      val result = emit(JObject())
-      sender ! result
   }
 
-  def receive = jsonData orElse
-    stateReceive orElse
-    transmitAdmin orElse
-    propertiesHandling orElse
-    resourceDesc orElse
-    receiveTimeout
+  def receive = jsonData        orElse
+                stateReceive    orElse
+                transmitAdmin   orElse
+                propHandling    orElse
+                resourceDesc    orElse
+                receiveTimeout
 
   def state: Map[String, JValue]
 

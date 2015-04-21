@@ -1,13 +1,15 @@
 package io.coral.actors.database
 
 import akka.actor.{ActorRef, ActorSystem, Props}
-import akka.testkit.{ImplicitSender, TestKit}
-import akka.util.Timeout
-import io.coral.actors.Messages.{Trigger, GetField, Shunt}
+import io.coral.actors.Messages.{GetField, Shunt}
+import io.coral.actors.transform.SampleActor
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper
-import org.json4s._
-import org.json4s.native.JsonMethods._
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+
+import akka.testkit.{ImplicitSender, TestActorRef, TestKit, TestProbe}
+import akka.util.Timeout
+import org.json4s._
+import org.json4s.jackson.JsonMethods._
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -212,14 +214,28 @@ class CassandraActorSpec(_system: ActorSystem) extends TestKit(_system)
   private def prepareDatabase() {
     scripts.foreach(script => {
       val json = parse(script).asInstanceOf[JObject]
-      cassandra ! Trigger(json)
+      cassandra ! json
       expectNoMsg(50.millis)
     })
   }
 
-  private def createCassandraActor(): ActorRef = {
-    val json = parse(s"""{ "seeds": ["127.0.0.1"], "port": $EmbeddedCassandraPort, "keyspace": "system" }""")
-      .asInstanceOf[JObject]
-    system.actorOf(Props(new CassandraActor(json)), "cassandra")
+  def arbitrarySampleActor(): SampleActor = {
+    val json = parse(
+      """{ "type": "sample",
+        |  "params": { "fraction": 0.707 } }
+      """.stripMargin)
+    val props = SampleActor(json).get
+    TestActorRef[SampleActor](props).underlyingActor
+  }
+
+  private def createCassandraActor() = {
+    val json = parse(
+      s"""
+         | "seeds": ["127.0.0.1"],
+         | "port": $EmbeddedCassandraPort,
+         | "keyspace": "system" }
+       """.stripMargin)
+    val props = CassandraActor(json).get
+    TestActorRef[CassandraActor](props)
   }
 }
