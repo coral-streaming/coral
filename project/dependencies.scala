@@ -46,7 +46,7 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-testkit"    % akkaVersion % "it,test",
 
     // cassandra
-    "org.cassandraunit" % "cassandra-unit"   % "2.1.3.1" % "it,test",
+    "org.cassandraunit" % "cassandra-unit"   % "2.1.3.1" % "it,test" exclude("org.slf4j", "slf4j-log4j12"),
 
     //testing
     "org.scalatest"     %% "scalatest"       % "2.2.1" % "it,test"
