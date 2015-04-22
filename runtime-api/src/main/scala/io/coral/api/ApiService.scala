@@ -21,12 +21,6 @@ class ApiServiceActor extends Actor with ApiService with ActorLogging {
   def receive = runRoute(serviceRoute)
 }
 
-// terminology:
-// in order not to clash which akka actors,
-// we call the REST exposed actors (Beads internal name, external name Actor)
-// we call the REST exposed api actor factory as coral, external name coral)
-// we call the REST exposed actors connections "connections", exposed as "connections"
-// declaration time : /api/coral/flows/{flowid}/actors/{actorid}
 trait ApiService extends HttpService {
   implicit def executionContext = actorRefFactory.dispatcher
   implicit val timeout = Timeout(1.seconds)
@@ -98,7 +92,7 @@ trait ApiService extends HttpService {
                             entity(as[JObject]) { json =>
                               val result = askActor(ap, Shunt(json)).mapTo[JValue]
                               onComplete(result) {
-                                case Success(json) => complete(json)
+                                case Success(value) => complete(value)
                                 case Failure(ex)   => complete(StatusCodes.InternalServerError, s"An error occurred: ${ex.getMessage}")
                               }
                             }
