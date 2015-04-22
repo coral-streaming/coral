@@ -185,36 +185,30 @@ trait CoralActor extends Actor with ActorLogging {
       sender ! render(("actors", render(Map(("def", jsonDef), ("state", render(state))))))
   }
 
+  def execute(json:JObject, sender:Option[ActorRef]) = {
+    val stage = trigger(json)
+    val r = stage.run
+
+    r.onSuccess {
+      case Some(_) =>
+        val result = emit(json)
+        transmit(result)
+        sender.foreach(_ ! result)
+
+      case None => log.warning("not processed")
+    }
+
+    r.onFailure {
+      case _ => log.warning("actor execution")
+    }
+  }
+
   def jsonData: Receive = {
     case json: JObject =>
-      val stage = trigger(json)
-      val r = stage.run
+      execute(json,None)
 
-      r.onSuccess {
-        case Some(_) => transmit(emit(json))
-        case None => log.warning("some variables are not available while processing json")
-      }
-
-      r.onFailure {
-        case _ =>
-      }
     case Shunt(json) =>
-      val s = sender
-      val stage = trigger(json)
-      val r = stage.run
-
-      r.onSuccess {
-        case Some(_) =>
-          val result = emit(json)
-          transmit(result)
-          if (result != JNothing) s ! result
-
-        case None => log.warning("some variables are not available while doing shunt")
-      }
-
-      r.onFailure {
-        case e => log.error(e, "shunt failed")
-      }
+      execute(json,Some(sender))
   }
 
   def receive = jsonData        orElse
