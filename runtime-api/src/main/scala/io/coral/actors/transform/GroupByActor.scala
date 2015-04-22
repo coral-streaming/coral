@@ -56,7 +56,6 @@ class GroupByActor(json: JObject)(implicit injector: Injector) extends CoralActo
 
             counter onSuccess {
               case id =>
-                println(s"reached registration $id $value")
                 val props = CoralActorFactory.getProps(jsonChildrenDef)
                 props map { p =>
                   val actor = actorRefFactory.actorOf(p, s"$id")
