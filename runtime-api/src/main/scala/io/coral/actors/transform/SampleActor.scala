@@ -42,24 +42,23 @@ class SampleActor(json: JValue, random: Random) extends CoralActor {
 
   var pass: Boolean = false
 
-  override def jsonDef: JValue = json
+  def jsonDef = json
 
-  override def timer: JValue = notSet
+  def timer = noTimer
 
-  override def state: Map[String, JValue] = Map.empty[String, JValue]
+  def state: Map[String, JValue] = Map.empty[String, JValue]
 
-  override def trigger: (JObject) => OptionT[Future, Unit] = {
+  def trigger = {
     _ => {
       pass = next()
       OptionT.some(Future.successful({}))
     }
   }
 
-  override def emit: (JObject) => JValue = {
-    json: JObject => pass match {
+  def emit =
+    json => pass match {
       case false => JNothing
       case true => json
     }
-  }
 
 }

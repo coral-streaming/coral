@@ -30,8 +30,9 @@ object HttpClientActor {
 
 class HttpClientActor(json: JObject) extends CoralActor with ActorLogging {
   def jsonDef = json
-  def state = Map.empty
-  def timer = notSet
+  def state   = Map.empty
+  def timer   = noTimer
+
   var answer: HttpResponse = _
 
   def trigger: (JObject) => OptionT[Future, Unit] = {

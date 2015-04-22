@@ -91,7 +91,7 @@ class StatsActorSpec(_system: ActorSystem)
 
     "emit nothing" in {
       val actor = createStatsActor
-      actor.emit should be(actor.doNotEmit)
+      actor.emit should be(actor.emitNothing)
     }
 
   }

@@ -1,7 +1,7 @@
 package io.coral.actors
 
 // scala
-import scala.collection.immutable.SortedSet
+import scala.collection.immutable.{SortedMap, SortedSet}
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
@@ -28,14 +28,11 @@ import scalaz.{Monad, OptionT}
 import io.coral.actors.Messages._
 
 sealed class TimerBehavior
-
-object TimerExit extends TimerBehavior
-
+object TimerExit     extends TimerBehavior
 object TimerContinue extends TimerBehavior
+object TimerNone     extends TimerBehavior
 
-object TimerNone extends TimerBehavior
-
-trait CoralActor extends Actor with ActorLogging {
+abstract class CoralActor extends Actor with ActorLogging {
   // begin: implicits and general actor init
   def actorRefFactory = context
 
@@ -52,15 +49,13 @@ trait CoralActor extends Actor with ActorLogging {
 
   implicit val timeout = Timeout(1000.milliseconds)
 
-  def askActor(a: String, msg: Any) = actorRefFactory.actorSelection(a).ask(msg)
-
+  def askActor(a: String, msg: Any)  = actorRefFactory.actorSelection(a).ask(msg)
   def tellActor(a: String, msg: Any) = actorRefFactory.actorSelection(a).!(msg)
 
   implicit val formats = org.json4s.DefaultFormats
 
   implicit val futureMonad = new Monad[Future] {
     def point[A](a: => A): Future[A] = Future.successful(a)
-
     def bind[A, B](fa: Future[A])(f: A => Future[B]): Future[B] = fa flatMap f
   }
 
@@ -89,13 +84,18 @@ trait CoralActor extends Actor with ActorLogging {
     actorSystem.scheduler.scheduleOnce(duration)(body)
 
   override def preStart() {
+    timerInit
+  }
+
+  // timer logic
+  def timerInit = {
     if (timerDuration > 0 && (timerMode == TimerExit || timerMode == TimerContinue))
-      in(timerDuration.millis) {
+      in(timerDuration.seconds) {
         self ! TimeoutEvent
       }
   }
 
-  def timerDuration: Long = (jsonDef \ "timeout" \ "duration").extractOrElse(0L)
+  def timerDuration: Double = (jsonDef \ "timeout" \ "duration").extractOrElse(0.0)
 
   def timerMode: TimerBehavior =
     (jsonDef \ "timeout" \ "mode").extractOpt[String] match {
@@ -104,7 +104,10 @@ trait CoralActor extends Actor with ActorLogging {
       case _ => TimerNone
     }
 
-  def timer: JValue
+  type Timer = JValue
+
+  def timer:Timer
+  val noTimer: Timer = JNothing
 
   def receiveTimeout: Receive = {
     case TimeoutEvent =>
@@ -116,37 +119,41 @@ trait CoralActor extends Actor with ActorLogging {
 
       timerMode match {
         case TimerContinue =>
-          in(timerDuration.millis) {
+          in(timerDuration.seconds) {
             self ! TimeoutEvent
           }
         case TimerExit =>
-          self ! PoisonPill
+          tellActor("/user/coral", Delete(self.path.name.toLong))
         case _ => // do nothing
       }
   }
 
-  def trigger: JObject => OptionT[Future, Unit]
+  // trigger
 
-  def noProcess(json: JObject): OptionT[Future, Unit] = {
-    OptionT.some(Future.successful({}))
-  }
+  type Trigger =  JObject => OptionT[Future, Unit]
 
-  def emit: JObject => JValue
+  def trigger: Trigger
+  val defaultTrigger : Trigger =
+    json => OptionT.some(Future.successful({}))
 
-  val notSet = JNothing
-  val doNotEmit: JObject => JValue = _ => JNothing
-  val passThroughEmit: JObject => JValue = json => json
+  // emitting
 
+  type Emit = JObject => JValue
+
+  def emit: Emit
+  val emitNothing: Emit = _    => JNothing
+  val emitPass   : Emit = json => json
+
+  // transmitting to the subscribing coral actors
   def transmitAdmin: Receive = {
     case RegisterActor(r) =>
-      log.warning(s"registering ${r.path.toString}")
       emitTargets += r
   }
 
   def transmit: JValue => Unit = {
     json => json match {
-      case v: JObject =>
-        emitTargets map (actorRef => actorRef ! v)
+      case json: JObject =>
+        emitTargets map (actorRef => actorRef ! json)
       case _ =>
     }
   }
@@ -211,12 +218,15 @@ trait CoralActor extends Actor with ActorLogging {
       execute(json,Some(sender))
   }
 
-  def receive = jsonData        orElse
-                stateReceive    orElse
-                transmitAdmin   orElse
-                propHandling    orElse
-                resourceDesc    orElse
-                receiveTimeout
+  def receiveExtra:Receive = {case _ => }
+
+  def receive = jsonData           orElse
+                stateReceive       orElse
+                transmitAdmin      orElse
+                propHandling       orElse
+                resourceDesc       orElse
+                receiveTimeout     orElse
+                receiveExtra
 
   def state: Map[String, JValue]
 
@@ -228,6 +238,6 @@ trait CoralActor extends Actor with ActorLogging {
         sender ! render(JNothing)
       } else {
         sender ! render(value)
-      }
+    }
   }
 }

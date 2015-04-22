@@ -39,15 +39,12 @@ class CoralActorSpec(_system: ActorSystem)
 
   class MinimalCoralActor extends CoralActor {
 
-    override def jsonDef: JValue = JNothing
+    def jsonDef: JValue = JNothing
+    def state   = Map.empty[String, JValue]
 
-    override def timer: JValue = JNothing
-
-    override def state: Map[String, JValue] = Map.empty[String, JValue]
-
-    override def emit: JObject => JValue = _ => JNothing
-
-    override def trigger: JObject => OptionT[Future, Unit] = _ => OptionT.some(Future.successful({}))
+    def timer   = noTimer
+    def emit    = emitNothing
+    def trigger = defaultTrigger
 
   }
 
@@ -62,9 +59,9 @@ class CoralActorSpec(_system: ActorSystem)
   "A CoralActor" should {
 
     "Require an implementation of the 'jsonDef' function" in {
-      val testJson: JValue = parse( """{ "test": "jsonDef" }""")
+      val testJson = parse( """{ "test": "jsonDef" }""")
       class TestCoralActor extends MinimalCoralActor {
-        override def jsonDef: JValue = testJson
+        override def jsonDef = testJson
       }
       val coral = createCoralActor(Props(new TestCoralActor()))
       coral.jsonDef should be(testJson)
@@ -123,7 +120,7 @@ class CoralActorSpec(_system: ActorSystem)
     "Handle any JSON message" in {
       val testJson: JValue = parse( """{ "test": "emit" }""")
       class TestCoralActor extends MinimalCoralActor {
-        override def emit: JObject => JValue = json => testJson.merge(json)
+        override def emit = json => testJson.merge(json)
       }
       val coral = createCoralActor(Props(new TestCoralActor))
       val probe = TestProbe()
@@ -163,7 +160,7 @@ class CoralActorSpec(_system: ActorSystem)
     "Handle a 'Shunt' message" in {
       val testJson: JValue = parse( """{ "test": "emit" }""")
       class TestCoralActor extends MinimalCoralActor {
-        override def emit: JObject => JValue = json => testJson.merge(json)
+        override def emit = json => testJson.merge(json)
       }
       val coral = createCoralActor(Props(new TestCoralActor))
       val json = parse( """{ "something": "else" }""")
@@ -185,12 +182,12 @@ class CoralActorSpec(_system: ActorSystem)
 
     "Have 'doNotEmit' produce JNothing" in {
       val coral = createCoralActor()
-      coral.doNotEmit(parse( """{"a":"b"}""").asInstanceOf[JObject]) should be(JNothing)
+      coral.emitNothing(parse( """{"a":"b"}""").asInstanceOf[JObject]) should be(JNothing)
     }
 
     "Have 'noProcess' produce empty future option" in {
       val coral = createCoralActor()
-      val result = coral.noProcess(parse( """{"test": "whatever"}""").asInstanceOf[JObject])
+      val result = coral.defaultTrigger(parse( """{"test": "whatever"}""").asInstanceOf[JObject])
       whenReady(result.run) {
         value => value should be(Some(()))
       }
@@ -265,7 +262,7 @@ class CoralActorSpec(_system: ActorSystem)
       val testJson: JValue = parse( """{ "test": "input" }""")
       val emitJson: JValue = parse( """{ "test": "emit2" }""")
       class TestCoralActor extends MinimalCoralActor {
-        override def emit: JObject => JValue = json => emitJson.merge(json)
+        override def emit = json => emitJson.merge(json)
       }
       val coral = createCoralActor(Props(new TestCoralActor))
       val expected = emitJson.merge(testJson)
@@ -380,7 +377,7 @@ class CoralActorSpec(_system: ActorSystem)
     }
 
     "Accept a timer parameter" in {
-      val createJson: JValue = parse( s"""{ "timeout": { "duration": 13, "mode": "exit" } }""")
+      val createJson: JValue = parse( s"""{ "timeout": { "duration": 0.23, "mode": "exit" } }""")
       val testJson: JValue = parse( """{ "test": "timer2" }""")
       class TestCoralActor extends MinimalCoralActor {
         override def jsonDef: JValue = createJson
@@ -388,7 +385,7 @@ class CoralActorSpec(_system: ActorSystem)
         override def timer: JValue = testJson
       }
       val coral = createCoralActor(Props(new TestCoralActor))
-      coral.timerDuration should be(13L)
+      coral.timerDuration should be(0.23d)
       coral.timerMode should be(TimerExit)
       val probe = TestProbe()
       coral.emitTargets += probe.ref
@@ -396,7 +393,7 @@ class CoralActorSpec(_system: ActorSystem)
     }
 
     "Stop with timer mode 'exit'" in {
-      val createJson: JValue = parse( s"""{ "timeout": { "duration": 13, "mode": "exit" } }""")
+      val createJson: JValue = parse( s"""{ "timeout": { "duration": 0.53, "mode": "exit" } }""")
       val testJson = parse( """{ "test": "stopped" }""")
       class TestCoralActor extends MinimalCoralActor {
         override def jsonDef: JValue = createJson
@@ -410,7 +407,7 @@ class CoralActorSpec(_system: ActorSystem)
     }
 
     "Emit the timer json when timer mode = 'continue'" in {
-      val createJson: JValue = parse( s"""{ "timeout": { "duration": 5, "mode": "continue" } }""")
+      val createJson: JValue = parse( s"""{ "timeout": { "duration": 0.5, "mode": "continue" } }""")
       val testJson = parse( """{ "test": "timer3" }""")
       class TestCoralActor extends MinimalCoralActor {
         override def jsonDef: JValue = createJson

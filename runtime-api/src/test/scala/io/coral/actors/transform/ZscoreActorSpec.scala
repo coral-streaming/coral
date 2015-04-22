@@ -73,7 +73,7 @@ class ZscoreActorSpec(_system: ActorSystem)
 
     "have no timer action" in {
       val actor = createZscoreActor(3, "field1", "field2", 6.1)
-      actor.timer should be(actor.notSet)
+      actor.timer should be(actor.noTimer)
     }
 
     // this should be better separated, even if only from a unit testing point of view
