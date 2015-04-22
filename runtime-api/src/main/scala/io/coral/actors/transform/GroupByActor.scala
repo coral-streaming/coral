@@ -32,11 +32,12 @@ class GroupByActor(json: JObject)(implicit injector: Injector) extends CoralActo
   val Diff(_, _, jsonChildrenDef) = jsonDef diff JObject(("group", json \ "group"))
   var actors = SortedMap.empty[String, Long]
   def state = Map(("actors", render(actors)))
-  def emit = doNotEmit
-  def timer = notSet
+
+  def emit  = emitNothing
+  def timer = noTimer
 
   def trigger = {
-    json: JObject =>
+    json =>
       for {
         value <- getTriggerInputField[String](json \ by)
         count <- getActorResponse[Long]("/user/coral", GetCount())

@@ -36,25 +36,25 @@ class ThresholdActor(json: JObject) extends CoralActor with ActorLogging {
   
   def state = Map.empty
   
-  def timer = notSet
+  def timer = noTimer
   
-  override def trigger = {
-    json: JObject =>
-    for {
-      value <- getTriggerInputField[Double](json \ key)
-    } yield {
-      thresholdReached = value >= threshold
-    }
-  }
-  
-  override def emit = {
-    json: JObject =>
-    thresholdReached match {
-      case true => {
-        val result = ("thresholdReached" -> key)
-        json merge render(result)
+  def trigger = {
+    json =>
+      for {
+        value <- getTriggerInputField[Double](json \ key)
+      } yield {
+        thresholdReached = value >= threshold
       }
-      case false => JNothing
-    }
   }
+  def emit = {
+    json =>
+      thresholdReached match {
+        case true => {
+          val result = ("thresholdReached" -> key)
+          json merge render(result)
+        }
+        case false => JNothing
+      }
+  }
+
 }
