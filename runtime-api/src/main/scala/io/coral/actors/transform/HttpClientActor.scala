@@ -79,8 +79,9 @@ class HttpClientActor(json: JObject) extends CoralActor with ActorLogging {
   def emit = {
     json: JObject =>
       if (answer != null) {
+        val headers = JObject(answer.headers.map(header => JField(header.name, header.value)))
         val result = render(("status" -> answer.status.value)
-          ~ ("headers" -> answer.headers.toString)
+          ~ ("headers" -> headers)
           ~ ("body" -> answer.entity.asString))
         answer = null
         result
