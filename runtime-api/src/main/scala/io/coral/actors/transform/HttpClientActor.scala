@@ -1,6 +1,9 @@
 package io.coral.actors.transform
 
 // scala
+
+import spray.http.HttpHeaders.RawHeader
+
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 import scalaz.OptionT
@@ -42,6 +45,7 @@ class HttpClientActor(json: JObject) extends CoralActor with ActorLogging {
         val url: String = (json \ "url").extract[String]
         val methodString = (json \ "method").extract[String]
         val payload: JObject = (json \ "payload").extractOrElse[JObject](JObject())
+        val headers = (json \ "headers").extractOrElse[JObject](JObject())
 
         val method: RequestBuilder = methodString match {
           case "POST" => Post
@@ -53,7 +57,8 @@ class HttpClientActor(json: JObject) extends CoralActor with ActorLogging {
 
         import io.coral.api.JsonConversions._
         val pipeline: HttpRequest => Future[HttpResponse] = sendReceive
-        val response: Future[HttpResponse] = pipeline(method(url, payload))
+        val rawHeaders = headers.values.map{case (key, value) => RawHeader(key, value.asInstanceOf[String])}.toList
+        val response: Future[HttpResponse] = pipeline(method(url, payload).withHeaders(rawHeaders))
 
         response onComplete {
           case Success(resp) =>
