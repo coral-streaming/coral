@@ -15,6 +15,7 @@ import akka.actor.{ActorLogging, Props}
 import org.json4s._
 import org.json4s.JsonDSL._
 import org.json4s.jackson.JsonMethods.render
+import org.json4s.native.JsonMethods._
 
 // coral
 import io.coral.actors.CoralActor
@@ -80,13 +81,17 @@ class HttpClientActor(json: JObject) extends CoralActor with ActorLogging {
     json: JObject =>
       if (answer != null) {
         val headers = JObject(answer.headers.map(header => JField(header.name, header.value)))
-        val result = render(("status" -> answer.status.value)
+        val contentType = (headers \ "Content-Type").extractOpt[String] getOrElse ""
+        val json = contentType == "application/json"
+        val body = if (json) parse(answer.entity.asString) else JString(answer.entity.asString)
+        val result = render(
+            ("status" -> answer.status.value)
           ~ ("headers" -> headers)
-          ~ ("body" -> answer.entity.asString))
+          ~ ("body" -> body))
         answer = null
         result
       } else {
         JNothing
       }
-  }
+}
 }
