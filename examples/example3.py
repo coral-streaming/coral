@@ -1,7 +1,7 @@
 from httpMethods import *
 
 # Enrich data while streaming
-post('/api/actors', {"type":"httpserver"})
+post('/api/actors', {"type":"httpbroadcast"})
 post('/api/actors', {"type":"lookup", "params":{"key": "city", "function":"enrich", "lookup": { "amsterdam": {"geo":"aaa", "zip":"1010 AA"}, "rotterdam": {"geo":"bbb", "zip":"1010 AA"}} }})
 post('/api/actors', {"type":"stats", "params":{"field": "amount"}, "group":{"by":"tag"}})
 post('/api/actors', {"type":"zscore",    "params":{"by":"tag", "field": "amount","score" : 6.0}})

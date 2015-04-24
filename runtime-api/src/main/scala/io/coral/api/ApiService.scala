@@ -69,9 +69,10 @@ trait ApiService extends HttpService {
             actorId =>
               // find my actor
               onSuccess(askActor(coralActor, GetActorPath(actorId)).mapTo[Option[ActorPath]]) {
-                actorPath => validate(actorPath.isDefined, "") {
-                  provide(actorPath.orNull) {
-                    ap => {
+                actorPath => {
+                  actorPath match {
+                    case None => complete(StatusCodes.NotFound, s"actorId ${actorId} not found")
+                    case Some(ap) => {
                       pathEnd {
                         put {
                           import JsonConversions._
