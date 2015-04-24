@@ -47,7 +47,7 @@ trait ApiService extends HttpService {
           pathEnd {
             get {
               import JsonConversions._
-              ctx => askActor(coralActor,List).mapTo[List[Long]]
+              ctx => askActor(coralActor,ListActors()).mapTo[List[Long]]
                 .onSuccess { case actors => ctx.complete(actors)}
             } ~
               post {
@@ -69,9 +69,10 @@ trait ApiService extends HttpService {
             actorId =>
               // find my actor
               onSuccess(askActor(coralActor, GetActorPath(actorId)).mapTo[Option[ActorPath]]) {
-                actorPath => validate(actorPath.isDefined, "") {
-                  provide(actorPath.orNull) {
-                    ap => {
+                actorPath => {
+                  actorPath match {
+                    case None => complete(StatusCodes.NotFound, s"actorId ${actorId} not found")
+                    case Some(ap) => {
                       pathEnd {
                         put {
                           import JsonConversions._
