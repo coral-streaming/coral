@@ -25,9 +25,11 @@ class RuntimeActor(implicit injector: Injector) extends Actor with ActorLogging 
       sender ! actorId
     case RegisterActorPath(id, path) =>
       actors += (id -> path)
+    case UnregisterActorId(id) =>
+      actors -= id
     case GetCount() =>
       count += 1
-      sender ! Some(count)
+      sender ! count
     case ListActors() =>
       sender ! actors.keys.toList
     case Delete(id: Long) =>
@@ -40,7 +42,6 @@ class RuntimeActor(implicit injector: Injector) extends Actor with ActorLogging 
       log.info(context.children.size.toString)
     case GetActorPath(id) =>
       val path = actors.get(id)
-      log.info(s"streams get stream id $id, path ${path.toString} ")
       sender ! path
   }
 }

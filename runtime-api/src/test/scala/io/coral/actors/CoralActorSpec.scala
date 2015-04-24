@@ -326,7 +326,7 @@ class CoralActorSpec(_system: ActorSystem)
       val path = probe.ref.path.toString
       coral.collectSources = Map("test" -> path)
       val result = coral.getCollectInputField[Int]("test", "", "testField")
-      probe.expectMsg(GetField("testField"))
+      probe.expectMsg(GetFieldBy("testField", ""))
       probe.reply(JInt(42))
       whenReady(result.run) {
         value => value should be(Some(42))
@@ -336,12 +336,10 @@ class CoralActorSpec(_system: ActorSystem)
     "Obtain state of other actors with subpath with 'getCollectInputField'" in {
       val coral = createCoralActor()
       val probe = TestProbe()
-      val tmp = probe.ref.path.toString.split("/").reverse
-      val subpath = tmp.head
-      val path = tmp.tail.reverse.mkString("/")
+      val path = probe.ref.path.toString
       coral.collectSources = Map("test" -> path)
-      val result = coral.getCollectInputField[Int]("test", subpath, "testField")
-      probe.expectMsg(GetField("testField"))
+      val result = coral.getCollectInputField[Int]("test", "dummypath", "testField")
+      probe.expectMsg(GetFieldBy("testField", "dummypath"))
       probe.reply(JInt(48))
       whenReady(result.run) {
         value => value should be(Some(48))

@@ -7,6 +7,7 @@ object Messages {
     // RuntimeActor messages
     case class CreateActor(json: JObject)
     case class RegisterActorPath(id: Long, path: ActorPath)
+    case class UnregisterActorId(id: Long)
     case class GetCount()
     case class ListActors()
     case class GetActorPath(id: Long)
@@ -21,6 +22,7 @@ object Messages {
 
     // Get single field from state map
     case class GetField(field: String)
+    case class GetFieldBy(field: String, by:String)
 
     case class ListFields()
     case class RegisterActor(r: ActorRef)
