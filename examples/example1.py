@@ -1,7 +1,7 @@
 from httpMethods import *
 
 # Create the graph (profiling cities)
-post('/api/actors', {"type":"httpserver"})
+post('/api/actors', {"type":"httpbroadcast"})
 post('/api/actors', {"type":"stats", "params":{"field": "amount"}, "group":{"by":"city"}})
 post('/api/actors', {"type":"zscore",    "params":{"by":"city", "field": "amount","score" : 1.0}})
 

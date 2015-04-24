@@ -8,7 +8,7 @@ object Settings {
   val buildVersion      = "1.0.0"
   val buildScalaVersion = "2.11.5"
 
-  val buildSettings = Defaults.defaultSettings ++ Seq (
+  val buildSettings = Defaults.coreDefaultSettings ++ Seq (
     organization  := buildOrganization,
     version       := buildVersion,
     scalaVersion  := buildScalaVersion,
@@ -26,7 +26,7 @@ object ShellPrompt {
     def buffer[T] (f: => T): T = f
   }
   def currBranch = (
-    ("git status -sb" lines_! devnull headOption)
+    (("git status -sb" lines_! devnull).headOption)
       getOrElse "-" stripPrefix "## "
   )
 

@@ -2,7 +2,7 @@ package io.coral.actors
 
 // scala
 import scala.collection.immutable.{SortedMap, SortedSet}
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContextExecutor, Future}
 import scala.concurrent.duration._
 
 // akka
@@ -45,7 +45,8 @@ abstract class CoralActor extends Actor with ActorLogging {
   // numeric id  or None or "external"
   var collectSources = Map.empty[String, String] // zero or more alias to actorpath id
 
-  implicit def executionContext = actorRefFactory.dispatcher
+  // getting the default executor from the akka system
+  implicit def executionContext: ExecutionContextExecutor = actorRefFactory.dispatcher
 
   implicit val timeout = Timeout(1000.milliseconds)
 
@@ -60,11 +61,10 @@ abstract class CoralActor extends Actor with ActorLogging {
   }
 
   // Future[Option[A]] to Option[Future, A] using the OptionT monad transformer
-  def getCollectInputField[A](actorAlias: String, subpath: String, field: String)(implicit mf: Manifest[A]) = {
+  def getCollectInputField[A](actorAlias: String, by: String, field: String)(implicit mf: Manifest[A]) = {
     val result = collectSources.get(actorAlias) match {
       case Some(actorPath) =>
-        val path = if (subpath == "") actorPath else s"$actorPath/$subpath"
-        askActor(path, GetField(field)).mapTo[JValue].map(json => json.extractOpt[A])
+        askActor(actorPath, GetFieldBy(field, by)).mapTo[JValue].map(json => json.extractOpt[A])
       case None => Future.failed(throw new Exception(s"Collect actor not defined"))
     }
     optionT(result)
@@ -84,11 +84,11 @@ abstract class CoralActor extends Actor with ActorLogging {
     actorSystem.scheduler.scheduleOnce(duration)(body)
 
   override def preStart() {
-    timerInit
+    timerInit()
   }
 
   // timer logic
-  def timerInit = {
+  def timerInit() = {
     if (timerDuration > 0 && (timerMode == TimerExit || timerMode == TimerContinue))
       in(timerDuration.seconds) {
         self ! TimeoutEvent
@@ -145,13 +145,14 @@ abstract class CoralActor extends Actor with ActorLogging {
   val emitPass   : Emit = json => json
 
   // transmitting to the subscribing coral actors
+
   def transmitAdmin: Receive = {
     case RegisterActor(r) =>
       emitTargets += r
   }
 
-  def transmit: JValue => Unit = {
-    json => json match {
+  def transmit(json:JValue) = {
+    json match {
       case json: JObject =>
         emitTargets map (actorRef => actorRef ! json)
       case _ =>
@@ -215,8 +216,10 @@ abstract class CoralActor extends Actor with ActorLogging {
       execute(json,None)
 
     case Shunt(json) =>
-      execute(json,Some(sender))
+      execute(json,Some(sender()))
   }
+
+  var children = SortedMap.empty[String, Long]
 
   def receiveExtra:Receive = {case _ => }
 
@@ -230,14 +233,27 @@ abstract class CoralActor extends Actor with ActorLogging {
 
   def state: Map[String, JValue]
 
+  def stateResponse(x:String,by:Option[String],sender:ActorRef) = {
+    if ( by.getOrElse("").isEmpty) {
+      val value = state.get(x)
+      sender ! render(value)
+    } else {
+      val found = children.get(by.get) flatMap (a => actorRefFactory.child(a.toString))
+
+      found match {
+        case Some(actorRef) =>
+          actorRef forward GetField(x)
+
+        case None =>
+          sender ! render(JNothing)
+      }
+    }
+  }
+
   def stateReceive: Receive = {
     case GetField(x) =>
-      val value = state.get(x)
-
-      if (value == None) {
-        sender ! render(JNothing)
-      } else {
-        sender ! render(value)
-    }
+      stateResponse(x,None, sender())
+    case GetFieldBy(x,by) =>
+      stateResponse(x,Some(by), sender())
   }
 }
