@@ -4,9 +4,10 @@ package io.coral.actors.transform
 
 import spray.http.HttpHeaders.RawHeader
 
-import scala.concurrent.Future
+import scala.concurrent.{Await, Future}
 import scala.util.{Failure, Success}
 import scalaz.OptionT
+import scala.concurrent.duration._
 
 // akka
 import akka.actor.{ActorLogging, Props}
@@ -33,6 +34,8 @@ object HttpClientActor {
 }
 
 class HttpClientActor(json: JObject) extends CoralActor with ActorLogging {
+  private val TimeOut = 5.seconds
+
   def jsonDef = json
   def state   = Map.empty
   def timer   = noTimer
@@ -68,6 +71,7 @@ class HttpClientActor(json: JObject) extends CoralActor with ActorLogging {
           case Failure(error) =>
             log.error("Failure: " + error)
         }
+        Await.result(response, TimeOut)
       } catch {
         case e: Exception =>
           answer = null
