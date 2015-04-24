@@ -78,8 +78,6 @@ class ZscoreActor(json: JObject) extends CoralActor {
           // what about merging with input data?
           val js = render(result) merge json
 
-          log.warning(js.toString)
-
           //emit resulting json
           js
 
