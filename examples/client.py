@@ -36,8 +36,11 @@ generator = {
 def randEvent() :
   account = random.randrange(1000)
   city = random.choice(generator.keys())
+  salary = random.gauss(3000, 500)
+  age = random.gauss(40, 5)
   amount = random.gauss(generator[city]['mu'],generator[city]['sigma'])
-  event = {'account':'NL'+str(account), 'amount':amount, 'city':city }
+  event = {'account':'NL'+str(account), 'amount':amount, 'city':city, 'salary': salary, 'age':age}
+  # event = {'account':'NL'+str(account), 'amount':amount, 'city':city}
   return event
 
 while(1):

@@ -26,8 +26,6 @@ class StatsActorSpec(_system: ActorSystem)
   }
 
   implicit val timeout = Timeout(100.millis)
-  JValue
-  
   implicit val injector = new DefaultModule(system.settings.config)
 
   def createStatsActor: StatsActor = {

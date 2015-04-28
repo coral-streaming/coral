@@ -55,7 +55,6 @@ class LinearRegressionActor(json: JObject) extends CoralActor with ActorLogging 
 
       result = intercept + (inputVector zip weights.values).map(x => x._1 * x._2).sum
       Done
-
   }
 
   type TriggerResult = OptionT[Future, Unit]
