@@ -316,13 +316,13 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
       generator.underlyingActor.emitTargets += probe.ref
 
       val method = Await.result(generator.ask(GetField("rate")), duration)
-      assert(method == JInt(20))
+      assert(method == JDouble(20.0))
 
       val number = Await.result(generator.ask(GetField("times")), duration)
       assert(number == JInt(1))
 
       val sliding = Await.result(generator.ask(GetField("delay")), duration)
-      assert(sliding == JInt(0))
+      assert(sliding == JDouble(0.0))
     }
 
     "Only emit 3 items when times is set to 3" in {

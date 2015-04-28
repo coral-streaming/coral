@@ -1,9 +1,9 @@
 package io.coral.actors.database
 
 import akka.actor.{ActorRef, ActorSystem, Props}
-import akka.testkit.{ImplicitSender, TestKit}
+import akka.testkit.{TestActorRef, ImplicitSender, TestKit}
 import akka.util.Timeout
-import io.coral.actors.Messages.{Trigger, GetField, Shunt}
+import io.coral.actors.Messages.{GetField, Shunt}
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper
 import org.json4s._
 import org.json4s.native.JsonMethods._
@@ -14,10 +14,10 @@ import scala.concurrent.duration._
 import akka.pattern.ask
 
 class CassandraActorSpec(_system: ActorSystem) extends TestKit(_system)
-  with ImplicitSender
-  with WordSpecLike
-  with Matchers
-  with BeforeAndAfterAll {
+with ImplicitSender
+with WordSpecLike
+with Matchers
+with BeforeAndAfterAll {
 
   val EmbeddedCassandraPort = 9142
 
@@ -205,21 +205,30 @@ class CassandraActorSpec(_system: ActorSystem) extends TestKit(_system)
       val queryString = "select * from testkeyspace.test1 where col1 = 'somevalue';"
       val query = parse(s"""{ "otherfield": "$queryString" } """).asInstanceOf[JObject]
       val actual = Await.result(cassandra.ask(Shunt(query)), Timeout(2.seconds).duration)
-      println(actual)
+      val expected = parse(
+        s"""{
+           "query": "",
+           "success": false,
+           "error": "None.get"
+         }""".stripMargin).asInstanceOf[JObject]
+      assert(actual == expected)
     }
   }
 
   private def prepareDatabase() {
     scripts.foreach(script => {
       val json = parse(script).asInstanceOf[JObject]
-      cassandra ! Trigger(json)
-      expectNoMsg(50.millis)
+      cassandra.underlyingActor.jsonData(json)
     })
   }
 
-  private def createCassandraActor(): ActorRef = {
+  private def createCassandraActor() = {
     val json = parse(s"""{ "seeds": ["127.0.0.1"], "port": $EmbeddedCassandraPort, "keyspace": "system" }""")
-      .asInstanceOf[JObject]
-    system.actorOf(Props(new CassandraActor(json)), "cassandra")
+
+    val props = CassandraActor(json)
+    assert(props.isDefined)
+
+    val propsVal = props.get
+    TestActorRef[CassandraActor](propsVal)
   }
 }

@@ -7,6 +7,7 @@ object Messages {
     // RuntimeActor messages
     case class CreateActor(json: JObject)
     case class RegisterActorPath(id: Long, path: ActorPath)
+    case class UnregisterActorId(id: Long)
     case class GetCount()
     case class ListActors()
     case class GetActorPath(id: Long)
@@ -19,14 +20,9 @@ object Messages {
     // Execute trigger and emit for given value
     case class Shunt(json: JObject)
 
-    // Execute trigger function without emit
-    case class Trigger(json: JObject)
-
-    // Execute emit without json
-    case class Emit()
-
     // Get single field from state map
     case class GetField(field: String)
+    case class GetFieldBy(field: String, by:String)
 
     case class ListFields()
     case class RegisterActor(r: ActorRef)
