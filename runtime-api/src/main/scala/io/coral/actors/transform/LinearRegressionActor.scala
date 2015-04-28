@@ -39,7 +39,7 @@ class LinearRegressionActor(json: JObject) extends CoralActor with ActorLogging 
   var result: Double = _
   def jsonDef = json
   def state = Map.empty
-  def timer = notSet
+  def timer = noTimer
 
 //  def vectorNormalization(inputVector: Vector[Double]): Vector[Double] = {
 //    inputVector.map(e => e/inputVector.sum )
@@ -63,13 +63,13 @@ class LinearRegressionActor(json: JObject) extends CoralActor with ActorLogging 
 
 
 
-  // there is a bug in this method: when features are less than wights, its still working as it finds the tuple of feature and weight
+  // there is a bug in this method: when features are less than weights, its still working as it finds the tuple of feature and weight
 //  override def trigger = {
-//    json =>
+//    json =>json
 //     val inputVector = weights.map( e => ((json \ e._1).extractOpt[Double], e._2) ).toList
 //
 //     //check all features are there
-//     val allValid = inputVector.exists(_._1.isDefined)
+//     val allValid = inputVector.exists( _._1.isDefined)
 //
 //      if (allValid) {
 //        result = inputVector.map(e => e._1.getOrElse(0d) * e._2).sum + intercept
