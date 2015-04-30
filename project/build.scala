@@ -1,6 +1,7 @@
 // Natalino Busa
 // http://www.linkedin.com/in/natalinobusa
 
+import com.typesafe.sbt.packager.archetypes.JavaAppPackaging
 import sbt.Keys._
 import sbt._
 
@@ -13,8 +14,12 @@ object Packaging {
   val packagingSettings = Seq(
     name := Settings.appName,
     NativePackagerKeys.packageName := "natalinobusa"
-  ) ++ Seq(packageArchetype.java_application:_*) ++ buildSettings
+  ) ++ buildSettings
 
+}
+
+object Plugins {
+  val enablePlugins = Seq(JavaAppPackaging)
 }
 
 object TopLevelBuild extends Build {
@@ -37,12 +42,12 @@ object TopLevelBuild extends Build {
     id = "runtime-api",
     base = file ("runtime-api"),
     settings = projectSettings
-  ).configs( IntegrationTest ).settings( Defaults.itSettings : _*)
+  ).configs( IntegrationTest ).settings( Defaults.itSettings : _*).enablePlugins(Plugins.enablePlugins: _*)
 
   lazy val coralCore = Project (
     id = "coral-core",
     base = file ("coral-core"),
     settings = projectSettings
-  ).configs( IntegrationTest ).settings( Defaults.itSettings : _*)
+  ).configs( IntegrationTest ).settings( Defaults.itSettings : _*).enablePlugins(Plugins.enablePlugins: _*)
 }
 

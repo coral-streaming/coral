@@ -45,7 +45,7 @@ class FsmActor(json: JObject) extends CoralActor with ActorLogging {
 
   def state = Map(("s", JString(s)))
 
-  def timer = notSet
+  def timer = noTimer
 
   def trigger = {
     json: JObject =>
@@ -59,6 +59,6 @@ class FsmActor(json: JObject) extends CoralActor with ActorLogging {
       }
   }
 
-  def emit = doNotEmit
+  def emit = emitNothing
 
 }

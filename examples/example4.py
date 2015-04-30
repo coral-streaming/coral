@@ -19,7 +19,7 @@ table = {
     }
 }
 
-post('/api/actors', {"type":"httpserver"})
+post('/api/actors', {"type":"httpbroadcast"})
 post('/api/actors', {"type":"fsm", "params":{"key":"mood", "table": table, "s0":"sleep"}})
 
 put('/api/actors/1',  {"input":{"trigger":{"in":{"type":"external"}}}})
