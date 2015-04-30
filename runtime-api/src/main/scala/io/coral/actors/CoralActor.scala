@@ -70,8 +70,13 @@ abstract class CoralActor extends Actor with ActorLogging {
     optionT(result)
   }
 
-  def getTriggerInputField[A](jsonValue: JValue)(implicit mf: Manifest[A]) = {
+  def getTriggerInputField[A](jsonValue: JValue)(implicit mf: Manifest[A]): OptionT[Future, A] = {
     val value = Future.successful(jsonValue.extractOpt[A])
+    optionT(value)
+  }
+
+  def getTriggerInputField[A](jsonValue: JValue, defaultValue: A)(implicit mf: Manifest[A]): OptionT[Future, A] = {
+    val value: Future[Option[A]] = Future.successful(Some(jsonValue.extractOrElse[A](defaultValue)))
     optionT(value)
   }
 
@@ -221,7 +226,7 @@ abstract class CoralActor extends Actor with ActorLogging {
 
   var children = SortedMap.empty[String, Long]
 
-  def receiveExtra:Receive = {case _ => }
+  def receiveExtra:Receive = {case Unit => }
 
   def receive = jsonData           orElse
                 stateReceive       orElse
