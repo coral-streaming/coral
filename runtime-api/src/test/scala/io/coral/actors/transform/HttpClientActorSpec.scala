@@ -26,7 +26,7 @@ class HttpClientActorSpec(_system: ActorSystem)
 
   //Setup HTTP server for testing the client
   val service = system.actorOf(Props[HttpTestActor])
-  IO(Http) ? Http.Bind(service, "localhost", 8111)
+  Await.result(IO(Http) ? Http.Bind(service, "localhost", 8111), timeout.duration)
 
   override def afterAll() {
     Http.Unbind
