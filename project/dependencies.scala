@@ -36,11 +36,7 @@ object Dependencies {
     "org.scaldi" %% "scaldi-akka" % "0.5.3",
 
     "joda-time" % "joda-time" % "2.7",
-    "org.uncommons.maths" % "uncommons-maths" % "1.2.2a",
-
-    // persistency
-	"com.github.krasserm" %% "akka-persistence-cassandra" % "0.3.7",
-	"com.typesafe.akka" %% "akka-persistence-experimental" % "2.4-SNAPSHOT"
+    "org.uncommons.maths" % "uncommons-maths" % "1.2.2a"
   )
 
   val allTestDependencies = Seq(
