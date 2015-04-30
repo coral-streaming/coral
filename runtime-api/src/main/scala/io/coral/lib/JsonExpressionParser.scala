@@ -37,7 +37,8 @@ object JsonExpressionParser extends JavaTokenParsers with PackratParsers {
 
         value.asInstanceOf[JValue]
       case Failure(r, n) =>
-        println(parseResult)
+        JNothing
+      case _ =>
         JNothing
     }
   }
