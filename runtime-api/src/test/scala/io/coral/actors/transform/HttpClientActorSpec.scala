@@ -128,6 +128,24 @@ class HttpClientActorSpec(_system: ActorSystem)
 
       assert((json \ "body").extract[String] == "The received payload is mypayload")
     }
+
+    "emit the timer json when timer mode = 'continue'" in {
+      val instantiationJson = parse(
+        s"""{
+           | "type": "httpclient",
+           | "timeout": { "duration": 0.5, "mode": "continue" },
+           | "params": {
+           | "url": "http://localhost:8111/json",
+           | "method": "GET"}
+           | }""".stripMargin).asInstanceOf[JObject]
+      val props: Props = CoralActorFactory.getProps(instantiationJson).get
+      val actorRef = TestActorRef[HttpClientActor](props)
+      actorRef.underlyingActor.emitTargets += testProbe.ref
+
+      val json = testProbe.receiveOne(2.seconds).asInstanceOf[JObject]
+
+      assert((json \ "body" \ "content").extract[String] == "jsoncontent")
+    }
   }
 }
 

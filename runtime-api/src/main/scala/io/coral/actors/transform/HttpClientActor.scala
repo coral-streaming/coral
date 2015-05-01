@@ -59,12 +59,24 @@ object HttpClientActor {
 
 class HttpClientActor(json: JObject) extends CoralActor with ActorLogging {
   private val ContentTypeJson = "application/json"
+  private val TimeOut = 5.seconds
 
   val (url, method, headers) = HttpClientActor.getParams(jsonDef).get
 
   def jsonDef = json
   def state   = Map.empty
-  def timer   = noTimer
+  def timer: Timer = {
+    val future = getResponse("").run.map{
+      case Some(response) => createJson(response)
+    }
+    try {
+      Await.result(future, TimeOut)
+    } catch {
+      case e: Exception =>
+        log.warning("Exception waiting for response", e)
+        JNothing
+    }
+  }
 
   var answer: HttpResponse = _
 
@@ -85,19 +97,22 @@ class HttpClientActor(json: JObject) extends CoralActor with ActorLogging {
   }
 
   def emit = {
-    json: JObject =>
-      if (answer != null) {
-        val headers = JObject(answer.headers.map(header => JField(header.name, header.value)))
-        val contentType = (headers \ "Content-Type").extractOpt[String] getOrElse ""
-        val json = contentType == ContentTypeJson || contentType.startsWith(ContentTypeJson + ";")
-        val body = if (json) parse(answer.entity.asString) else JString(answer.entity.asString)
-        val result = render(
-            ("status" -> answer.status.value)
+    json: JObject => createJson(answer)
+  }
+
+  def createJson(response: HttpResponse): JValue = {
+    if (response != null) {
+      val headers = JObject(response.headers.map(header => JField(header.name, header.value)))
+      val contentType = (headers \ "Content-Type").extractOpt[String] getOrElse ""
+      val json = contentType == ContentTypeJson || contentType.startsWith(ContentTypeJson + ";")
+      val body = if (json) parse(response.entity.asString) else JString(response.entity.asString)
+      val result = render(
+        ("status" -> response.status.value)
           ~ ("headers" -> headers)
           ~ ("body" -> body))
-        result
-      } else {
-        JNothing
-      }
-}
+      result
+    } else {
+      JNothing
+    }
+  }
 }
