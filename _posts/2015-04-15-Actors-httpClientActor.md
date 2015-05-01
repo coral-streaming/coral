@@ -24,8 +24,13 @@ topic: Actors
 The `HttpClientActor` (HTTP client) is a [Coral Actor](/actors/overview/) that can perform the POST, GET, PUT, and DELETE HTTP methods on a specified URL.
 
 ## Creating a HttpClientActor
-The creation JSON of the HttpClientActor actor (see [Coral Actor](/actors/overview/)) has `"**type**": "httpclient"`. The url and method are obligatory.
-Optionally, additional headers can be defined, which are sent on every request.
+The creation JSON of the HttpClientActor actor (see [Coral Actor](/actors/overview/)) has `"type": "httpclient"`. The `params` value is a JSON:
+
+field  | type | required | description
+:----- | :---- | :--- | :------------
+`url` | string | yes | url to which to connect
+`method` | JSON object | yes | the HTTP method to use to connect
+`headers` | JSON object | no | additional headers to send for the request
 
 #### Example
 ```json
@@ -53,7 +58,7 @@ DELETE
 ```
 
 ## Emit
-The `HttpClientActor` emits a json with the '**status**', '**header**' and '**body**' of the respons of the http method that was triggered.
+The `HttpClientActor` emits a json with the '**status**', '**header**' and '**body**' of the response of the http method that was triggered.
 The '**header**' field is an JSON object with as fields the different header fields and as values the header values. The body's value is a JSON
 string, unless the server responds with JSON content, then it is a JSON object.
 
