@@ -6,8 +6,14 @@ package io.coral.api
 import akka.actor.ActorSystem
 import akka.actor.Props
 import akka.io.IO
+import akka.util.Timeout
 import io.coral.actors.RuntimeActor
 import spray.can.Http
+import scala.concurrent.duration._
+import akka.pattern.ask
+
+import scala.concurrent.Await
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object Boot extends App {
   implicit val system = ActorSystem()
@@ -23,5 +29,13 @@ object Boot extends App {
   val port = system.settings.config getInt "service.port"
 
   // start a new HTTP server with our service actor as the handler
-  IO(Http) ! Http.Bind(service, interface, port)
+  implicit val timeout = Timeout(5.seconds)
+  val future = (IO(Http) ? Http.Bind(service, interface, port)).map {
+    case _: Http.Bound => true
+    case _ => false
+  }
+  val binded = Await.result(future, timeout.duration)
+  if (!binded) {
+    System.exit(-1)
+  }
 }
