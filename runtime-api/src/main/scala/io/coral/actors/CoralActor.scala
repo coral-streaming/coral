@@ -190,7 +190,7 @@ abstract class CoralActor extends Actor with ActorLogging {
 
   def resourceDesc: Receive = {
     case Get() =>
-      sender ! render(("actors", render(Map(("def", jsonDef), ("state", render(state))))))
+      sender ! (jsonDef merge render("state" -> render(state)))
   }
 
   def execute(json:JObject, sender:Option[ActorRef]) = {

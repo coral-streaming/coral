@@ -1,6 +1,7 @@
 package io.coral.api
 
 import io.coral.actors.Messages._
+import org.json4s.JsonAST.JString
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 import akka.pattern.ask
@@ -8,7 +9,9 @@ import akka.util.Timeout
 import akka.actor._
 import spray.http.{HttpResponse, StatusCodes}
 import spray.routing.HttpService
-import org.json4s.{JValue, JObject}
+import org.json4s.jackson.JsonMethods._
+import org.json4s._
+import org.json4s.JsonDSL._
 
 class ApiServiceActor extends Actor with ApiService with ActorLogging {
   // the HttpService trait defines only one abstract member, which
@@ -42,7 +45,7 @@ trait ApiService extends HttpService {
             get {
               import JsonConversions._
               ctx => askActor(coralActor,ListActors()).mapTo[List[Long]]
-                .onSuccess { case actors => ctx.complete(actors)}
+                .onSuccess { case actors => ctx.complete(("data" -> actors)) }
             } ~
               post {
                 import JsonConversions._
@@ -81,8 +84,9 @@ trait ApiService extends HttpService {
                           get {
                             import JsonConversions._
                             val result = askActor(ap, Get()).mapTo[JObject]
+                            implicit val formats = org.json4s.DefaultFormats
                             onComplete(result) {
-                              case Success(json) => complete(json)
+                              case Success(json) => complete(("data" -> (json merge render("id" -> actorId.toString))))
                               case Failure(ex)   => complete(StatusCodes.InternalServerError, s"An error occurred: ${ex.getMessage}")
                             }
                           }
