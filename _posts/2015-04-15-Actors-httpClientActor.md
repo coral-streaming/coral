@@ -29,7 +29,7 @@ The creation JSON of the HttpClientActor actor (see [Coral Actor](/actors/overvi
 field  | type | required | description
 :----- | :---- | :--- | :------------
 `url` | string | yes | url to which to connect
-`method` | JSON object | yes | the HTTP method to use to connect
+`method` | string | yes | the HTTP method to use to connect
 `headers` | JSON object | no | additional headers to send for the request
 
 #### Example
