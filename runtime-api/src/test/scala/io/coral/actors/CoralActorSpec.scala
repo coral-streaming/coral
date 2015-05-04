@@ -114,7 +114,7 @@ class CoralActorSpec(_system: ActorSystem)
       }
       val coral = createCoralActor(Props(new TestCoralActor))
       coral.self ! Get()
-      expectMsg(render(("actors", render(Map(("def", testJson), ("state", render(testState)))))))
+      expectMsg(testJson merge render("state", render(testState)))
     }
 
     "Handle any JSON message" in {
