@@ -38,7 +38,8 @@ class HttpClientActorSpec(_system: ActorSystem)
   val testProbe = TestProbe()
   val instantiationJson = parse(
     s"""{
-       | "type": "httpclient",
+       | "type": "actors",
+       | "subtype": "httpclient",
        | "params": { "url": "http://localhost:8111" }
        | }""".stripMargin).asInstanceOf[JObject]
 

@@ -1,10 +1,10 @@
 from httpMethods import *
 
 # Enrich data while streaming
-post('/api/actors', {"type":"httpbroadcast"})
-post('/api/actors', {"type":"lookup", "params":{"key": "city", "function":"enrich", "lookup": { "amsterdam": {"geo":"aaa", "zip":"1010 AA"}, "rotterdam": {"geo":"bbb", "zip":"1010 AA"}} }})
-post('/api/actors', {"type":"stats", "params":{"field": "amount"}, "group":{"by":"tag"}})
-post('/api/actors', {"type":"zscore",    "params":{"by":"tag", "field": "amount","score" : 6.0}})
+post('/api/actors', {"type": "actors", "subtype":"httpbroadcast"})
+post('/api/actors', {"type": "actors", "subtype":"lookup", "params":{"key": "city", "function":"enrich", "lookup": { "amsterdam": {"geo":"aaa", "zip":"1010 AA"}, "rotterdam": {"geo":"bbb", "zip":"1010 AA"}} }})
+post('/api/actors', {"type": "actors", "subtype":"stats", "params":{"field": "amount"}, "group":{"by":"tag"}})
+post('/api/actors', {"type": "actors", "subtype":"zscore", "params":{"by":"tag", "field": "amount","score" : 6.0}})
 
 put('/api/actors/1',  {"input":{"trigger":{"in":{"type":"external"}}}})
 put('/api/actors/2',  {"input":{"trigger":{"in":{"type":"actor", "source":1}}}})

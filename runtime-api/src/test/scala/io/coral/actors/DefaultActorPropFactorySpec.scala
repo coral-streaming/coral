@@ -18,11 +18,12 @@ class DefaultActorPropFactorySpec
       props should be(None)
     }
 
-    "Provide a CassandraActor for type 'cassandra'" in {
+    "Provide a CassandraActor for subtype 'cassandra'" in {
       val json =
         """{
-          |"type": "cassandra",
-          |           "seeds": ["0.0.0.0"], "keyspace": "test"
+          |"type": "actors",
+          |"subtype": "cassandra",
+          |"seeds": ["0.0.0.0"], "keyspace": "test"
           |}""".stripMargin
       // should be: "params": { "seeds": ["0.0.0.0"], "keyspace": "test" }
       val props = factory.getProps("cassandra", parse(json))
@@ -32,7 +33,8 @@ class DefaultActorPropFactorySpec
     "Provide an FsmActor for type 'fsm'" in {
       val json =
         """{
-          |"type": "fsm",
+          |"type": "actors",
+          |"subtype": "fsm",
           |"params": {
           |   "key": "transactionsize",
           |   "table": {
@@ -49,7 +51,8 @@ class DefaultActorPropFactorySpec
     "Provide a GeneratorActor for type 'generator'" in {
       val json =
         """{
-          |"type": "generator",
+          |"type": "actors",
+          |"subtype": "generator",
           |"format": {  }
           |"timer": { "rate": 1 }
           | }""".stripMargin
@@ -59,13 +62,13 @@ class DefaultActorPropFactorySpec
     }
 
     "Provide a HttpBroadcastActor for type 'httpbroadcast'" in {
-      val json = """{ "type": "httpbroadcast" }""".stripMargin
+      val json = """{ "type": "actors", "subtype": "httpbroadcast" }""".stripMargin
       val props = factory.getProps("httpbroadcast", parse(json))
       props.get.actorClass should be(classOf[HttpBroadcastActor])
     }
 
     "Provide a HttpClientActor for type 'httpclient'" in {
-      val json = """{ "type": "httpclient" }""".stripMargin
+      val json = """{ "type": "actors", "subtype": "httpclient" }""".stripMargin
       val props = factory.getProps("httpclient" ,parse(json))
       props.get.actorClass should be(classOf[HttpClientActor])
     }
@@ -73,7 +76,8 @@ class DefaultActorPropFactorySpec
     "Provide a SampleActor for type 'threshold'" in {
       val json =
         """{
-          |"type": "sample",
+          |"type": "actors",
+          |"subtype": "sample",
           |"params": { "fraction": 0.1010010001 }
           |}""".stripMargin
       val props = factory.getProps("sample", parse(json))
@@ -83,7 +87,8 @@ class DefaultActorPropFactorySpec
     "Provide a StatsActor for type 'stats'" in {
       val json =
         """{
-          |"type": "stats",
+          |"type": "actors",
+          |"subtype": "stats",
           |"params": { "field": "val" }
           |}""".stripMargin
       val props = factory.getProps("stats", parse(json))
@@ -93,7 +98,8 @@ class DefaultActorPropFactorySpec
     "Provide a ThresholdActor for type 'threshold'" in {
       val json =
         """{
-          |"type": "threshold",
+          |"type": "actors",
+          |"subtype": "threshold",
           |"params": { "key": "key1", "threshold": 1.618 }
           |}""".stripMargin
       val props = factory.getProps("threshold", parse(json))
@@ -103,7 +109,8 @@ class DefaultActorPropFactorySpec
     "Provide a WindowActor for type 'window'" in {
       val json =
         """{
-          |"type": "window",
+          |"type": "actors",
+          |"subtype": "window",
           |"params": { "method": "count", "number": 1 }
           |}""".stripMargin
       val props = factory.getProps("window", parse(json))
@@ -113,7 +120,8 @@ class DefaultActorPropFactorySpec
     "Provide a ZscoreActor for type 'zscore'" in {
       val json =
         """{
-          |"type": "zscore",
+          |"type": "actors",
+          |"subtype": "zscore",
           |"params": { "by": "tag", "field": "val", "score": 3.141 }
           |}""".stripMargin
       val props = factory.getProps("zscore", parse(json))

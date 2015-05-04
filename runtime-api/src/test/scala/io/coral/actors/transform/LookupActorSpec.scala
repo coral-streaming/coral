@@ -34,7 +34,8 @@ class LookupActorSpec(_system: ActorSystem) extends TestKit(_system)
   "A Lookup actor" should {
     "Do nothing on missing function setting" in {
       val definition = parse( """ {
-                "type": "lookup",
+                "type": "actors",
+                "subtype": "lookup",
                 "params": {
                   "key": "city",
                   "lookup": {
@@ -48,7 +49,8 @@ class LookupActorSpec(_system: ActorSystem) extends TestKit(_system)
 
     "Do nothing on missing key setting" in {
       val definition = parse( """ {
-                "type": "lookup",
+                "type": "actors",
+                "subtype": "lookup",
                 "params": {
                   "function": "enrich",
                   "lookup": {
@@ -62,7 +64,8 @@ class LookupActorSpec(_system: ActorSystem) extends TestKit(_system)
 
     "Do nothing on missing lookup table" in {
       val definition = parse( """ {
-                "type": "lookup",
+                "type": "actors",
+                "subtype": "lookup",
                 "params": {
                   "key": "city",
                   "function": "enrich"
@@ -216,7 +219,8 @@ class LookupActorSpec(_system: ActorSystem) extends TestKit(_system)
 
   def getLookupActor(method: String) = {
     val definition = parse( s""" {
-            "type": "lookup",
+            "type": "actors",
+            "subtype": "lookup",
             "params": {
               "key": "city",
               "function": "$method",

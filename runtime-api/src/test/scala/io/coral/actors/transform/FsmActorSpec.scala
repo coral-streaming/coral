@@ -38,7 +38,8 @@ class FsmActorSpec(_system: ActorSystem)
   def createTestFsmActor = {
     val json = parse(
       s"""{
-         |"type": "fsm",
+         |"type": "actors",
+         |"subtype": "fsm",
          |"params": {
          | "key": "transactionsize",
          | "table": {
@@ -73,7 +74,9 @@ class FsmActorSpec(_system: ActorSystem)
 
     "Instantiate with complete json" in {
       val json = parse(
-        """{ "type": "fsm",
+        """{
+          |  "type": "actors",
+          |  "subtype": "fsm",
           |  "params": {
           |    "key": "a",
           |    "table": {"aa": {"bb":"cc"}},
@@ -87,7 +90,9 @@ class FsmActorSpec(_system: ActorSystem)
 
     "Instantiate from companion object" in {
       val json = parse(
-        """{ "type": "fsm",
+        """{
+          |  "type": "actors",
+          |  "subtype": "fsm",
           |  "params": {
           |    "key": "a",
           |    "table": {"aa": {"bb":"cc"}},
@@ -102,7 +107,9 @@ class FsmActorSpec(_system: ActorSystem)
 
     "Not instantiate with a json without key/table/s0" in {
       val json = parse(
-        """{ "type": "fsm",
+        """{
+          |  "type": "actors",
+          |  "subtype": "fsm",
           |  "params": {
           |    "key": "a",
           |    "table": {"aa": {"bb":"cc"}},

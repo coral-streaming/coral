@@ -32,7 +32,7 @@ class ThresholdActorSpec(_system: ActorSystem) extends TestKit(_system)
   
   "A ThresholdActor" must {
     val createJson = parse(
-      """{ "type": "threshold", "params":
+      """{ "type": "actors", "subtype": "threshold", "params":
       |{ "key": "key1", "threshold": 10.5 } }"""
       .stripMargin).asInstanceOf[JObject]
     

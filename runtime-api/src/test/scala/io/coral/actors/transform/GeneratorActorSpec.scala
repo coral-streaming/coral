@@ -35,7 +35,8 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
   "A Generator actor" should {
     "Create data based on an input format" in {
       val definition = parse( """ {
-                "type": "generator",
+                "type": "actors",
+                "subtype": "generator",
                 "format": {
                     "field1": "N(100, 10)",
                     "field2": "['a', 'b', 'c']",
@@ -65,7 +66,8 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
 
     "Handle floating point numbers and non-floating point numbers equally well" in {
       val definition = parse( """ {
-                "type": "generator",
+                "type": "actors",
+                "subtype": "generator",
                 "format": {
                     "field1": "N(100.25, 10.53)",
                     "field2": "['a', 'b', 'c']",
@@ -94,7 +96,8 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
 
     "Handle nested JSON objects" in {
       val definition = parse( """ {
-                "type": "generator",
+                "type": "actors",
+                "subtype": "generator",
                 "format": {
                     "field1": "N(100.25, 10.53)",
                     "field2": "['a', 'b', 'c']",
@@ -130,7 +133,8 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
 
     "Emit nothing on invalid generator function 'F'" in {
       val definition = parse( """ {
-                "type": "generator",
+                "type": "actors",
+                "subtype": "generator",
                 "format": {
                     "field1": "F(100.25, 10.53)",
                     "field2": "['a', 'b', 'c']",
@@ -157,7 +161,8 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
 
     "Emit nothing on improperly structured generator function 'N'" in {
       val definition = parse( """ {
-                "type": "generator",
+                "type": "actors",
+                "subtype": "generator",
                 "format": {
                     "field1": "N(100.))25, 10.53)",
                     "field2": "['a', 'b', 'c']",
@@ -183,7 +188,8 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
 
     "Emit nothing on improperly structured generator function with a list" in {
       val definition = parse( """ {
-                "type": "generator",
+                "type": "actors",
+                "subtype": "generator",
                 "format": {
                     "field1": "N(100.25, 10.53)",
                     "field2": "[[''a', 'b,, 'c']",
@@ -204,7 +210,8 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
 
     "Emit JNothing on empty generator function with a list" in {
       val definition = parse( """ {
-                "type": "generator",
+                "type": "actors",
+                "subtype": "generator",
                 "format": {
                     "field1": "N(100.25, 10.53)",
                     "field2": "[]",
@@ -225,7 +232,8 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
 
     "Do nothing on negative rate definition" in {
       val definition = parse( """ {
-                "type": "generator",
+                "type": "actors",
+                "subtype": "generator",
                 "format": {
                     "field1": "N(100, 10)",
                     "field2": "['a', 'b', 'c']",
@@ -242,7 +250,8 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
 
     "Do nothing on non-integer rate definition" in {
       val definition = parse( """ {
-                "type": "generator",
+                "type": "actors",
+                "subtype": "generator",
                 "format": {
                     "field1": "N(100, 10)",
                     "field2": "['a', 'b', 'c']",
@@ -259,7 +268,8 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
 
     "Do nothing on missing rate definition" in {
       val definition = parse( """ {
-                "type": "generator",
+                "type": "actors",
+                "subtype": "generator",
                 "format": {
                     "field1": "N(100, 10)",
                     "field2": "['a', 'b', 'c']",
@@ -275,7 +285,8 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
 
     "Do not emit anything on times definition smaller than or equal to zero" in {
       val definition = parse( """ {
-                "type": "generator",
+                "type": "actors",
+                "subtype": "generator",
                 "format": {
                     "field1": "N(100, 10)",
                     "field2": "['a', 'b', 'c']",
@@ -299,7 +310,8 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
 
     "Set delay to 0 if delay smaller than 0 is given" in {
       val definition = parse( """ {
-                "type": "generator",
+                "type": "actors",
+                "subtype": "generator",
                 "format": {
                     "field1": "N(100, 10)",
                     "field2": "['a', 'b', 'c']",
@@ -327,7 +339,8 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
 
     "Only emit 3 items when times is set to 3" in {
       val definition = parse( """ {
-                "type": "generator",
+                "type": "actors",
+                "subtype": "generator",
                 "format": {
                     "field1": "N(100, 10)",
                     "field2": "['a', 'b', 'c']",
@@ -368,7 +381,8 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
 
     "Immediately send something if delay is not set" in {
       val definition = parse( """ {
-                "type": "generator",
+                "type": "actors",
+                "subtype": "generator",
                 "format": {
                     "field1": "N(100, 10)",
                     "field2": "['a','b','c']",
@@ -399,7 +413,8 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
 
     "Wait the correct amount of time before sending first message if delay is set" in {
       val definition = parse( """ {
-                "type": "generator",
+                "type": "actors",
+                "subtype": "generator",
                 "format": {
                     "field1": "N(100, 10)",
                     "field2": "['a', 'b', 'c']",
@@ -431,7 +446,8 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
 
     "Do not emit anything after the times limit has been reached" in {
       val definition = parse( """ {
-                "type": "generator",
+                "type": "actors",
+                "subtype": "generator",
                 "format": {
                     "field1": "N(100, 10)",
                     "field2": "['a', 'b', 'c']",

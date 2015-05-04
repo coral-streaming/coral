@@ -45,7 +45,7 @@ trait ApiService extends HttpService {
             get {
               import JsonConversions._
               ctx => askActor(coralActor,ListActors()).mapTo[List[Long]]
-                .onSuccess { case actors => ctx.complete(("data" -> actors)) }
+                .onSuccess { case actorIds => ctx.complete(("data" -> actorIds.map(actorId => Map("id" -> actorId.toString, "type" -> "actors")))) }
             } ~
               post {
                 import JsonConversions._

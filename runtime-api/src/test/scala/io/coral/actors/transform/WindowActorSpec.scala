@@ -31,7 +31,7 @@ class WindowActorSpec(_system: ActorSystem) extends TestKit(_system)
   "A WindowActor" should {
     "Do not create a new actor with an improper definition" in {
       val constructor = parse(
-        """{ "type": "window", "params" : { "method":
+        """{ "type": "actors", "subtype": "window", "params" : { "method":
           |"invalid", "number": 3, "sliding": 1 }}""".stripMargin).asInstanceOf[JObject]
 
       intercept[IllegalArgumentException] {
@@ -42,7 +42,7 @@ class WindowActorSpec(_system: ActorSystem) extends TestKit(_system)
 
     "Do not create a new actor with negative sliding window" in {
       val constructor = parse(
-        """{ "type": "window", "params" : { "method":
+        """{ "type": "actors", "subtype": "window", "params" : { "method":
           |"count", "number": 3, "sliding": -3 }}""".stripMargin).asInstanceOf[JObject]
 
       intercept[IllegalArgumentException] {
@@ -53,7 +53,7 @@ class WindowActorSpec(_system: ActorSystem) extends TestKit(_system)
 
     "Do not create a new actor with a negative number" in {
       val constructor = parse(
-        """{ "type": "window", "params" : { "method":
+        """{ "type": "actors", "subtype": "window", "params" : { "method":
           |"count", "number": -3, "sliding": 3 }}""".stripMargin).asInstanceOf[JObject]
 
       intercept[IllegalArgumentException] {
@@ -64,7 +64,7 @@ class WindowActorSpec(_system: ActorSystem) extends TestKit(_system)
 
     "Do not create a new actor with a floating point number parameter" in {
       val constructor = parse(
-        """{ "type": "window", "params" : { "method":
+        """{ "type": "actors", "subtype": "window", "params" : { "method":
           |"count", "number": 4.42, "sliding": 3 }}""".stripMargin).asInstanceOf[JObject]
 
       intercept[IllegalArgumentException] {
@@ -75,7 +75,7 @@ class WindowActorSpec(_system: ActorSystem) extends TestKit(_system)
 
     "Do not create a new actor with a floating point sliding parameter" in {
       val constructor = parse(
-        """{ "type": "window", "params" : { "method":
+        """{ "type": "actors", "subtype": "window", "params" : { "method":
           |"count", "number": 4, "sliding": 3.42 }}""".stripMargin).asInstanceOf[JObject]
 
       intercept[IllegalArgumentException] {
@@ -86,7 +86,7 @@ class WindowActorSpec(_system: ActorSystem) extends TestKit(_system)
 
     "Automatically set a sliding window with only number definition" in {
       val constructor = parse(
-        """{ "type": "window", "params" : { "method":
+        """{ "type": "actors", "subtype": "window", "params" : { "method":
           |"count", "number": 3 }}""".stripMargin).asInstanceOf[JObject]
 
       val windowActor = system.actorOf(Props(new WindowActor(constructor)))
@@ -105,7 +105,7 @@ class WindowActorSpec(_system: ActorSystem) extends TestKit(_system)
     // the collected values, and then clears the list and starts over
     "Properly perform ('count', 3, 3)" in {
       val construct = parse(
-        """{ "type": "window", "params" : { "method":
+        """{ "type": "actors", "subtype": "window", "params" : { "method":
           |"count", "number": 3, "sliding": 3 } }""".stripMargin).asInstanceOf[JObject]
 
       val props = WindowActor(construct).get
@@ -155,7 +155,7 @@ class WindowActorSpec(_system: ActorSystem) extends TestKit(_system)
 
     "Properly perform ('count', 3, 1)" in {
       val construct = parse(
-        """{ "type": "window", "params" : { "method":
+        """{ "type": "actors", "subtype": "window", "params" : { "method":
           |"count", "number": 3, "sliding": 1 } }""".stripMargin).asInstanceOf[JObject]
 
       val props = WindowActor(construct).get
@@ -214,7 +214,7 @@ class WindowActorSpec(_system: ActorSystem) extends TestKit(_system)
     "Properly perform ('time', 1, 1)" in {
       val construct = parse(
         """
-          | { "type": "window",
+          | { "type": "actors", "subtype": "window",
           | "params" : { "method": "time", "number": 1000, "sliding": 1000 }}
           | """.stripMargin).asInstanceOf[JObject]
 
@@ -252,7 +252,7 @@ class WindowActorSpec(_system: ActorSystem) extends TestKit(_system)
     "Properly perform ('time', 3, 1)" in {
       val construct = parse(
         """
-          | { "type": "window",
+          | { "type": "actors", "subtype": "window",
           | "params" : { "method": "time", "number": 3000, "sliding": 1000 }}
           | """.stripMargin).asInstanceOf[JObject]
 
@@ -286,7 +286,7 @@ class WindowActorSpec(_system: ActorSystem) extends TestKit(_system)
 
     "Not emit the window before the window size is reached" in {
       val construct = parse(
-        """{ "type": "window", "params" : { "method":
+        """{ "type": "actors", "subtype": "window", "params" : { "method":
           |"time", "number": 10000, "sliding": 1000 }}""".stripMargin).asInstanceOf[JObject]
 
       val props = WindowActor(construct).get

@@ -23,7 +23,7 @@ object CoralActorFactory {
 		}
 
 		val actorProps = for {
-			actorType <- (json \ "type").extractOpt[String] 
+			actorType <- (json \ "subtype").extractOpt[String]
       props <- getActorProps(actorType, json, actorPropFactories)
     } yield props
 

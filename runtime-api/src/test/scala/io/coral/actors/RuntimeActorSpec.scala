@@ -30,26 +30,26 @@ class RuntimeActorSpec(_system: ActorSystem) extends TestKit(_system)
       runtime ! DeleteAllActors()
       expectNoMsg()
 
-      val json1 = parse("""{"type": "httpbroadcast" }""").asInstanceOf[JObject]
+      val json1 = parse("""{"type": "actors", "subtype": "httpbroadcast" }""").asInstanceOf[JObject]
       runtime ! CreateActor(json1)
       val id1 = receiveOne(500.millisecond).asInstanceOf[Option[Long]]
 
       val json2 = parse(
-        """{ "type": "stats", "params":
+        """{ "type": "actors", "subtype": "stats", "params":
           |{ "field": "amount"}, "group": { "by": "city" } }"""
           .stripMargin).asInstanceOf[JObject]
       runtime ! CreateActor(json2)
       val id2 = receiveOne(500.millisecond).asInstanceOf[Option[Long]]
 
       val json3 = parse(
-        """{ "type": "zscore", "params": { "by": "city",
+        """{ "type": "actors", "subtype": "zscore", "params": { "by": "city",
           |"field": "amount", "score": 2.0 }}"""
           .stripMargin).asInstanceOf[JObject]
       runtime ! CreateActor(json3)
       val id3 = receiveOne(500.millisecond).asInstanceOf[Option[Long]]
 
       val json4 = parse(
-        """{ "type": "httpclient", "params": {
+        """{ "type": "actors", "subtype": "httpclient", "params": {
           |"url": "http://localhost:8000/test" }}"""
           .stripMargin).asInstanceOf[JObject]
       runtime ! CreateActor(json4)
@@ -64,7 +64,7 @@ class RuntimeActorSpec(_system: ActorSystem) extends TestKit(_system)
       runtime ! DeleteAllActors()
       expectNoMsg()
 
-      val json1 = parse("""{"type": "httpbroadcast" }""").asInstanceOf[JObject]
+      val json1 = parse("""{"type": "actors", "subtype": "httpbroadcast" }""").asInstanceOf[JObject]
       runtime ! CreateActor(json1)
       val id1 = receiveOne(500.millisecond).asInstanceOf[Option[Long]]
 

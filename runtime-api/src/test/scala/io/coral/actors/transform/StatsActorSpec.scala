@@ -31,7 +31,7 @@ class StatsActorSpec(_system: ActorSystem)
   implicit val injector = new DefaultModule(system.settings.config)
 
   def createStatsActor: StatsActor = {
-    val createJson = parse( """{ "type": "stats", "params": { "field": "val" } }""")
+    val createJson = parse( """{ "type": "actors", "subtype": "stats", "params": { "field": "val" } }""")
       .asInstanceOf[JObject]
     val props = CoralActorFactory.getProps(createJson).get
     val actorRef = TestActorRef[StatsActor](props)

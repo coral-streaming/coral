@@ -47,7 +47,8 @@ class ZscoreActorSpec(_system: ActorSystem)
 
   def createZscoreActor(n: Int, by: String, field: String, score: Double): ZscoreActor = {
     val createJson = parse(
-      s"""{ "type": "zscore",
+      s"""{ "type": "actors",
+         |"subtype": "zscore",
          |"params": { "by": "${by}",
          |"field": "${field}",
          |"score": ${score} } }""".stripMargin)
