@@ -34,8 +34,8 @@ object Boot extends App {
     case _: Http.Bound => true
     case _ => false
   }
-  val binded = Await.result(future, timeout.duration)
-  if (!binded) {
+  val bounded = Await.result(future, timeout.duration)
+  if (!bounded) {
     System.exit(-1)
   }
 }
