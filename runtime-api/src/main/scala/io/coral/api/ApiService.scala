@@ -55,7 +55,7 @@ trait ApiService extends HttpService {
                 ctx => askActor(coralActor, CreateActor(json)).mapTo[Option[Long]]
                   .onSuccess {
                   case Some(id) => ctx.complete(id.toString)
-                  case _ => ctx.complete("not created")
+                  case _ => ctx.complete(error("not created"))
                 }
               }
             } ~
@@ -64,52 +64,67 @@ trait ApiService extends HttpService {
             }
           }
         } ~
-          pathPrefix("actors" / LongNumber) {
-            actorId =>
-              // find my actor
-              onSuccess(askActor(coralActor, GetActorPath(actorId)).mapTo[Option[ActorPath]]) {
-                actorPath => {
-                  actorPath match {
-                    case None => complete(StatusCodes.NotFound, s"actorId ${actorId} not found")
-                    case Some(ap) => {
-                      pathEnd {
-                        put {
-                          import JsonConversions._
-                          entity(as[JObject]) { json =>
-                            ctx => askActor(ap, UpdateProperties(json)).mapTo[Boolean]
-                              .onSuccess {
-                              case true => ctx.complete(StatusCodes.Created, "ok")
-                              case _ => ctx.complete("not created")
-                            }
-                          }
-                        } ~
-                        get {
-                          import JsonConversions._
-                          val result = askActor(ap, Get()).mapTo[JObject]
-                          implicit val formats = org.json4s.DefaultFormats
-                          onComplete(result) {
-                            case Success(json) => complete(("data" -> (json merge render("id" -> actorId.toString))))
-                            case Failure(ex)   => complete(StatusCodes.InternalServerError, s"An error occurred: ${ex.getMessage}")
-                          }
-                        }
-                      } ~
-                        pathPrefix("in" ) {
-                          post {
+          pathPrefix("actors" / Segment) {
+            segment =>
+              try {
+                val actorId = segment.toLong
+                // find my actor
+                onSuccess(askActor(coralActor, GetActorPath(actorId)).mapTo[Option[ActorPath]]) {
+                  actorPath => {
+                    actorPath match {
+                      case None => {
+                        import JsonConversions._
+                        complete(StatusCodes.NotFound, error(s"actorId ${actorId} not found"))
+                      }
+                      case Some(ap) => {
+                        pathEnd {
+                          put {
                             import JsonConversions._
                             entity(as[JObject]) { json =>
-                              val result = askActor(ap, Shunt(json)).mapTo[JValue]
+                              ctx => askActor(ap, UpdateProperties(json)).mapTo[Boolean]
+                                .onSuccess {
+                                case true => ctx.complete(StatusCodes.Created, "ok")
+                                case _ => ctx.complete(error("not created"))
+                              }
+                            }
+                          } ~
+                            get {
+                              import JsonConversions._
+                              val result = askActor(ap, Get()).mapTo[JObject]
+                              implicit val formats = org.json4s.DefaultFormats
                               onComplete(result) {
-                                case Success(value) => complete(value)
-                                case Failure(ex)   => complete(StatusCodes.InternalServerError, s"An error occurred: ${ex.getMessage}")
+                                case Success(json) => complete(("data" -> (json merge render("id" -> actorId.toString))))
+                                case Failure(ex) => complete(StatusCodes.InternalServerError, error(s"An error occurred: ${ex.getMessage}"))
+                              }
+                            }
+                        } ~
+                          pathPrefix("in") {
+                            post {
+                              import JsonConversions._
+                              entity(as[JObject]) { json =>
+                                val result = askActor(ap, Shunt(json)).mapTo[JValue]
+                                onComplete(result) {
+                                  case Success(value) => complete(value)
+                                  case Failure(ex) => complete(StatusCodes.InternalServerError, error(s"An error occurred: ${ex.getMessage}"))
+                                }
                               }
                             }
                           }
-                        }
+                      }
                     }
                   }
+                }
+              } catch {
+                case e: NumberFormatException => {
+                  import JsonConversions._
+                  complete(StatusCodes.NotFound, error(s"actorId ${segment} not found"))
                 }
               }
           }
       }
+  }
+
+  private def error(message: String) = {
+    "errors" -> List(("detail" -> message))
   }
 }
