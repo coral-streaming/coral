@@ -43,23 +43,25 @@ trait ApiService extends HttpService {
         pathPrefix("actors") {
           pathEnd {
             get {
-              import JsonConversions._
-              ctx => askActor(coralActor,ListActors()).mapTo[List[Long]]
-                .onSuccess { case actorIds => ctx.complete(("data" -> actorIds.map(actorId => Map("id" -> actorId.toString, "type" -> "actors")))) }
-            } ~
-              post {
+              requestUri{ baseUri =>
                 import JsonConversions._
-                entity(as[JObject]) { json =>
-                  ctx => askActor(coralActor, CreateActor(json)).mapTo[Option[Long]]
-                    .onSuccess {
-                    case Some(id) => ctx.complete(id.toString)
-                    case _ => ctx.complete("not created")
-                  }
-                }
-              } ~
-              (delete | head | patch) {
-                complete(HttpResponse(StatusCodes.MethodNotAllowed))
+                ctx => askActor(coralActor,ListActors()).mapTo[List[Long]]
+                  .onSuccess { case actorIds => ctx.complete(("data" -> actorIds.map(actorId => Map("id" -> actorId.toString, "type" -> "actors", "links" -> Map("self" -> s"$baseUri/$actorId"))))) }
               }
+            } ~
+            post {
+              import JsonConversions._
+              entity(as[JObject]) { json =>
+                ctx => askActor(coralActor, CreateActor(json)).mapTo[Option[Long]]
+                  .onSuccess {
+                  case Some(id) => ctx.complete(id.toString)
+                  case _ => ctx.complete("not created")
+                }
+              }
+            } ~
+            (delete | head | patch) {
+              complete(HttpResponse(StatusCodes.MethodNotAllowed))
+            }
           }
         } ~
           pathPrefix("actors" / LongNumber) {
@@ -81,15 +83,15 @@ trait ApiService extends HttpService {
                             }
                           }
                         } ~
-                          get {
-                            import JsonConversions._
-                            val result = askActor(ap, Get()).mapTo[JObject]
-                            implicit val formats = org.json4s.DefaultFormats
-                            onComplete(result) {
-                              case Success(json) => complete(("data" -> (json merge render("id" -> actorId.toString))))
-                              case Failure(ex)   => complete(StatusCodes.InternalServerError, s"An error occurred: ${ex.getMessage}")
-                            }
+                        get {
+                          import JsonConversions._
+                          val result = askActor(ap, Get()).mapTo[JObject]
+                          implicit val formats = org.json4s.DefaultFormats
+                          onComplete(result) {
+                            case Success(json) => complete(("data" -> (json merge render("id" -> actorId.toString))))
+                            case Failure(ex)   => complete(StatusCodes.InternalServerError, s"An error occurred: ${ex.getMessage}")
                           }
+                        }
                       } ~
                         pathPrefix("in" ) {
                           post {
