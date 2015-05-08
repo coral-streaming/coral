@@ -39,7 +39,7 @@ class FsmActorSpec(_system: ActorSystem)
     val json = parse(
       s"""{
          |"type": "actors",
-         |"subtype": "fsm",
+         |"attributes": {"type": "fsm",
          |"params": {
          | "key": "transactionsize",
          | "table": {
@@ -61,7 +61,7 @@ class FsmActorSpec(_system: ActorSystem)
          |   }
          | },
          | "s0": "normal"
-         |} }""".stripMargin)
+         |} } }""".stripMargin)
     createFsmActor(json)
   }
 
@@ -76,11 +76,11 @@ class FsmActorSpec(_system: ActorSystem)
       val json = parse(
         """{
           |  "type": "actors",
-          |  "subtype": "fsm",
+          |  "attributes": {"type": "fsm",
           |  "params": {
           |    "key": "a",
           |    "table": {"aa": {"bb":"cc"}},
-          |    "s0": "aa" } }""".stripMargin)
+          |    "s0": "aa" } } }""".stripMargin)
       val fsm = createFsmActor(json)
       fsm.jsonDef should be(json)
       fsm.key should be("a")
@@ -92,11 +92,11 @@ class FsmActorSpec(_system: ActorSystem)
       val json = parse(
         """{
           |  "type": "actors",
-          |  "subtype": "fsm",
+          |  "attributes": {"type": "fsm",
           |  "params": {
           |    "key": "a",
           |    "table": {"aa": {"bb":"cc"}},
-          |    "s0": "aa" } }""".stripMargin)
+          |    "s0": "aa" } } }""".stripMargin)
       val props = FsmActor(json)
       val fsm = TestActorRef[FsmActor](props.get).underlyingActor
       fsm.jsonDef should be(json)
@@ -109,11 +109,11 @@ class FsmActorSpec(_system: ActorSystem)
       val json = parse(
         """{
           |  "type": "actors",
-          |  "subtype": "fsm",
+          |  "attributes": {"type": "fsm",
           |  "params": {
           |    "key": "a",
           |    "table": {"aa": {"bb":"cc"}},
-          |    "s0": "does not exist in able" } }""".stripMargin)
+          |    "s0": "does not exist in able" } } }""".stripMargin)
       val props = FsmActor(json)
       intercept[ActorInitializationException] {
         new FsmActor(json.asInstanceOf[JObject])

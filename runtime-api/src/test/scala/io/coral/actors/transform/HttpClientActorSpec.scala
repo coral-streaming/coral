@@ -39,9 +39,9 @@ class HttpClientActorSpec(_system: ActorSystem)
   val instantiationJson = parse(
     s"""{
        | "type": "actors",
-       | "subtype": "httpclient",
+       | "attributes": {"type": "httpclient",
        | "params": { "url": "http://localhost:8111" }
-       | }""".stripMargin).asInstanceOf[JObject]
+       | } }""".stripMargin).asInstanceOf[JObject]
 
   val props: Props = CoralActorFactory.getProps(instantiationJson).get
   val actorRef = TestActorRef[HttpClientActor](props)

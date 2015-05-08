@@ -39,10 +39,10 @@ class GroupByActorSpec(_system: ActorSystem)
   def statsGroupBy: GroupByActor = {
     val createJson = parse(
       """{ "type": "actors",
-        |  "subtype": "stats",
+        |  "attributes": {"type": "stats",
         |  "params": { "field": "amount" },
         |  "group": { "by": "tag" }
-        | }""".stripMargin
+        | } }""".stripMargin
     ).asInstanceOf[JObject]
     TestActorRef[GroupByActor](GroupByActor(createJson).get).underlyingActor
   }
@@ -52,19 +52,19 @@ class GroupByActorSpec(_system: ActorSystem)
     "Extract the the create json" in {
       val createJson = parse(
         """{ "type": "actors",
-          |  "subtype": "bla",
+          |  "attributes": {"type": "bla",
           |  "bla": "bla bla",
           |  "group": { "by": "some tag" },
           |  "more": "bla bla bla"
-          | }""".stripMargin
+          | } }""".stripMargin
       ).asInstanceOf[JObject]
       val actor = TestActorRef[GroupByActor](GroupByActor(createJson).get).underlyingActor
       val expectedChildJson = parse(
         """{ "type": "actors",
-          |  "subtype": "bla",
+          |  "attributes": {"type": "bla",
           |  "bla": "bla bla",
           |  "more": "bla bla bla"
-          | }""".stripMargin
+          | } }""".stripMargin
       )
       actor.jsonDef should be(createJson)
       actor.jsonChildrenDef should be(expectedChildJson)

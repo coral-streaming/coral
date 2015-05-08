@@ -114,7 +114,7 @@ class CoralActorSpec(_system: ActorSystem)
       }
       val coral = createCoralActor(Props(new TestCoralActor))
       coral.self ! Get()
-      expectMsg(testJson merge render("state", render(testState)))
+      expectMsg(testJson merge render("attributes", render("state", render(testState))))
     }
 
     "Handle any JSON message" in {
@@ -375,7 +375,7 @@ class CoralActorSpec(_system: ActorSystem)
     }
 
     "Accept a timer parameter" in {
-      val createJson: JValue = parse( s"""{ "timeout": { "duration": 0.23, "mode": "exit" } }""")
+      val createJson: JValue = parse( s"""{ "attributes": {"timeout": { "duration": 0.23, "mode": "exit" } } }""")
       val testJson: JValue = parse( """{ "test": "timer2" }""")
       class TestCoralActor extends MinimalCoralActor {
         override def jsonDef: JValue = createJson
@@ -391,7 +391,7 @@ class CoralActorSpec(_system: ActorSystem)
     }
 
     "Stop with timer mode 'exit'" in {
-      val createJson: JValue = parse( s"""{ "timeout": { "duration": 0.53, "mode": "exit" } }""")
+      val createJson: JValue = parse( s"""{ "attributes": {"timeout": { "duration": 0.53, "mode": "exit" } } }""")
       val testJson = parse( """{ "test": "stopped" }""")
       class TestCoralActor extends MinimalCoralActor {
         override def jsonDef: JValue = createJson
@@ -405,7 +405,7 @@ class CoralActorSpec(_system: ActorSystem)
     }
 
     "Emit the timer json when timer mode = 'continue'" in {
-      val createJson: JValue = parse( s"""{ "timeout": { "duration": 0.5, "mode": "continue" } }""")
+      val createJson: JValue = parse( s"""{ "attributes": {"timeout": { "duration": 0.5, "mode": "continue" } } }""")
       val testJson = parse( """{ "test": "timer3" }""")
       class TestCoralActor extends MinimalCoralActor {
         override def jsonDef: JValue = createJson
@@ -419,7 +419,7 @@ class CoralActorSpec(_system: ActorSystem)
     }
 
     "Ignore an unknown timer mode" in {
-      val createJson: JValue = parse( s"""{ "timeout": { "duration": 5, "mode": "doesnotexist" } }""")
+      val createJson: JValue = parse( s"""{ "attributes": {"timeout": { "duration": 5, "mode": "doesnotexist" } } }""")
       val testJson = parse( """{ "test": "timer4" }""")
       class TestCoralActor extends MinimalCoralActor {
         override def jsonDef: JValue = createJson

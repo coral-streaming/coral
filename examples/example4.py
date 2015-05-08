@@ -19,8 +19,8 @@ table = {
     }
 }
 
-post('/api/actors', {"type": "actors", "subtype":"httpbroadcast"})
-post('/api/actors', {"type": "actors", "subtype":"fsm", "params":{"key":"mood", "table": table, "s0":"sleep"}})
+post('/api/actors', {"type": "actors", "attributes": {"type":"httpbroadcast"}})
+post('/api/actors', {"type": "actors", "attributes": {"type":"fsm", "params":{"key":"mood", "table": table, "s0":"sleep"}}})
 
 put('/api/actors/1',  {"input":{"trigger":{"in":{"type":"external"}}}})
 put('/api/actors/2',  {"input":{"trigger":{"in":{"type":"actor", "source":1}}}})

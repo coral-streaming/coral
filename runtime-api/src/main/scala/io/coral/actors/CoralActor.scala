@@ -95,10 +95,10 @@ abstract class CoralActor extends Actor with ActorLogging {
       }
   }
 
-  def timerDuration: Double = (jsonDef \ "timeout" \ "duration").extractOrElse(0.0)
+  def timerDuration: Double = (jsonDef \ "attributes" \ "timeout" \ "duration").extractOrElse(0.0)
 
   def timerMode: TimerBehavior =
-    (jsonDef \ "timeout" \ "mode").extractOpt[String] match {
+    (jsonDef \ "attributes" \ "timeout" \ "mode").extractOpt[String] match {
       case Some("exit") => TimerExit
       case Some("continue") => TimerContinue
       case _ => TimerNone
@@ -190,7 +190,7 @@ abstract class CoralActor extends Actor with ActorLogging {
 
   def resourceDesc: Receive = {
     case Get() =>
-      sender ! (jsonDef merge render("state" -> render(state)))
+      sender ! (jsonDef merge render("attributes" -> render("state" -> render(state))))
   }
 
   def execute(json:JObject, sender:Option[ActorRef]) = {
