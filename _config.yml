@@ -2,6 +2,12 @@ plugins:     ./docs/_plugins
 data_source: ./_posts
 layouts:     ./docs/_layouts
 
+type: "pages"
+
+exclude: ["[^d]*"]
+
+include: ["index.html"]
+
 permalink: none
 
 url: "http://coral-streaming.github.io"
