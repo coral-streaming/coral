@@ -1,10 +1,9 @@
 plugins:     ./docs/_plugins
-data_source: ./_posts
 layouts:     ./docs/_layouts
 
 type: "pages"
 
-exclude: ["coral-core", "runtime-api", "project", "cluster", "examples", "target", "init.py", "Procfile"]
+exclude: ["coral-core", "cluster", "examples", "init.py", "Procfile", "project", "runtime-api", "target"]
 
 permalink: none
 
