@@ -8,6 +8,6 @@ Coral is a real-time analytics and data science platform. It transforms streamin
 Documentation
 ===
 
-For docs and tutorials please refer to [Coral wiki](https://github.com/coral-streaming/coral/wiki)
+For docs and tutorials please refer to [Coral wiki](http://coral-streaming.github.io/coral/)
 For the elevator pitch refer to [coral-streaming.github.io](http://coral-streaming.github.io)
 
