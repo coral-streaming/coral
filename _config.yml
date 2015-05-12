@@ -4,9 +4,7 @@ layouts:     ./docs/_layouts
 
 type: "pages"
 
-exclude: ["[^d]*"]
-
-include: ["index.html"]
+exclude: ["coral-core", "runtime-api", "project", "cluster", "examples", "target", "init.py", "Procfile"]
 
 permalink: none
 
