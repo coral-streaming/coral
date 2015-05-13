@@ -6,6 +6,7 @@ import akka.testkit._
 import akka.util.Timeout
 import io.coral.actors.CoralActorFactory
 import io.coral.actors.Messages.GetField
+import io.coral.api.DefaultModule
 import org.json4s.JsonAST.{JInt, JString}
 import org.json4s._
 import org.json4s.native.JsonMethods._
@@ -22,6 +23,7 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
   with BeforeAndAfterAll {
 
   implicit val timeout = Timeout(1.seconds)
+  implicit val injector = new DefaultModule(system.settings.config)
   val duration = timeout.duration
 
   def this() = this(ActorSystem("testSystem"))
@@ -314,13 +316,13 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
       generator.underlyingActor.emitTargets += probe.ref
 
       val method = Await.result(generator.ask(GetField("rate")), duration)
-      assert(method == JInt(20))
+      assert(method == JDouble(20.0))
 
       val number = Await.result(generator.ask(GetField("times")), duration)
       assert(number == JInt(1))
 
       val sliding = Await.result(generator.ask(GetField("delay")), duration)
-      assert(sliding == JInt(0))
+      assert(sliding == JDouble(0.0))
     }
 
     "Only emit 3 items when times is set to 3" in {

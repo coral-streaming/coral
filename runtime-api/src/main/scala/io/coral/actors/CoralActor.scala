@@ -1,8 +1,8 @@
 package io.coral.actors
 
 // scala
-import scala.collection.immutable.SortedSet
-import scala.concurrent.Future
+import scala.collection.immutable.{SortedMap, SortedSet}
+import scala.concurrent.{ExecutionContextExecutor, Future}
 import scala.concurrent.duration._
 
 // akka
@@ -28,14 +28,11 @@ import scalaz.{Monad, OptionT}
 import io.coral.actors.Messages._
 
 sealed class TimerBehavior
-
-object TimerExit extends TimerBehavior
-
+object TimerExit     extends TimerBehavior
 object TimerContinue extends TimerBehavior
+object TimerNone     extends TimerBehavior
 
-object TimerNone extends TimerBehavior
-
-trait CoralActor extends Actor with ActorLogging {
+abstract class CoralActor extends Actor with ActorLogging {
   // begin: implicits and general actor init
   def actorRefFactory = context
 
@@ -48,28 +45,26 @@ trait CoralActor extends Actor with ActorLogging {
   // numeric id  or None or "external"
   var collectSources = Map.empty[String, String] // zero or more alias to actorpath id
 
-  implicit def executionContext = actorRefFactory.dispatcher
+  // getting the default executor from the akka system
+  implicit def executionContext: ExecutionContextExecutor = actorRefFactory.dispatcher
 
   implicit val timeout = Timeout(1000.milliseconds)
 
-  def askActor(a: String, msg: Any) = actorRefFactory.actorSelection(a).ask(msg)
-
+  def askActor(a: String, msg: Any)  = actorRefFactory.actorSelection(a).ask(msg)
   def tellActor(a: String, msg: Any) = actorRefFactory.actorSelection(a).!(msg)
 
   implicit val formats = org.json4s.DefaultFormats
 
   implicit val futureMonad = new Monad[Future] {
     def point[A](a: => A): Future[A] = Future.successful(a)
-
     def bind[A, B](fa: Future[A])(f: A => Future[B]): Future[B] = fa flatMap f
   }
 
   // Future[Option[A]] to Option[Future, A] using the OptionT monad transformer
-  def getCollectInputField[A](actorAlias: String, subpath: String, field: String)(implicit mf: Manifest[A]) = {
+  def getCollectInputField[A](actorAlias: String, by: String, field: String)(implicit mf: Manifest[A]) = {
     val result = collectSources.get(actorAlias) match {
       case Some(actorPath) =>
-        val path = if (subpath == "") actorPath else s"$actorPath/$subpath"
-        askActor(path, GetField(field)).mapTo[JValue].map(json => json.extractOpt[A])
+        askActor(actorPath, GetFieldBy(field, by)).mapTo[JValue].map(json => json.extractOpt[A])
       case None => Future.failed(throw new Exception(s"Collect actor not defined"))
     }
     optionT(result)
@@ -89,13 +84,18 @@ trait CoralActor extends Actor with ActorLogging {
     actorSystem.scheduler.scheduleOnce(duration)(body)
 
   override def preStart() {
+    timerInit()
+  }
+
+  // timer logic
+  def timerInit() = {
     if (timerDuration > 0 && (timerMode == TimerExit || timerMode == TimerContinue))
-      in(timerDuration.millis) {
+      in(timerDuration.seconds) {
         self ! TimeoutEvent
       }
   }
 
-  def timerDuration: Long = (jsonDef \ "timeout" \ "duration").extractOrElse(0L)
+  def timerDuration: Double = (jsonDef \ "timeout" \ "duration").extractOrElse(0.0)
 
   def timerMode: TimerBehavior =
     (jsonDef \ "timeout" \ "mode").extractOpt[String] match {
@@ -104,7 +104,10 @@ trait CoralActor extends Actor with ActorLogging {
       case _ => TimerNone
     }
 
-  def timer: JValue
+  type Timer = JValue
+
+  def timer:Timer
+  val noTimer: Timer = JNothing
 
   def receiveTimeout: Receive = {
     case TimeoutEvent =>
@@ -116,42 +119,47 @@ trait CoralActor extends Actor with ActorLogging {
 
       timerMode match {
         case TimerContinue =>
-          in(timerDuration.millis) {
+          in(timerDuration.seconds) {
             self ! TimeoutEvent
           }
         case TimerExit =>
-          self ! PoisonPill
+          tellActor("/user/coral", Delete(self.path.name.toLong))
         case _ => // do nothing
       }
   }
 
-  def trigger: JObject => OptionT[Future, Unit]
+  // trigger
 
-  def noProcess(json: JObject): OptionT[Future, Unit] = {
-    OptionT.some(Future.successful({}))
-  }
+  type Trigger =  JObject => OptionT[Future, Unit]
 
-  def emit: JObject => JValue
+  def trigger: Trigger
+  val defaultTrigger : Trigger =
+    json => OptionT.some(Future.successful({}))
 
-  val notSet = JNothing
-  val doNotEmit: JObject => JValue = _ => JNothing
-  val passThroughEmit: JObject => JValue = json => json
+  // emitting
+
+  type Emit = JObject => JValue
+
+  def emit: Emit
+  val emitNothing: Emit = _    => JNothing
+  val emitPass   : Emit = json => json
+
+  // transmitting to the subscribing coral actors
 
   def transmitAdmin: Receive = {
     case RegisterActor(r) =>
-      log.warning(s"registering ${r.path.toString}")
       emitTargets += r
   }
 
-  def transmit: JValue => Unit = {
-    json => json match {
-      case v: JObject =>
-        emitTargets map (actorRef => actorRef ! v)
+  def transmit(json:JValue) = {
+    json match {
+      case json: JObject =>
+        emitTargets map (actorRef => actorRef ! json)
       case _ =>
     }
   }
 
-  def propertiesHandling: Receive = {
+  def propHandling: Receive = {
     case UpdateProperties(json) =>
       // update trigger
       triggerSource = (json \ "input" \ "trigger" \ "in" \ "type").extractOpt[String]
@@ -185,60 +193,67 @@ trait CoralActor extends Actor with ActorLogging {
       sender ! render(("actors", render(Map(("def", jsonDef), ("state", render(state))))))
   }
 
-  def jsonData: Receive = {
-    case json: JObject =>
-      val stage = trigger(json)
-      val r = stage.run
+  def execute(json:JObject, sender:Option[ActorRef]) = {
+    val stage = trigger(json)
+    val r = stage.run
 
-      r.onSuccess {
-        case Some(_) => transmit(emit(json))
-        case None => log.warning("some variables are not available")
-      }
+    r.onSuccess {
+      case Some(_) =>
+        val result = emit(json)
+        transmit(result)
+        sender.foreach(_ ! result)
 
-      r.onFailure {
-        case _ =>
-      }
-    case Shunt(json) =>
-      val s = sender
-      val stage = trigger(json)
-      val r = stage.run
+      case None => log.warning("not processed")
+    }
 
-      r.onSuccess {
-        case Some(_) =>
-          val result = emit(json)
-          transmit(result)
-          if (result != JNothing) s ! result
-
-        case None => log.warning("some variables are not available")
-      }
-
-      r.onFailure {
-        case e => println(e)
-      }
-    case Trigger(json) =>
-      trigger(json).run
-    case Emit() =>
-      val result = emit(JObject())
-      sender ! result
+    r.onFailure {
+      case _ => log.warning("actor execution")
+    }
   }
 
-  def receive = jsonData orElse
-    stateReceive orElse
-    transmitAdmin orElse
-    propertiesHandling orElse
-    resourceDesc orElse
-    receiveTimeout
+  def jsonData: Receive = {
+    case json: JObject =>
+      execute(json,None)
+
+    case Shunt(json) =>
+      execute(json,Some(sender()))
+  }
+
+  var children = SortedMap.empty[String, Long]
+
+  def receiveExtra:Receive = {case _ => }
+
+  def receive = jsonData           orElse
+                stateReceive       orElse
+                transmitAdmin      orElse
+                propHandling       orElse
+                resourceDesc       orElse
+                receiveTimeout     orElse
+                receiveExtra
 
   def state: Map[String, JValue]
 
+  def stateResponse(x:String,by:Option[String],sender:ActorRef) = {
+    if ( by.getOrElse("").isEmpty) {
+      val value = state.get(x)
+      sender ! render(value)
+    } else {
+      val found = children.get(by.get) flatMap (a => actorRefFactory.child(a.toString))
+
+      found match {
+        case Some(actorRef) =>
+          actorRef forward GetField(x)
+
+        case None =>
+          sender ! render(JNothing)
+      }
+    }
+  }
+
   def stateReceive: Receive = {
     case GetField(x) =>
-      val value = state.get(x)
-
-      if (value == None) {
-        sender ! render(JNothing)
-      } else {
-        sender ! render(value)
-      }
+      stateResponse(x,None, sender())
+    case GetFieldBy(x,by) =>
+      stateResponse(x,Some(by), sender())
   }
 }

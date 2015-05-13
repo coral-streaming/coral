@@ -2,18 +2,15 @@ package io.coral.actors.transform
 
 // scala
 import scala.collection.immutable.SortedMap
-
-// akka
 import akka.actor.{ActorLogging, Props}
-
-//json goodness
 import org.json4s._
 import org.json4s.JsonDSL._
 import org.json4s.jackson.JsonMethods._
-
-// coral
 import io.coral.actors.{CoralActor, CoralActorFactory}
 import io.coral.actors.Messages._
+import scaldi.Injector
+
+import akka.pattern.pipe
 
 object GroupByActor {
   implicit val formats = org.json4s.DefaultFormats
@@ -26,42 +23,49 @@ object GroupByActor {
     }
   }
 
-  def apply(json: JValue): Option[Props] = {
-    getParams(json).map(_ => Props(classOf[GroupByActor], json))
+  def apply(json: JValue)(implicit injector: Injector): Option[Props] = {
+    getParams(json).map(_ => Props(classOf[GroupByActor], json, injector))
   }
 }
 
-class GroupByActor(json: JObject) extends CoralActor with ActorLogging {
-  def jsonDef = json
+class GroupByActor(json: JObject)(implicit injector: Injector) extends CoralActor with ActorLogging {
+  val Diff(_, _, jsonChildrenDef) = json diff JObject(("group",   json \ "group"))
+  val Diff(_, _, jsonDef)         = json diff JObject(("timeout", json \ "timeout"))
+
   val by = GroupByActor.getParams(json).get
-  val Diff(_, _, jsonChildrenDef) = jsonDef diff JObject(("group", json \ "group"))
-  var actors = SortedMap.empty[String, Long]
-  def state = Map(("actors", render(actors)))
-  def emit = doNotEmit
-  def timer = notSet
+
+  def state = Map(("actors", render(children)))
+  def emit  = emitNothing
+  def timer = noTimer
 
   def trigger = {
-    json: JObject =>
+    json =>
       for {
         value <- getTriggerInputField[String](json \ by)
-        count <- getActorResponse[Long]("/user/coral", GetCount())
       } yield {
+
         // create if it does not exist
-        actorRefFactory.child(value) match {
+        val found = children.get(value) flatMap (id => actorRefFactory.child(id.toString))
+
+        found match {
           case Some(actorRef) =>
-            actorRef
+            actorRef forward json
+
           case None =>
-            val props = CoralActorFactory.getProps(jsonChildrenDef)
+            val counter = askActor("/user/coral", GetCount()).mapTo[Long]
 
-            val actorOpt = props map { p =>
-              val actor = actorRefFactory.actorOf(p, s"$value")
-              actors += (value -> count)
-              tellActor("/user/coral", RegisterActorPath(count, actor.path))
-              actor
+            counter onSuccess {
+              case id =>
+                val props = CoralActorFactory.getProps(jsonChildrenDef)
+                props map { p =>
+                  val actor = actorRefFactory.actorOf(p, s"$id")
+                  children += (value -> id)
+                  tellActor("/user/coral", RegisterActorPath(id, actor.path))
+                  actor forward json
+                }
+
             }
-
-            actorOpt.get
         }
-      } ! json
+      }
   }
 }

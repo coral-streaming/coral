@@ -13,7 +13,6 @@ import org.json4s._
 import org.json4s.JsonDSL._
 import org.json4s.jackson.JsonMethods.render
 
-
 // coral
 import io.coral.actors.CoralActor
 
@@ -31,8 +30,9 @@ object HttpClientActor {
 
 class HttpClientActor(json: JObject) extends CoralActor with ActorLogging {
   def jsonDef = json
-  def state = Map.empty
-  def timer = notSet
+  def state   = Map.empty
+  def timer   = noTimer
+
   var answer: HttpResponse = _
 
   def trigger: (JObject) => OptionT[Future, Unit] = {

@@ -21,12 +21,6 @@ class ApiServiceActor extends Actor with ApiService with ActorLogging {
   def receive = runRoute(serviceRoute)
 }
 
-// terminology:
-// in order not to clash which akka actors,
-// we call the REST exposed actors (Beads internal name, external name Actor)
-// we call the REST exposed api actor factory as coral, external name coral)
-// we call the REST exposed actors connections "connections", exposed as "connections"
-// declaration time : /api/coral/flows/{flowid}/actors/{actorid}
 trait ApiService extends HttpService {
   implicit def executionContext = actorRefFactory.dispatcher
   implicit val timeout = Timeout(1.seconds)
@@ -47,7 +41,7 @@ trait ApiService extends HttpService {
           pathEnd {
             get {
               import JsonConversions._
-              ctx => askActor(coralActor,List).mapTo[List[Long]]
+              ctx => askActor(coralActor,ListActors()).mapTo[List[Long]]
                 .onSuccess { case actors => ctx.complete(actors)}
             } ~
               post {
@@ -69,9 +63,10 @@ trait ApiService extends HttpService {
             actorId =>
               // find my actor
               onSuccess(askActor(coralActor, GetActorPath(actorId)).mapTo[Option[ActorPath]]) {
-                actorPath => validate(actorPath.isDefined, "") {
-                  provide(actorPath.orNull) {
-                    ap => {
+                actorPath => {
+                  actorPath match {
+                    case None => complete(StatusCodes.NotFound, s"actorId ${actorId} not found")
+                    case Some(ap) => {
                       pathEnd {
                         put {
                           import JsonConversions._
@@ -98,7 +93,7 @@ trait ApiService extends HttpService {
                             entity(as[JObject]) { json =>
                               val result = askActor(ap, Shunt(json)).mapTo[JValue]
                               onComplete(result) {
-                                case Success(json) => complete(json)
+                                case Success(value) => complete(value)
                                 case Failure(ex)   => complete(StatusCodes.InternalServerError, s"An error occurred: ${ex.getMessage}")
                               }
                             }

@@ -4,6 +4,7 @@ import akka.actor.{ActorSystem, Props}
 import akka.testkit.{ImplicitSender, TestActorRef, TestKit}
 import akka.util.Timeout
 import io.coral.actors.RuntimeActor
+import io.coral.api.DefaultModule
 import org.json4s.JsonDSL._
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
@@ -27,10 +28,11 @@ class GroupByActorSpec(_system: ActorSystem)
     TestKit.shutdownActorSystem(system)
   }
 
-  val runtime = system.actorOf(Props[RuntimeActor], "coral")
+  val runtime = system.actorOf(Props(classOf[RuntimeActor], new DefaultModule(system.settings.config)), "coral")
 
-  implicit val timeout = Timeout(100 millis)
+  implicit val timeout = Timeout(100.millis)
   implicit val formats = org.json4s.DefaultFormats
+  implicit val injector = new DefaultModule(system.settings.config)
 
   // here is a dependency on the stats actor
   // in the current situation (the CoralActorFactory) it seems unavoidable to depend in some tests on an existing actor instead of injecting a test actor
@@ -43,7 +45,7 @@ class GroupByActorSpec(_system: ActorSystem)
     ).asInstanceOf[JObject]
     TestActorRef[GroupByActor](GroupByActor(createJson).get).underlyingActor
   }
-
+  
   "A GroupByActor" should {
 
     "Extract the the create json" in {
@@ -68,7 +70,7 @@ class GroupByActorSpec(_system: ActorSystem)
 
     "Initialize without children" in {
       val actor = statsGroupBy
-      actor.actors should be(Map.empty[String, Long])
+      actor.children should be(Map.empty[String, Long])
       actor.state should be(Map(("actors", render(Map.empty[String, Long]))))
     }
 
@@ -84,27 +86,27 @@ class GroupByActorSpec(_system: ActorSystem)
 
     "Create a new child when triggered for non existing tag" in {
       val actor = statsGroupBy
-      actor.actors.size should be(0)
-      val result = actor.trigger(parse( """{ "tag": "a", "amount": 1.1 }""").asInstanceOf[JObject])
-      whenReady(result.run) { _ => actor.actors.size should be(1) }
+      actor.children.size should be(0)
+      actor.trigger(parse( """{ "tag": "a", "amount": 1.1 }""").asInstanceOf[JObject])
+      awaitCond(actor.children.size == 1)
     }
 
     "Create no new child when triggered with existing group by field value" in {
       val actor = statsGroupBy
-      actor.actors.size should be(0)
-      val result1 = actor.trigger(parse( """{ "tag": "a", "amount": 1.1 }""").asInstanceOf[JObject])
-      whenReady(result1.run) { _ => actor.actors.size should be(1) }
-      val result2 = actor.trigger(parse( """{ "tag": "a", "amount": 2.2 }""").asInstanceOf[JObject])
-      whenReady(result2.run) { _ => actor.actors.size should be(1) }
+      actor.children.size should be(0)
+      actor.trigger(parse( """{ "tag": "a", "amount": 1.1 }""").asInstanceOf[JObject])
+      awaitCond(actor.children.size == 1 )
+      actor.trigger(parse( """{ "tag": "a", "amount": 2.2 }""").asInstanceOf[JObject])
+      awaitCond(actor.children.size == 1 )
     }
 
     "Create a new child when triggered with a new group by field value" in {
       val actor = statsGroupBy
-      actor.actors.size should be(0)
-      val result1 = actor.trigger(parse( """{ "tag": "a", "amount": 1.1 }""").asInstanceOf[JObject])
-      whenReady(result1.run) { _ => actor.actors.size should be(1) }
-      val result2 = actor.trigger(parse( """{ "tag": "b", "amount": 1.1 }""").asInstanceOf[JObject])
-      whenReady(result2.run) { _ => actor.actors.size should be(2) }
+      actor.children.size should be(0)
+      actor.trigger(parse( """{ "tag": "a", "amount": 1.1 }""").asInstanceOf[JObject])
+      awaitCond(actor.children.size == 1 )
+      actor.trigger(parse( """{ "tag": "b", "amount": 1.1 }""").asInstanceOf[JObject])
+      awaitCond(actor.children.size == 2 )
     }
   }
 

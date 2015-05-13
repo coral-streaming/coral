@@ -32,6 +32,9 @@ object Dependencies {
     // cassandra
     "com.datastax.cassandra" % "cassandra-driver-core" % "2.1.4",
 
+    // dependency injection
+    "org.scaldi" %% "scaldi-akka" % "0.5.3",
+
     "org.uncommons.maths" % "uncommons-maths" % "1.2.2a"
   )
 
@@ -41,6 +44,9 @@ object Dependencies {
 
     //akka
     "com.typesafe.akka" %% "akka-testkit"    % akkaVersion % "it,test",
+
+    // cassandra
+    "org.cassandraunit" % "cassandra-unit"   % "2.1.3.1" % "it,test" exclude("org.slf4j", "slf4j-log4j12"),
 
     //testing
     "org.scalatest"     %% "scalatest"       % "2.2.1" % "it,test"

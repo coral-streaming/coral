@@ -5,6 +5,7 @@ import akka.testkit.{ImplicitSender, TestActorRef, TestKit}
 import akka.util.Timeout
 import io.coral.actors.CoralActorFactory
 import io.coral.actors.Messages.GetField
+import io.coral.api.DefaultModule
 import org.json4s.JsonDSL._
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
@@ -18,6 +19,8 @@ class ZscoreActorSpec(_system: ActorSystem)
   with WordSpecLike
   with Matchers
   with BeforeAndAfterAll {
+
+  implicit val injector = new DefaultModule(system.settings.config)
 
   def this() = this(ActorSystem("coral"))
 
@@ -46,8 +49,8 @@ class ZscoreActorSpec(_system: ActorSystem)
     val createJson = parse(
       s"""{ "type": "zscore",
          |"params": { "by": "${by}",
-                                           |"field": "${field}",
-                                                                |"score": ${score} } }""".stripMargin)
+         |"field": "${field}",
+         |"score": ${score} } }""".stripMargin)
       .asInstanceOf[JObject]
     val props = CoralActorFactory.getProps(createJson).get
     val actorRef = TestActorRef[ZscoreActor](props, s"${n}")
@@ -70,21 +73,19 @@ class ZscoreActorSpec(_system: ActorSystem)
 
     "have no timer action" in {
       val actor = createZscoreActor(3, "field1", "field2", 6.1)
-      actor.timer should be(actor.notSet)
+      actor.timer should be(actor.noTimer)
     }
 
     // this should be better separated, even if only from a unit testing point of view
     "process trigger and collect data" in {
-      val zscore = createZscoreActor(4, by = "dummy", field = "val", score = 6.1)
+      val zscore = createZscoreActor(4, by = "", field = "val", score = 6.1)
       val mockStats = createMockStats("mock1", count = 20L, avg = 3.0, sd = 2.0)
       zscore.collectSources = Map("stats" -> "/user/mock1")
       zscore.trigger(parse( s"""{ "dummy": "", "val": 50.0 }""").asInstanceOf[JObject])
-      zscore.outlier should be(false)
+      awaitCond(zscore.outlier==false)
       mockStats.count = 21L // count > 20 before considering outlyer
-      zscore.trigger(parse( s"""{ "dummy": "", "val": 50.0 }""").asInstanceOf[JObject])
-      zscore.outlier should be(true)
       zscore.trigger(parse( s"""{ "dummy": "", "val": 4.0 }""").asInstanceOf[JObject])
-      zscore.outlier should be(false)
+      awaitCond(zscore.outlier==false)
     }
 
     "emit only when outlier is true" in {
