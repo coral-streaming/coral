@@ -1,7 +1,7 @@
 package io.coral.api
 
 import io.coral.actors.Messages._
-import org.json4s.JsonAST.JString
+import spray.http.HttpHeaders.Location
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 import akka.pattern.ask
@@ -12,6 +12,7 @@ import spray.routing.HttpService
 import org.json4s.jackson.JsonMethods._
 import org.json4s._
 import org.json4s.JsonDSL._
+import JsonConversions._
 
 class ApiServiceActor extends Actor with ApiService with ActorLogging {
   // the HttpService trait defines only one abstract member, which
@@ -44,20 +45,34 @@ trait ApiService extends HttpService {
           pathEnd {
             get {
               requestUri{ baseUri =>
-                import JsonConversions._
-                ctx => askActor(coralActor,ListActors()).mapTo[List[Long]]
-                  .onSuccess { case actorIds => ctx.complete(("data" -> actorIds.map(actorId => Map("id" -> actorId.toString, "type" -> "actors", "links" -> Map("self" -> s"$baseUri/$actorId"))))) }
+                onSuccess(askActor(coralActor,ListActors()).mapTo[List[Long]]) {
+                  actorIds => complete(("data" -> actorIds.map(actorId => Map("id" -> actorId.toString, "type" -> "actors", "links" -> Map("self" -> s"$baseUri/$actorId"))))) }
+                }
               }
             } ~
             post {
-              import JsonConversions._
               entity(as[JObject]) { json =>
-                ctx => askActor(coralActor, CreateActor(json)).mapTo[Option[Long]]
-                  .onSuccess {
-                  case Some(id) => ctx.complete(id.toString)
-                  case _ => ctx.complete(error("not created"))
+                onSuccess(askActor(coralActor, CreateActor(json)).mapTo[Option[Long]]) {
+                  case Some(id) => {
+                    onSuccess(askActor(coralActor, GetActorPath(id)).mapTo[Option[ActorPath]]) {
+                      case None => complete(StatusCodes.InternalServerError, error("not created"))
+                      case Some(ap) => {
+                        val result = askActor(ap, Get()).mapTo[JObject]
+                        onComplete(result) {
+                          case Success(json) => {
+                            requestUri { baseUri =>
+                              respondWithHeader(Location(s"$baseUri/$id")) {
+                                complete(("data" -> (json merge render("id" -> id.toString))))
+                              }
+                            }
+                          }
+                          case Failure(ex) => complete(StatusCodes.InternalServerError, error(s"An error occurred: ${ex.getMessage}"))
+                        }
+                      }
+                    }
+                  }
+                  case _ => complete(error("not created"))
                 }
-              }
             } ~
             (delete | head | patch) {
               complete(HttpResponse(StatusCodes.MethodNotAllowed))
@@ -73,25 +88,20 @@ trait ApiService extends HttpService {
                   actorPath => {
                     actorPath match {
                       case None => {
-                        import JsonConversions._
                         complete(StatusCodes.NotFound, error(s"actorId ${actorId} not found"))
                       }
                       case Some(ap) => {
                         pathEnd {
                           put {
-                            import JsonConversions._
                             entity(as[JObject]) { json =>
-                              ctx => askActor(ap, UpdateProperties(json)).mapTo[Boolean]
-                                .onSuccess {
-                                case true => ctx.complete(StatusCodes.Created, "ok")
-                                case _ => ctx.complete(error("not created"))
+                              onSuccess(askActor(ap, UpdateProperties(json)).mapTo[Boolean]) {
+                                case true => complete(StatusCodes.Created, "ok")
+                                case _ => complete(error("not created"))
                               }
                             }
                           } ~
                             get {
-                              import JsonConversions._
                               val result = askActor(ap, Get()).mapTo[JObject]
-                              implicit val formats = org.json4s.DefaultFormats
                               onComplete(result) {
                                 case Success(json) => complete(("data" -> (json merge render("id" -> actorId.toString))))
                                 case Failure(ex) => complete(StatusCodes.InternalServerError, error(s"An error occurred: ${ex.getMessage}"))
@@ -100,7 +110,6 @@ trait ApiService extends HttpService {
                         } ~
                           pathPrefix("in") {
                             post {
-                              import JsonConversions._
                               entity(as[JObject]) { json =>
                                 val result = askActor(ap, Shunt(json)).mapTo[JValue]
                                 onComplete(result) {
@@ -116,7 +125,6 @@ trait ApiService extends HttpService {
                 }
               } catch {
                 case e: NumberFormatException => {
-                  import JsonConversions._
                   complete(StatusCodes.NotFound, error(s"actorId ${segment} not found"))
                 }
               }
