@@ -1,0 +1,13 @@
+plugins:     ./docs/_plugins
+layouts:     ./docs/_layouts
+
+type: "pages"
+
+exclude: ["coral-core", "cluster", "examples", "init.py", "Procfile", "project", "runtime-api", "target"]
+
+permalink: none
+
+url: "http://coral-streaming.github.io"
+baseurl: "/coral"
+
+
