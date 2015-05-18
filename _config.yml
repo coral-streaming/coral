@@ -1,3 +1,5 @@
+#This is the configuration for the website
+
 plugins:     ./docs/_plugins
 layouts:     ./docs/_layouts
 
