@@ -52,26 +52,32 @@ trait ApiService extends HttpService {
             } ~
             post {
               entity(as[JObject]) { json =>
-                onSuccess(askActor(coralActor, CreateActor(json)).mapTo[Option[Long]]) {
-                  case Some(id) => {
-                    onSuccess(askActor(coralActor, GetActorPath(id)).mapTo[Option[ActorPath]]) {
-                      case None => complete(StatusCodes.InternalServerError, error("not created"))
-                      case Some(ap) => {
-                        val result = askActor(ap, Get()).mapTo[JObject]
-                        onComplete(result) {
-                          case Success(json) => {
-                            requestUri { baseUri =>
-                              respondWithHeader(Location(s"$baseUri/$id")) {
-                                complete(("data" -> (json merge render("id" -> id.toString))))
+                val data = (json \ "data").extractOpt[JObject]
+                data match {
+                  case None => complete(StatusCodes.BadRequest, error("no data key present"))
+                  case Some(jsonDef) => {
+                    onSuccess(askActor(coralActor, CreateActor(jsonDef)).mapTo[Option[Long]]) {
+                      case Some(id) => {
+                        onSuccess(askActor(coralActor, GetActorPath(id)).mapTo[Option[ActorPath]]) {
+                          case None => complete(StatusCodes.InternalServerError, error("not created"))
+                          case Some(ap) => {
+                            val result = askActor(ap, Get()).mapTo[JObject]
+                            onComplete(result) {
+                              case Success(json) => {
+                                requestUri { baseUri =>
+                                  respondWithHeader(Location(s"$baseUri/$id")) {
+                                    complete(("data" -> (json merge render("id" -> id.toString))))
+                                  }
+                                }
                               }
+                              case Failure(ex) => complete(StatusCodes.InternalServerError, error(s"An error occurred: ${ex.getMessage}"))
                             }
                           }
-                          case Failure(ex) => complete(StatusCodes.InternalServerError, error(s"An error occurred: ${ex.getMessage}"))
                         }
                       }
+                      case None => complete(error("not created"))
                     }
                   }
-                  case _ => complete(error("not created"))
                 }
             } ~
             (delete | head | patch) {
