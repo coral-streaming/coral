@@ -61,6 +61,42 @@ class JsonTemplateSpec extends WordSpecLike with Matchers {
       template.interpret(inputJson.asInstanceOf[JObject]) shouldBe outputJson
     }
 
+    "handle expressions cf jsonExpressionParser" in {
+      val templateJson = parse(
+        """{ "a": ":array[1]",
+          |  "b": ":field.sub.subsub",
+          |  "c": 1.0
+          |}""".stripMargin)
+      val template = JsonTemplate(templateJson.asInstanceOf[JObject])
+      val inputJson = parse(
+        """{ "array": ["a0", "a1", "a2"],
+          |  "field": { "sub": { "subsub": 123, "bla": "bla" } },
+          |  "epsilon": 987
+          |}""".stripMargin)
+      val outputJson = parse(
+        """{ "a": "a1",
+          |  "b": 123,
+          |  "c": 1.0
+          |}""".stripMargin)
+      template.interpret(inputJson.asInstanceOf[JObject]) shouldBe outputJson
+    }
+
+    "use null when values are not found" in {
+      val templateJson = parse(
+        """{ "field1": ":abc",
+          |  "field2": 123
+          |}""".stripMargin)
+      val template = JsonTemplate(templateJson.asInstanceOf[JObject])
+      val inputJson = parse(
+        """{ "def": 456
+          |}""".stripMargin)
+      val outputJson = parse(
+        """{ "field1": null,
+          |  "field2": 123
+          |}""".stripMargin)
+      template.interpret(inputJson.asInstanceOf[JObject]) shouldBe outputJson
+    }
+
   }
 
 }
