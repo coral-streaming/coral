@@ -1,7 +1,8 @@
 package io.coral.actors.transform
 
-import akka.actor.{ActorLogging, Props}
+import akka.actor.Props
 import io.coral.actors.CoralActor
+import io.coral.lib.JsonTemplate
 import org.json4s.JsonAST.{JObject, JValue}
 import org.json4s._
 
@@ -12,6 +13,7 @@ object JsonActor {
   def getParams(json: JValue) = {
     for {
       template <- (json \ "params" \ "template").extractOpt[JObject]
+      if (JsonTemplate.validate(template))
     } yield {
       template
     }
@@ -23,9 +25,9 @@ object JsonActor {
 
 }
 
-class JsonActor (json: JObject) extends CoralActor {
+class JsonActor(json: JObject) extends CoralActor {
 
-  val template: JObject = JsonActor.getParams(json).get
+  val template = JsonTemplate(JsonActor.getParams(json).get)
 
   override def jsonDef: JValue = json
 
@@ -33,7 +35,8 @@ class JsonActor (json: JObject) extends CoralActor {
 
   override def state: Map[String, JValue] = Map.empty[String, JValue]
 
-  override def emit: Emit = ???
+  override def trigger: Trigger = defaultTrigger
 
-  override def trigger: Trigger = ???
+  override def emit: Emit = json => template.interpret(json)
+
 }
