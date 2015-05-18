@@ -22,7 +22,7 @@ object JsonTemplate {
   }
 
   def validate(template: JObject): Boolean = {
-    true
+    true // the only thing that could be checked would be expression syntax; so until this is available from the JsonExpressionParser just say yea
   }
 
   def apply(template: JObject): JsonTemplate = new JsonTemplate(template)
@@ -32,9 +32,9 @@ object JsonTemplate {
 class JsonTemplate(val template: JObject) {
 
   def interpret(input: JObject): JValue = {
-    def transform(keyval: (String, JValue)): (String, JValue) =
-      (keyval._1, JsonTemplate.evaluate(input, keyval._2))
-    template.mapField(transform)
+    def transformField(field: (String, JValue)): (String, JValue) =
+      (field._1, JsonTemplate.evaluate(input, field._2))
+    template.mapField(transformField)
   }
 
 }

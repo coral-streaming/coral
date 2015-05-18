@@ -17,7 +17,7 @@ class JsonTemplateSpec extends WordSpecLike with Matchers {
       template.interpret(parse("{}").asInstanceOf[JObject]) shouldBe templateJson
     }
 
-    "substitute references" in {
+    "substitute references (identified with a :)" in {
       val templateJson = parse(
         """{ "field1": ":abc",
           |  "field2": 123
@@ -39,7 +39,7 @@ class JsonTemplateSpec extends WordSpecLike with Matchers {
         """{ "a": "ALPHA",
           |  "b": ":beta",
           |  "c": { "d": 123,
-          |         "e": ":epsilon"
+          |         "e": { "ee": ":epsilon" }
           |       },
           |  "f": 1,
           |  "g": 1.0
@@ -52,7 +52,7 @@ class JsonTemplateSpec extends WordSpecLike with Matchers {
       val outputJson = parse(
         """{ "a": "ALPHA",
           |  "c": { "d": 123,
-          |         "e": 987
+          |         "e": { "ee": 987 }
           |       },
           |  "f": 1,
           |  "b": "xyz",
