@@ -14,6 +14,11 @@ def post(path, payload={}) :
   if (r.text):
     print json.dumps(json.loads(r.text), indent=2)
 
+def patch(path, payload={}) :
+  r = requests.patch(api+path, data=json.dumps(payload), headers=headers)
+  if (r.text):
+    print json.dumps(json.loads(r.text), indent=2)
+
 def get(path) :
   r = requests.get(api+path, headers=headers)
   if (r.text):

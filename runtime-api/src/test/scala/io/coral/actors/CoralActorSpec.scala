@@ -242,16 +242,16 @@ class CoralActorSpec(_system: ActorSystem)
     "Handle an 'UpdateProperties' message with trigger connection" in {
       val coral = createCoralActor()
       val other = createCoralActor(name = "test1")
-      coral.self ! UpdateProperties(parse( """{"input": {"trigger":{"in": {"type": "external"}}}}""").asInstanceOf[JObject])
+      coral.self ! UpdateProperties(parse( """{"attributes": {"input": {"trigger":{"in": {"type": "external"}}}}}""").asInstanceOf[JObject])
       expectMsg(true)
-      coral.self ! UpdateProperties(parse( """{"input": {"trigger":{"in": {"type": "actor", "source": "test1"}}}}""").asInstanceOf[JObject])
+      coral.self ! UpdateProperties(parse( """{"attributes": {"input": {"trigger":{"in": {"type": "actor", "source": "test1"}}}}}""").asInstanceOf[JObject])
       other.emitTargets should be(SortedSet(coral.self))
       expectMsg(true)
     }
 
     "Ignore an 'UpdateProperties' message with trigger connection of unknown type" in {
       val coral = createCoralActor()
-      coral.self ! UpdateProperties(parse( """{"input": {"trigger":{"in": {"type": "doesnotexist"}}}}""").asInstanceOf[JObject])
+      coral.self ! UpdateProperties(parse( """{"attributes": {"input": {"trigger":{"in": {"type": "doesnotexist"}}}}}""").asInstanceOf[JObject])
       expectMsg(true)
     }
   }
@@ -356,7 +356,7 @@ class CoralActorSpec(_system: ActorSystem)
 
     "Handle an 'UpdateProperties' message with collect connection" in {
       val coral = createCoralActor()
-      coral.self ! UpdateProperties(parse( """{"input": {"collect":{"someref": {"source": 12}}}}""").asInstanceOf[JObject])
+      coral.self ! UpdateProperties(parse( """{"attributes": {"input": {"collect":{"someref": {"source": 12}}}}}""").asInstanceOf[JObject])
       coral.collectSources should be(Map("someref" -> "/user/coral/12"))
       expectMsg(true)
     }

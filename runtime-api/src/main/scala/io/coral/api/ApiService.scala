@@ -98,11 +98,15 @@ trait ApiService extends HttpService {
                       }
                       case Some(ap) => {
                         pathEnd {
-                          put {
+                          patch {
                             entity(as[JObject]) { json =>
-                              onSuccess(askActor(ap, UpdateProperties(json)).mapTo[Boolean]) {
-                                case true => complete(StatusCodes.Created, "ok")
-                                case _ => complete(error("not created"))
+                              val data = (json \ "data").extractOpt[JObject]
+                              data match {
+                                case None => complete(StatusCodes.BadRequest, error("no data key present"))
+                                case Some(jsonDef) => onSuccess(askActor(ap, UpdateProperties(jsonDef)).mapTo[Boolean]) {
+                                  case true => complete(StatusCodes.NoContent)
+                                  case _ => complete(error("not created"))
+                                }
                               }
                             }
                           } ~

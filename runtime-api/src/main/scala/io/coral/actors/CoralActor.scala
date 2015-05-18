@@ -162,12 +162,12 @@ abstract class CoralActor extends Actor with ActorLogging {
   def propHandling: Receive = {
     case UpdateProperties(json) =>
       // update trigger
-      triggerSource = (json \ "input" \ "trigger" \ "in" \ "type").extractOpt[String]
+      triggerSource = (json \ "attributes" \ "input" \ "trigger" \ "in" \ "type").extractOpt[String]
       triggerSource.getOrElse("none") match {
         case "none" =>
         case "external" =>
         case "actor" =>
-          val source = (json \ "input" \ "trigger" \ "in" \ "source").extractOpt[String]
+          val source = (json \ "attributes" \ "input" \ "trigger" \ "in" \ "source").extractOpt[String]
           source map { v =>
             tellActor(s"/user/coral/$v", RegisterActor(self))
           }
@@ -175,10 +175,10 @@ abstract class CoralActor extends Actor with ActorLogging {
         case _ =>
       }
 
-      val collectAliases = (json \ "input" \ "collect").extractOpt[Map[String, Any]]
+      val collectAliases = (json \ "attributes" \ "input" \ "collect").extractOpt[Map[String, Any]]
       collectSources = collectAliases match {
         case Some(v) =>
-          val x = v.keySet.map(k => (k, (json \ "input" \ "collect" \ k \ "source")
+          val x = v.keySet.map(k => (k, (json \ "attributes" \ "input" \ "collect" \ k \ "source")
             .extractOpt[Int].map(v => s"/user/coral/$v")))
           x.filter(_._2.isDefined).map(i => (i._1, i._2.get)).toMap
         case None =>
