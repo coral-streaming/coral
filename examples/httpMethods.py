@@ -2,7 +2,7 @@ import json
 import requests
 
 api = 'http://localhost:8000'
-headers = {'content-type': 'application/json'}
+headers = {'Content-Type': 'application/json', 'Accept': 'application/vnd.api+json'}
 
 def post(path, payload={}) :
     r = requests.post(api+path, data=json.dumps(payload), headers=headers)
