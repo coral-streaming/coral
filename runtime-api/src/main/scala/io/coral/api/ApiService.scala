@@ -26,6 +26,8 @@ class ApiServiceActor extends Actor with ApiService with ActorLogging {
 }
 
 trait ApiService extends HttpService {
+  private val Type = "actors"
+
   implicit def executionContext = actorRefFactory.dispatcher
   implicit val timeout = Timeout(1.seconds)
 
@@ -57,8 +59,11 @@ trait ApiService extends HttpService {
                   case None => complete(StatusCodes.BadRequest, error("no data key present"))
                   case Some(jsonDef) => {
                     val id = (jsonDef \ "id").extractOpt[String]
+                    val theType = (jsonDef \ "type").extractOpt[String]
                     if (id.isDefined) {
                       complete(StatusCodes.Forbidden, error("Client generated id not allowed"))
+                    } else if (theType != Some(Type)) {
+                      complete(StatusCodes.BadRequest, error("The type must be actors"))
                     } else {
                       onSuccess(askActor(coralActor, CreateActor(jsonDef)).mapTo[Option[Long]]) {
                         case Some(id) => {
@@ -108,9 +113,19 @@ trait ApiService extends HttpService {
                               val data = (json \ "data").extractOpt[JObject]
                               data match {
                                 case None => complete(StatusCodes.BadRequest, error("no data key present"))
-                                case Some(jsonDef) => onSuccess(askActor(ap, UpdateProperties(jsonDef)).mapTo[Boolean]) {
-                                  case true => complete(StatusCodes.NoContent)
-                                  case _ => complete(error("not created"))
+                                case Some(jsonDef) => {
+                                  val id = (jsonDef \ "id").extractOpt[String]
+                                  val theType = (jsonDef \ "type").extractOpt[String]
+                                  if (!id.isDefined || id != Some(actorId.toString)) {
+                                    complete(StatusCodes.Forbidden, error("Id must be given and the same as in the URL"))
+                                  } else if (theType != Some(Type)) {
+                                    complete(StatusCodes.BadRequest, error("The type must be actors"))
+                                  } else {
+                                    onSuccess(askActor(ap, UpdateProperties(jsonDef)).mapTo[Boolean]) {
+                                      case true => complete(StatusCodes.NoContent)
+                                      case _ => complete(error("not created"))
+                                    }
+                                  }
                                 }
                               }
                             }
