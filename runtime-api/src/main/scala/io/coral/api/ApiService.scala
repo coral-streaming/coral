@@ -5,6 +5,7 @@ import java.lang.reflect.InvocationTargetException
 import io.coral.actors.Messages._
 import spray.http.HttpHeaders.Location
 import spray.http.HttpHeaders.`Content-Type`
+import spray.http.Uri.Query
 import spray.routing.directives.HeaderDirectives.optionalHeaderValue
 import spray.http.MediaTypes.`application/vnd.api+json`
 import spray.httpx.unmarshalling.Unmarshaller
@@ -58,9 +59,19 @@ trait ApiService extends HttpService {
                 pathPrefix("actors") {
                   pathEnd {
                     get {
-                      requestUri { baseUri =>
-                        onSuccess(askActor(coralActor, ListActors()).mapTo[List[Long]]) {
-                          actorIds => complete(("data" -> actorIds.map(actorId => Map("id" -> actorId.toString, "type" -> "actors", "links" -> Map("self" -> s"$baseUri/$actorId")))))
+                      parameters("include".?, "sort".?, s"""fields[$Type]""".?) { (include, sort, fields) =>
+                        if (include.isDefined) {
+                          complete(StatusCodes.BadRequest, error("include not supported"))
+                        } else if (sort.isDefined) {
+                          complete(StatusCodes.BadRequest, error("sort not supported"))
+                        } else {
+                          extract(_.request.uri) {uri =>
+                            val baseUri = uri.withQuery(Query(None))
+                            onSuccess(askActor(coralActor, ListActors()).mapTo[List[Long]]) {
+                              val filteredFields = fields.map(_.split(",").toSet ++ Set("type", "id"))
+                              actorIds => complete(("data" -> actorIds.map(actorId => filter(Map("id" -> actorId.toString, "type" -> "actors", "links" -> Map("self" -> s"$baseUri/$actorId")), filteredFields))))
+                            }
+                          }
                         }
                       }
                     }
@@ -81,7 +92,7 @@ trait ApiService extends HttpService {
                                   if (id.isDefined) {
                                     complete(StatusCodes.Forbidden, error("Client generated id not allowed"))
                                   } else if (theType != Some(Type)) {
-                                    complete(StatusCodes.BadRequest, error("The type must be actors"))
+                                    complete(StatusCodes.Conflict, error("The type must be actors"))
                                   } else {
                                     onSuccess(askActor(coralActor, CreateActor(jsonDef)).mapTo[Option[Long]]) {
                                       case Some(id) => {
@@ -158,10 +169,19 @@ trait ApiService extends HttpService {
                                     }
                                   } ~
                                     get {
-                                      val result = askActor(ap, Get()).mapTo[JObject]
-                                      onComplete(result) {
-                                        case Success(json) => complete(("data" -> (json merge render("id" -> actorId.toString))))
-                                        case Failure(ex) => complete(StatusCodes.InternalServerError, error(s"An error occurred: ${ex.getMessage}"))
+                                      parameters("include".?, s"""fields[$Type]""".?) { (include, fields) =>
+                                        if (include.isDefined) {
+                                          complete(StatusCodes.BadRequest, error("include not supported"))
+                                        } else {
+                                          val result = askActor(ap, Get()).mapTo[JObject]
+                                          onComplete(result) {
+                                            case Success(json) => {
+                                              val filteredFields = fields.map(_.split(",").toSet ++ Set("type", "id"))
+                                              complete(("data" -> (filter(json, filteredFields) merge render("id" -> actorId.toString))))
+                                            }
+                                            case Failure(ex) => complete(StatusCodes.InternalServerError, error(s"An error occurred: ${ex.getMessage}"))
+                                          }
+                                        }
                                       }
                                     }
                                 } ~
@@ -190,6 +210,20 @@ trait ApiService extends HttpService {
             }
         }
       }
+  }
+
+  private def filter(data: Map[String, _], filter: Option[Set[String]]): Map[String, _] = {
+    filter match {
+      case None => data
+      case Some(filter) => data.filterKeys(filter.contains(_))
+    }
+  }
+
+  private def filter(data: JObject, filter: Option[Set[String]]): JObject = {
+    filter match {
+      case None => data
+      case Some(filter) => data.filterField{case (field, value) => filter.contains(field)}
+    }
   }
 
   private def error(message: String) = {
