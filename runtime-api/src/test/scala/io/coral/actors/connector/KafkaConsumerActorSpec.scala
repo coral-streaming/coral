@@ -15,4 +15,14 @@ class KafkaConsumerActorSpec(_system: ActorSystem)
 
   def this() = this(ActorSystem("KafkaConsumerActorSpec"))
 
+  override def afterAll() {
+    TestKit.shutdownActorSystem(system)
+  }
+
+  "A KafkaConsumerActor" should {
+
+
+
+  }
+
 }

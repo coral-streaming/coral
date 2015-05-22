@@ -7,7 +7,9 @@ import kafka.serializer.Decoder
 
 object KafkaConsumer {
 
-  //def apply(zookeeper: String, groupId: String, timeout: Int): KafkaConsumer = new KafkaConsumer(zookeeper, groupId, timeout)
+  val builder = new ConfigurationBuilder("kafka.consumer")
+
+
 
 
 
