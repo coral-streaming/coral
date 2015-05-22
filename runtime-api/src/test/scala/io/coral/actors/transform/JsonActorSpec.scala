@@ -16,7 +16,7 @@ class JsonActorSpec(_system: ActorSystem)
   with Matchers
   with BeforeAndAfterAll {
 
-  def this() = this(ActorSystem("StatsActorSpec"))
+  def this() = this(ActorSystem("JsonActorSpec"))
 
   override def afterAll() {
     TestKit.shutdownActorSystem(system)

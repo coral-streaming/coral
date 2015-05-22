@@ -17,7 +17,7 @@ class JsonTemplateSpec extends WordSpecLike with Matchers {
       template.interpret(parse("{}").asInstanceOf[JObject]) shouldBe templateJson
     }
 
-    "substitute references (identified with a :)" in {
+    "substitute references (identified with a colon)" in {
       val templateJson = parse(
         """{ "field1": ":abc",
           |  "field2": 123
