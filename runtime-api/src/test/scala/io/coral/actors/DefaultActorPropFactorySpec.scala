@@ -65,7 +65,7 @@ class DefaultActorPropFactorySpec
     }
 
     "Provide a HttpClientActor for type 'httpclient'" in {
-      val json = """{ "type": "httpclient" }""".stripMargin
+      val json = """{ "type": "httpclient", "params": {"method": "GET", "url": "http://localhost"} }""".stripMargin
       val props = factory.getProps("httpclient" ,parse(json))
       props.get.actorClass should be(classOf[HttpClientActor])
     }
