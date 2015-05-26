@@ -36,12 +36,11 @@ trait ApiService extends HttpService {
   implicit def executionContext = actorRefFactory.dispatcher
   implicit val timeout = Timeout(1.seconds)
 
-  def coralActor = actorRefFactory.actorSelection("/user/coral")
+  private def coralActor = actorRefFactory.actorSelection("/user/coral")
 
   // just a few handy shortcut
-  def askActor(a: ActorPath, msg:Any) =  actorRefFactory.actorSelection(a).ask(msg)
-  def askActor(a: String, msg:Any)    =  actorRefFactory.actorSelection(a).ask(msg)
-  def askActor(a: ActorSelection, msg: Any) = a.ask(msg)
+  private def askActor(a: ActorPath, msg:Any) =  actorRefFactory.actorSelection(a).ask(msg)
+  private def askActor(a: ActorSelection, msg: Any) = a.ask(msg)
 
   val serviceRoute = {
     pathEndOrSingleSlash {
@@ -63,7 +62,7 @@ trait ApiService extends HttpService {
             (actorId: String, ap: ActorPath) =>
               pathEnd {
                 partialActorUpdate(actorId, ap) ~
-                  getActor(actorId, ap)
+                getActor(actorId, ap)
               } ~
               pathPrefix("in") {
                 shuntActor(ap)
@@ -86,41 +85,31 @@ trait ApiService extends HttpService {
   }
 
   private def addActor: Route = post {
-    clientContentType {
-      entity(as[JObject]) { json =>
-        val data = (json \ "data").extractOpt[JObject]
-        data match {
-          case None => complete(StatusCodes.BadRequest, error("no data key present"))
-          case Some(jsonDef) => {
-            val id = (jsonDef \ "id").extractOpt[String]
-            val theType = (jsonDef \ "type").extractOpt[String]
-            if (id.isDefined) {
-              complete(StatusCodes.Forbidden, error("Client generated id not allowed"))
-            } else if (theType != Some(Type)) {
-              complete(StatusCodes.Conflict, error("The type must be actors"))
-            } else {
-              onSuccess(askActor(coralActor, CreateActor(jsonDef)).mapTo[Option[Long]]) {
-                case Some(id) => {
-                  onSuccess(askActor(coralActor, GetActorPath(id)).mapTo[Option[ActorPath]]) {
-                    case None => complete(StatusCodes.InternalServerError, error("not created"))
-                    case Some(ap) => {
-                      val result = askActor(ap, Get()).mapTo[JObject]
-                      onComplete(result) {
-                        case Success(json) => {
-                          requestUri { baseUri =>
-                            respondWithHeader(Location(s"$baseUri/$id")) {
-                              complete(("data" -> (json merge render("id" -> id.toString))))
-                            }
-                          }
+    clientContent { jsonDef: JObject => {
+        val id = (jsonDef \ "id").extractOpt[String]
+        if (id.isDefined) {
+          complete(StatusCodes.Forbidden, error("Client generated id not allowed"))
+        } else {
+          onSuccess(askActor(coralActor, CreateActor(jsonDef)).mapTo[Option[Long]]) {
+            case Some(id) => {
+              onSuccess(askActor(coralActor, GetActorPath(id)).mapTo[Option[ActorPath]]) {
+                case None => complete(StatusCodes.InternalServerError, error("not created"))
+                case Some(ap) => {
+                  val result = askActor(ap, Get()).mapTo[JObject]
+                  onComplete(result) {
+                    case Success(json) => {
+                      requestUri { baseUri =>
+                        respondWithHeader(Location(s"$baseUri/$id")) {
+                          complete(("data" -> (json merge render("id" -> id.toString))))
                         }
-                        case Failure(ex) => complete(StatusCodes.InternalServerError, error(s"An error occurred: ${ex.getMessage}"))
                       }
                     }
+                    case Failure(ex) => complete(StatusCodes.InternalServerError, error(s"An error occurred: ${ex.getMessage}"))
                   }
                 }
-                case None => complete(error("not created"))
               }
             }
+            case None => complete(error("not created"))
           }
         }
       }
@@ -128,24 +117,15 @@ trait ApiService extends HttpService {
   }
 
   private def partialActorUpdate(actorId: String, ap: ActorPath): Route = patch {
-    clientContentType {
-      entity(as[JObject]) { json =>
-        val data = (json \ "data").extractOpt[JObject]
-        data match {
-          case None => complete(StatusCodes.BadRequest, error("no data key present"))
-          case Some(jsonDef) => {
-            val id = (jsonDef \ "id").extractOpt[String]
-            val theType = (jsonDef \ "type").extractOpt[String]
-            if (!id.isDefined || id != Some(actorId)) {
-              complete(StatusCodes.Forbidden, error("Id must be given and the same as in the URL"))
-            } else if (theType != Some(Type)) {
-              complete(StatusCodes.BadRequest, error("The type must be actors"))
-            } else {
-              onSuccess(askActor(ap, UpdateProperties(jsonDef)).mapTo[Boolean]) {
-                case true => complete(StatusCodes.NoContent)
-                case _ => complete(error("not created"))
-              }
-            }
+    clientContent { jsonDef: JObject => {
+        val id = (jsonDef \ "id").extractOpt[String]
+        val theType = (jsonDef \ "type").extractOpt[String]
+        if (!id.isDefined || id != Some(actorId)) {
+          complete(StatusCodes.Forbidden, error("Id must be given and the same as in the URL"))
+        } else {
+          onSuccess(askActor(ap, UpdateProperties(jsonDef)).mapTo[Boolean]) {
+            case true => complete(StatusCodes.NoContent)
+            case _ => complete(error("not created"))
           }
         }
       }
@@ -153,23 +133,25 @@ trait ApiService extends HttpService {
   }
 
   private def getActor(actorId: String, ap: ActorPath): Route = get {
-    fields { filteredFields =>
-      val result = askActor(ap, Get()).mapTo[JObject]
-      onComplete(result) {
-        case Success(json) => {
-          complete(("data" -> (filter(json, filteredFields) merge render("id" -> actorId))))
+    fields { filteredFields => {
+        val result = askActor(ap, Get()).mapTo[JObject]
+        onComplete(result) {
+          case Success(json) => {
+            complete(("data" -> (filter(json, filteredFields) merge render("id" -> actorId))))
+          }
+          case Failure(ex) => complete(StatusCodes.InternalServerError, error(s"An error occurred: ${ex.getMessage}"))
         }
-        case Failure(ex) => complete(StatusCodes.InternalServerError, error(s"An error occurred: ${ex.getMessage}"))
       }
     }
   }
 
   private def shuntActor(ap: ActorPath): Route = post {
-    entity(as[JObject]) { json =>
-      val result = askActor(ap, Shunt(json)).mapTo[JValue]
-      onComplete(result) {
-        case Success(value) => complete(value)
-        case Failure(ex) => complete(StatusCodes.InternalServerError, error(s"An error occurred: ${ex.getMessage}"))
+    entity(as[JObject]) { json => {
+        val result = askActor(ap, Shunt(json)).mapTo[JValue]
+        onComplete(result) {
+          case Success(value) => complete(value)
+          case Failure(ex) => complete(StatusCodes.InternalServerError, error(s"An error occurred: ${ex.getMessage}"))
+        }
       }
     }
   }
@@ -192,7 +174,7 @@ trait ApiService extends HttpService {
     "errors" -> List(("detail" -> message))
   }
 
-  private def jsonApi(f: spray.routing.RequestContext => Unit) = {
+  private def jsonApi(f: RequestContext => Unit) = {
     optionalHeaderValueByName("Accept") {
       accept =>
         if (accept != Some(`application/vnd.api+json`.value)) {
@@ -213,16 +195,30 @@ trait ApiService extends HttpService {
     }
   }
 
-  private def clientContentType: Directive0 = {
-    optionalHeaderValueByName("Content-Type").flatMap {
-      contentType =>
+  private def clientContent(f: JObject => RequestContext => Unit) = {
+    optionalHeaderValueByName("Content-Type") { contentType => {
         if (contentType != Some(`application/vnd.api+json`.value)) {
           complete(StatusCodes.UnsupportedMediaType, error("Only supported Content-Type is application/vnd.api+json"))
         } else {
-          pass
+          entity(as[JObject]) { json =>
+            val data = (json \ "data").extractOpt[JObject]
+            data match {
+              case None => complete(StatusCodes.BadRequest, error("no data key present"))
+              case Some(jsonDef) => {
+                val theType = (jsonDef \ "type").extractOpt[String]
+                if (theType != Some(Type)) {
+                  complete(StatusCodes.Conflict, error("The type must be actors"))
+                } else {
+                  f(jsonDef)
+                }
+              }
+            }
+          }
         }
+      }
     }
   }
+
 
   private def fields: Directive1[Option[Set[String]]] = {
     parameters(s"""fields[$Type]""".?).flatMap { (fields) =>
@@ -234,7 +230,6 @@ trait ApiService extends HttpService {
   private def actor(segment: String)(f: (String, ActorPath) => spray.routing.RequestContext => Unit) = {
     try {
       val actorId = segment.toLong
-      // find my actor
       onSuccess(askActor(coralActor, GetActorPath(actorId)).mapTo[Option[ActorPath]]) {
         actorPath => {
           actorPath match {
