@@ -51,10 +51,7 @@ trait ApiService extends HttpService {
         pathPrefix("actors") {
           pathEnd {
             getActors ~
-            addActor ~
-            (delete | head | patch) {
-              complete(HttpResponse(StatusCodes.MethodNotAllowed))
-            }
+            addActor
           }
         } ~
         pathPrefix("actors" / Segment) {
