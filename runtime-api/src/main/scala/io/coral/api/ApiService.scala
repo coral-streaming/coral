@@ -3,6 +3,7 @@ package io.coral.api
 import java.lang.reflect.InvocationTargetException
 
 import io.coral.actors.Messages._
+import shapeless.HNil
 import spray.http.HttpHeaders.Location
 import spray.http.HttpHeaders.`Content-Type`
 import spray.http.Uri.Query
@@ -15,7 +16,7 @@ import akka.pattern.ask
 import akka.util.Timeout
 import akka.actor._
 import spray.http._
-import spray.routing.HttpService
+import spray.routing.{Directive0, Directive1, Directive, HttpService}
 import org.json4s.jackson.JsonMethods._
 import org.json4s._
 import org.json4s.JsonDSL._
@@ -50,38 +51,22 @@ trait ApiService extends HttpService {
       complete("api is running. enjoy")
     } ~
       pathPrefix("api") {
-        optionalHeaderValueByName("Accept") {
-          accept =>
-            if (accept != Some(`application/vnd.api+json`.value)) {
-              complete(StatusCodes.NotAcceptable, error("specified mime type not supported to be returned by the server"))
-            } else {
-              respondWithMediaType(`application/vnd.api+json`) {
+        jsonApi {
                 pathPrefix("actors") {
                   pathEnd {
                     get {
-                      parameters("include".?, "sort".?, s"""fields[$Type]""".?) { (include, sort, fields) =>
-                        if (include.isDefined) {
-                          complete(StatusCodes.BadRequest, error("include not supported"))
-                        } else if (sort.isDefined) {
-                          complete(StatusCodes.BadRequest, error("sort not supported"))
-                        } else {
-                          extract(_.request.uri) {uri =>
-                            val baseUri = uri.withQuery(Query(None))
-                            onSuccess(askActor(coralActor, ListActors()).mapTo[List[Long]]) {
-                              val filteredFields = fields.map(_.split(",").toSet ++ Set("type", "id"))
-                              actorIds => complete(("data" -> actorIds.map(actorId => filter(Map("id" -> actorId.toString, "type" -> "actors", "links" -> Map("self" -> s"$baseUri/$actorId")), filteredFields))))
-                            }
+                      fields { filteredFields =>
+                        extract(_.request.uri) { uri =>
+                          val baseUri = uri.withQuery(Query(None))
+                          onSuccess(askActor(coralActor, ListActors()).mapTo[List[Long]]) {
+                            actorIds => complete(("data" -> actorIds.map(actorId => filter(Map("id" -> actorId.toString, "type" -> "actors", "links" -> Map("self" -> s"$baseUri/$actorId")), filteredFields))))
                           }
                         }
                       }
                     }
                   } ~
                     post {
-                      optionalHeaderValueByName("Content-Type") {
-                        contentType =>
-                          if (contentType != Some(`application/vnd.api+json`.value)) {
-                            complete(StatusCodes.UnsupportedMediaType, error("Only supported Content-Type is application/vnd.api+json"))
-                          } else {
+                      clientContentType {
                             entity(as[JObject]) { json =>
                               val data = (json \ "data").extractOpt[JObject]
                               data match {
@@ -118,7 +103,7 @@ trait ApiService extends HttpService {
                                   }
                                 }
                               }
-                          }
+
                         }
                       } ~
                         (delete | head | patch) {
@@ -140,11 +125,7 @@ trait ApiService extends HttpService {
                               case Some(ap) => {
                                 pathEnd {
                                   patch {
-                                    optionalHeaderValueByName("Content-Type") {
-                                      contentType =>
-                                        if (contentType != Some(`application/vnd.api+json`.value)) {
-                                          complete(StatusCodes.UnsupportedMediaType, error("Only supported Content-Type is application/vnd.api+json"))
-                                        } else {
+                                    clientContentType {
                                           entity(as[JObject]) { json =>
                                             val data = (json \ "data").extractOpt[JObject]
                                             data match {
@@ -165,24 +146,19 @@ trait ApiService extends HttpService {
                                               }
                                             }
                                           }
-                                      }
+
                                     }
                                   } ~
                                     get {
-                                      parameters("include".?, s"""fields[$Type]""".?) { (include, fields) =>
-                                        if (include.isDefined) {
-                                          complete(StatusCodes.BadRequest, error("include not supported"))
-                                        } else {
+                                      fields { filteredFields =>
                                           val result = askActor(ap, Get()).mapTo[JObject]
                                           onComplete(result) {
                                             case Success(json) => {
-                                              val filteredFields = fields.map(_.split(",").toSet ++ Set("type", "id"))
                                               complete(("data" -> (filter(json, filteredFields) merge render("id" -> actorId.toString))))
                                             }
                                             case Failure(ex) => complete(StatusCodes.InternalServerError, error(s"An error occurred: ${ex.getMessage}"))
                                           }
                                         }
-                                      }
                                     }
                                 } ~
                                   pathPrefix("in") {
@@ -209,8 +185,7 @@ trait ApiService extends HttpService {
                   }
             }
         }
-      }
-  }
+
 
   private def filter(data: Map[String, _], filter: Option[Set[String]]): Map[String, _] = {
     filter match {
@@ -228,5 +203,44 @@ trait ApiService extends HttpService {
 
   private def error(message: String) = {
     "errors" -> List(("detail" -> message))
+  }
+
+  private def jsonApi(f: spray.routing.RequestContext => Unit) = {
+    optionalHeaderValueByName("Accept") {
+      accept =>
+        if (accept != Some(`application/vnd.api+json`.value)) {
+          complete(StatusCodes.NotAcceptable, error("specified mime type not supported to be returned by the server"))
+        } else {
+          respondWithMediaType(`application/vnd.api+json`) {
+            parameters("include".?, "sort".?) { (include, sort) =>
+              if (include.isDefined) {
+                complete(StatusCodes.BadRequest, error("include not supported"))
+              } else if (sort.isDefined) {
+                complete(StatusCodes.BadRequest, error("sort not supported"))
+              } else {
+                f
+              }
+            }
+          }
+        }
+    }
+  }
+
+  private def clientContentType: Directive0 = {
+    optionalHeaderValueByName("Content-Type").flatMap {
+      contentType =>
+        if (contentType != Some(`application/vnd.api+json`.value)) {
+          complete(StatusCodes.UnsupportedMediaType, error("Only supported Content-Type is application/vnd.api+json"))
+        } else {
+          pass
+        }
+    }
+  }
+
+  private def fields: Directive1[Option[Set[String]]] = {
+    parameters(s"""fields[$Type]""".?).flatMap { (fields) =>
+      val filteredFields = fields.map(_.split(",").toSet ++ Set("type", "id"))
+      provide(filteredFields)
+    }
   }
 }
