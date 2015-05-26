@@ -5,18 +5,15 @@ import java.lang.reflect.InvocationTargetException
 import io.coral.actors.Messages._
 import shapeless.HNil
 import spray.http.HttpHeaders.Location
-import spray.http.HttpHeaders.`Content-Type`
 import spray.http.Uri.Query
-import spray.routing.directives.HeaderDirectives.optionalHeaderValue
 import spray.http.MediaTypes.`application/vnd.api+json`
-import spray.httpx.unmarshalling.Unmarshaller
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 import akka.pattern.ask
 import akka.util.Timeout
 import akka.actor._
 import spray.http._
-import spray.routing.{Directive0, Directive1, Directive, HttpService}
+import spray.routing._
 import org.json4s.jackson.JsonMethods._
 import org.json4s._
 import org.json4s.JsonDSL._
@@ -50,142 +47,132 @@ trait ApiService extends HttpService {
     pathEndOrSingleSlash {
       complete("api is running. enjoy")
     } ~
-      pathPrefix("api") {
-        jsonApi {
-                pathPrefix("actors") {
-                  pathEnd {
-                    get {
-                      fields { filteredFields =>
-                        extract(_.request.uri) { uri =>
-                          val baseUri = uri.withQuery(Query(None))
-                          onSuccess(askActor(coralActor, ListActors()).mapTo[List[Long]]) {
-                            actorIds => complete(("data" -> actorIds.map(actorId => filter(Map("id" -> actorId.toString, "type" -> "actors", "links" -> Map("self" -> s"$baseUri/$actorId")), filteredFields))))
-                          }
-                        }
-                      }
-                    }
-                  } ~
-                    post {
-                      clientContentType {
-                            entity(as[JObject]) { json =>
-                              val data = (json \ "data").extractOpt[JObject]
-                              data match {
-                                case None => complete(StatusCodes.BadRequest, error("no data key present"))
-                                case Some(jsonDef) => {
-                                  val id = (jsonDef \ "id").extractOpt[String]
-                                  val theType = (jsonDef \ "type").extractOpt[String]
-                                  if (id.isDefined) {
-                                    complete(StatusCodes.Forbidden, error("Client generated id not allowed"))
-                                  } else if (theType != Some(Type)) {
-                                    complete(StatusCodes.Conflict, error("The type must be actors"))
-                                  } else {
-                                    onSuccess(askActor(coralActor, CreateActor(jsonDef)).mapTo[Option[Long]]) {
-                                      case Some(id) => {
-                                        onSuccess(askActor(coralActor, GetActorPath(id)).mapTo[Option[ActorPath]]) {
-                                          case None => complete(StatusCodes.InternalServerError, error("not created"))
-                                          case Some(ap) => {
-                                            val result = askActor(ap, Get()).mapTo[JObject]
-                                            onComplete(result) {
-                                              case Success(json) => {
-                                                requestUri { baseUri =>
-                                                  respondWithHeader(Location(s"$baseUri/$id")) {
-                                                    complete(("data" -> (json merge render("id" -> id.toString))))
-                                                  }
-                                                }
-                                              }
-                                              case Failure(ex) => complete(StatusCodes.InternalServerError, error(s"An error occurred: ${ex.getMessage}"))
-                                            }
-                                          }
-                                        }
-                                      }
-                                      case None => complete(error("not created"))
-                                    }
-                                  }
-                                }
-                              }
+    pathPrefix("api") {
+      jsonApi {
+        pathPrefix("actors") {
+          pathEnd {
+            getActors ~
+            addActor ~
+            (delete | head | patch) {
+              complete(HttpResponse(StatusCodes.MethodNotAllowed))
+            }
+          }
+        } ~
+        pathPrefix("actors" / Segment) {
+          segment => actor(segment) {
+            (actorId: String, ap: ActorPath) =>
+              pathEnd {
+                partialActorUpdate(actorId, ap) ~
+                  getActor(actorId, ap)
+              } ~
+              pathPrefix("in") {
+                shuntActor(ap)
+              }
+          }
+        }
+      }
+    }
+  }
 
-                        }
-                      } ~
-                        (delete | head | patch) {
-                          complete(HttpResponse(StatusCodes.MethodNotAllowed))
-                        }
-                    }
-                } ~
-                  pathPrefix("actors" / Segment) {
-                    segment =>
-                      try {
-                        val actorId = segment.toLong
-                        // find my actor
-                        onSuccess(askActor(coralActor, GetActorPath(actorId)).mapTo[Option[ActorPath]]) {
-                          actorPath => {
-                            actorPath match {
-                              case None => {
-                                complete(StatusCodes.NotFound, error(s"actorId ${actorId} not found"))
-                              }
-                              case Some(ap) => {
-                                pathEnd {
-                                  patch {
-                                    clientContentType {
-                                          entity(as[JObject]) { json =>
-                                            val data = (json \ "data").extractOpt[JObject]
-                                            data match {
-                                              case None => complete(StatusCodes.BadRequest, error("no data key present"))
-                                              case Some(jsonDef) => {
-                                                val id = (jsonDef \ "id").extractOpt[String]
-                                                val theType = (jsonDef \ "type").extractOpt[String]
-                                                if (!id.isDefined || id != Some(actorId.toString)) {
-                                                  complete(StatusCodes.Forbidden, error("Id must be given and the same as in the URL"))
-                                                } else if (theType != Some(Type)) {
-                                                  complete(StatusCodes.BadRequest, error("The type must be actors"))
-                                                } else {
-                                                  onSuccess(askActor(ap, UpdateProperties(jsonDef)).mapTo[Boolean]) {
-                                                    case true => complete(StatusCodes.NoContent)
-                                                    case _ => complete(error("not created"))
-                                                  }
-                                                }
-                                              }
-                                            }
-                                          }
+  private def getActors: Route = get {
+    fields { filteredFields =>
+      extract(_.request.uri) { uri =>
+        val baseUri = uri.withQuery(Query(None))
+        onSuccess(askActor(coralActor, ListActors()).mapTo[List[Long]]) {
+          actorIds => complete(("data" -> actorIds.map(actorId => filter(Map("id" -> actorId.toString, "type" -> "actors", "links" -> Map("self" -> s"$baseUri/$actorId")), filteredFields))))
+        }
+      }
+    }
+  }
 
-                                    }
-                                  } ~
-                                    get {
-                                      fields { filteredFields =>
-                                          val result = askActor(ap, Get()).mapTo[JObject]
-                                          onComplete(result) {
-                                            case Success(json) => {
-                                              complete(("data" -> (filter(json, filteredFields) merge render("id" -> actorId.toString))))
-                                            }
-                                            case Failure(ex) => complete(StatusCodes.InternalServerError, error(s"An error occurred: ${ex.getMessage}"))
-                                          }
-                                        }
-                                    }
-                                } ~
-                                  pathPrefix("in") {
-                                    post {
-                                      entity(as[JObject]) { json =>
-                                        val result = askActor(ap, Shunt(json)).mapTo[JValue]
-                                        onComplete(result) {
-                                          case Success(value) => complete(value)
-                                          case Failure(ex) => complete(StatusCodes.InternalServerError, error(s"An error occurred: ${ex.getMessage}"))
-                                        }
-                                      }
-                                    }
-                                  }
-                              }
+  private def addActor: Route = post {
+    clientContentType {
+      entity(as[JObject]) { json =>
+        val data = (json \ "data").extractOpt[JObject]
+        data match {
+          case None => complete(StatusCodes.BadRequest, error("no data key present"))
+          case Some(jsonDef) => {
+            val id = (jsonDef \ "id").extractOpt[String]
+            val theType = (jsonDef \ "type").extractOpt[String]
+            if (id.isDefined) {
+              complete(StatusCodes.Forbidden, error("Client generated id not allowed"))
+            } else if (theType != Some(Type)) {
+              complete(StatusCodes.Conflict, error("The type must be actors"))
+            } else {
+              onSuccess(askActor(coralActor, CreateActor(jsonDef)).mapTo[Option[Long]]) {
+                case Some(id) => {
+                  onSuccess(askActor(coralActor, GetActorPath(id)).mapTo[Option[ActorPath]]) {
+                    case None => complete(StatusCodes.InternalServerError, error("not created"))
+                    case Some(ap) => {
+                      val result = askActor(ap, Get()).mapTo[JObject]
+                      onComplete(result) {
+                        case Success(json) => {
+                          requestUri { baseUri =>
+                            respondWithHeader(Location(s"$baseUri/$id")) {
+                              complete(("data" -> (json merge render("id" -> id.toString))))
                             }
                           }
                         }
-                      } catch {
-                        case e: NumberFormatException => {
-                          complete(StatusCodes.NotFound, error(s"actorId ${segment} not found"))
-                        }
+                        case Failure(ex) => complete(StatusCodes.InternalServerError, error(s"An error occurred: ${ex.getMessage}"))
                       }
                     }
                   }
+                }
+                case None => complete(error("not created"))
+              }
             }
+          }
         }
+      }
+    }
+  }
 
+  private def partialActorUpdate(actorId: String, ap: ActorPath): Route = patch {
+    clientContentType {
+      entity(as[JObject]) { json =>
+        val data = (json \ "data").extractOpt[JObject]
+        data match {
+          case None => complete(StatusCodes.BadRequest, error("no data key present"))
+          case Some(jsonDef) => {
+            val id = (jsonDef \ "id").extractOpt[String]
+            val theType = (jsonDef \ "type").extractOpt[String]
+            if (!id.isDefined || id != Some(actorId)) {
+              complete(StatusCodes.Forbidden, error("Id must be given and the same as in the URL"))
+            } else if (theType != Some(Type)) {
+              complete(StatusCodes.BadRequest, error("The type must be actors"))
+            } else {
+              onSuccess(askActor(ap, UpdateProperties(jsonDef)).mapTo[Boolean]) {
+                case true => complete(StatusCodes.NoContent)
+                case _ => complete(error("not created"))
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  private def getActor(actorId: String, ap: ActorPath): Route = get {
+    fields { filteredFields =>
+      val result = askActor(ap, Get()).mapTo[JObject]
+      onComplete(result) {
+        case Success(json) => {
+          complete(("data" -> (filter(json, filteredFields) merge render("id" -> actorId))))
+        }
+        case Failure(ex) => complete(StatusCodes.InternalServerError, error(s"An error occurred: ${ex.getMessage}"))
+      }
+    }
+  }
+
+  private def shuntActor(ap: ActorPath): Route = post {
+    entity(as[JObject]) { json =>
+      val result = askActor(ap, Shunt(json)).mapTo[JValue]
+      onComplete(result) {
+        case Success(value) => complete(value)
+        case Failure(ex) => complete(StatusCodes.InternalServerError, error(s"An error occurred: ${ex.getMessage}"))
+      }
+    }
+  }
 
   private def filter(data: Map[String, _], filter: Option[Set[String]]): Map[String, _] = {
     filter match {
@@ -241,6 +228,29 @@ trait ApiService extends HttpService {
     parameters(s"""fields[$Type]""".?).flatMap { (fields) =>
       val filteredFields = fields.map(_.split(",").toSet ++ Set("type", "id"))
       provide(filteredFields)
+    }
+  }
+
+  private def actor(segment: String)(f: (String, ActorPath) => spray.routing.RequestContext => Unit) = {
+    try {
+      val actorId = segment.toLong
+      // find my actor
+      onSuccess(askActor(coralActor, GetActorPath(actorId)).mapTo[Option[ActorPath]]) {
+        actorPath => {
+          actorPath match {
+            case Some(ap) => {
+              f(segment, ap)
+            }
+            case None => {
+              complete(StatusCodes.NotFound, error(s"actorId ${actorId} not found"))
+            }
+          }
+        }
+      }
+    } catch {
+      case e: NumberFormatException => {
+        complete(StatusCodes.NotFound, error(s"actorId ${segment} not found"))
+      }
     }
   }
 }
