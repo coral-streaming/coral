@@ -106,7 +106,7 @@ trait ApiService extends HttpService {
                 }
               }
             }
-            case None => complete(error("not created"))
+            case None => complete(StatusCodes.InternalServerError, error("not created"))
           }
         }
       }
@@ -215,7 +215,6 @@ trait ApiService extends HttpService {
       }
     }
   }
-
 
   private def fields: Directive1[Option[Set[String]]] = {
     parameters(s"""fields[$Type]""".?).flatMap { (fields) =>
