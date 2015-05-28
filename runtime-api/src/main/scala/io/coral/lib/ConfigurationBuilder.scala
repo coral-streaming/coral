@@ -29,4 +29,6 @@ private final class ConfigProperties(config: Config) extends Properties() {
     if (super.containsKey(name)) super.getProperty(name)
     else config.getString(name)
 
+  override def size = config.entrySet().size + super.size
+
 }

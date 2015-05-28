@@ -19,6 +19,7 @@ class ConfigurationBuilderSpec extends WordSpecLike with Matchers {
       properties.setProperty("vis", "blub")
       properties.getProperty("someProperty") shouldBe "someValue"
       properties.getProperty("vis") shouldBe "blub"
+      properties.size shouldBe 2
     }
 
     "allow to replace properties" in {
