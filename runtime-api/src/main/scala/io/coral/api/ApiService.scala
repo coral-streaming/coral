@@ -171,7 +171,7 @@ trait ApiService extends HttpService {
     "errors" -> List(("detail" -> message))
   }
 
-  private def jsonApi(f: RequestContext => Unit) = {
+  private def jsonApi(f: Route) = {
     optionalHeaderValueByName("Accept") {
       accept =>
         if (accept != Some(`application/vnd.api+json`.value)) {
@@ -192,7 +192,7 @@ trait ApiService extends HttpService {
     }
   }
 
-  private def clientContent(f: JObject => RequestContext => Unit) = {
+  private def clientContent(f: JObject => Route) = {
     optionalHeaderValueByName("Content-Type") { contentType => {
         if (contentType != Some(`application/vnd.api+json`.value)) {
           complete(StatusCodes.UnsupportedMediaType, error("Only supported Content-Type is application/vnd.api+json"))
@@ -224,7 +224,7 @@ trait ApiService extends HttpService {
     }
   }
 
-  private def actor(segment: String)(f: (String, ActorPath) => spray.routing.RequestContext => Unit) = {
+  private def actor(segment: String)(f: (String, ActorPath) => Route) = {
     try {
       val actorId = segment.toLong
       onSuccess(askActor(coralActor, GetActorPath(actorId)).mapTo[Option[ActorPath]]) {

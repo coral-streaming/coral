@@ -34,7 +34,7 @@ class ApiServiceSpec
   val route = serviceRoute
 
   "The ApiService" should {
-    "return an empty array when no actors present" in {
+    "return an empty array when no actors are present" in {
       Get("/api/actors").withHeaders(AcceptHeader) ~> route ~> check {
         assert(status === StatusCodes.OK)
         assert(responseAs[JObject] === parse("""{ "data": [] }"""))
