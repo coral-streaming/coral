@@ -1,8 +1,9 @@
 package io.coral.actors
 
-import akka.actor.{ActorSystem, Props}
+import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.testkit.{ImplicitSender, TestActorRef, TestKit, TestProbe}
 import akka.util.Timeout
+import akka.pattern.ask
 import io.coral.actors.Messages._
 import org.json4s.JsonAST.JValue
 import org.json4s.JsonDSL._
@@ -12,7 +13,7 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.collection.immutable.SortedSet
-import scala.concurrent.Future
+import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 import scala.language.postfixOps
 import scala.util.Success
@@ -54,6 +55,11 @@ class CoralActorSpec(_system: ActorSystem)
       if (name == "") TestActorRef[CoralActor](_props)
       else TestActorRef[CoralActor](_props, root, name)
     ref.underlyingActor
+  }
+
+  def getJson(actor: CoralActor): JObject = {
+    val result = actor.self ? Get()
+    Await.result(result.mapTo[JObject], timeout.duration)
   }
 
   "A CoralActor" should {
@@ -114,7 +120,9 @@ class CoralActorSpec(_system: ActorSystem)
       }
       val coral = createCoralActor(Props(new TestCoralActor))
       coral.self ! Get()
-      expectMsg(render(("actors", render(Map(("def", testJson), ("state", render(testState)))))))
+      expectMsg(testJson
+        merge render("attributes", render("state", render(testState)))
+        merge render("attributes", render("input", JObject())))
     }
 
     "Handle any JSON message" in {
@@ -253,23 +261,31 @@ class CoralActorSpec(_system: ActorSystem)
       val coral = createCoralActor()
       coral.self ! UpdateProperties(parse( """{}""").asInstanceOf[JObject])
       expectMsg(true)
+      assert((getJson(coral) \ "attributes" \ "input").extract[JObject] == JObject())
     }
 
     "Handle an 'UpdateProperties' message with trigger connection" in {
       val coral = createCoralActor()
       val other = createCoralActor(name = "test1")
-      coral.self ! UpdateProperties(parse( """{"input": {"trigger":{"in": {"type": "external"}}}}""").asInstanceOf[JObject])
+      val inputJson1 = """{"trigger":{"in": {"type": "external"}}}"""
+      coral.self ! UpdateProperties(parse(s"""{"attributes": {"input": $inputJson1}}""").asInstanceOf[JObject])
       expectMsg(true)
-      coral.self ! UpdateProperties(parse( """{"input": {"trigger":{"in": {"type": "actor", "source": "test1"}}}}""").asInstanceOf[JObject])
+      assert((getJson(coral) \ "attributes" \ "input").extract[JObject] == parse(inputJson1))
+
+      val inputJson2 = """{"trigger":{"in": {"type": "actor", "source": "test1"}}}"""
+      coral.self ! UpdateProperties(parse(s"""{"attributes": {"input": $inputJson2}}}""").asInstanceOf[JObject])
       other.emitTargets should be(SortedSet(coral.self))
       expectMsg(true)
+      assert((getJson(coral) \ "attributes" \ "input").extract[JObject] == parse(inputJson2))
     }
 
     "Ignore an 'UpdateProperties' message with trigger connection of unknown type" in {
       val coral = createCoralActor()
-      coral.self ! UpdateProperties(parse( """{"input": {"trigger":{"in": {"type": "doesnotexist"}}}}""").asInstanceOf[JObject])
+      coral.self ! UpdateProperties(parse( """{"attributes": {"input": {"trigger":{"in": {"type": "doesnotexist"}}}}}""").asInstanceOf[JObject])
       expectMsg(true)
+      assert((getJson(coral) \ "attributes" \ "input").extract[JObject] == JObject())
     }
+
   }
 
   "CoralActor emit" should {
@@ -372,9 +388,11 @@ class CoralActorSpec(_system: ActorSystem)
 
     "Handle an 'UpdateProperties' message with collect connection" in {
       val coral = createCoralActor()
-      coral.self ! UpdateProperties(parse( """{"input": {"collect":{"someref": {"source": 12}}}}""").asInstanceOf[JObject])
+      val jsonDef = """{"collect":{"someref": {"source": 12}}}"""
+      coral.self ! UpdateProperties(parse(s"""{"attributes": {"input": $jsonDef}}""").asInstanceOf[JObject])
       coral.collectSources should be(Map("someref" -> "/user/coral/12"))
       expectMsg(true)
+      assert((getJson(coral) \ "attributes" \ "input").extract[JObject] == parse(jsonDef))
     }
 
   }
@@ -391,7 +409,7 @@ class CoralActorSpec(_system: ActorSystem)
     }
 
     "Accept a timer parameter" in {
-      val createJson: JValue = parse( s"""{ "timeout": { "duration": 0.23, "mode": "exit" } }""")
+      val createJson: JValue = parse( s"""{ "attributes": {"timeout": { "duration": 0.23, "mode": "exit" } } }""")
       val testJson: JValue = parse( """{ "test": "timer2" }""")
       class TestCoralActor extends MinimalCoralActor {
         override def jsonDef: JValue = createJson
@@ -407,7 +425,7 @@ class CoralActorSpec(_system: ActorSystem)
     }
 
     "Stop with timer mode 'exit'" in {
-      val createJson: JValue = parse( s"""{ "timeout": { "duration": 0.53, "mode": "exit" } }""")
+      val createJson: JValue = parse( s"""{ "attributes": {"timeout": { "duration": 0.53, "mode": "exit" } } }""")
       val testJson = parse( """{ "test": "stopped" }""")
       class TestCoralActor extends MinimalCoralActor {
         override def jsonDef: JValue = createJson
@@ -421,7 +439,7 @@ class CoralActorSpec(_system: ActorSystem)
     }
 
     "Emit the timer json when timer mode = 'continue'" in {
-      val createJson: JValue = parse( s"""{ "timeout": { "duration": 0.5, "mode": "continue" } }""")
+      val createJson: JValue = parse( s"""{ "attributes": {"timeout": { "duration": 0.5, "mode": "continue" } } }""")
       val testJson = parse( """{ "test": "timer3" }""")
       class TestCoralActor extends MinimalCoralActor {
         override def jsonDef: JValue = createJson
@@ -435,7 +453,7 @@ class CoralActorSpec(_system: ActorSystem)
     }
 
     "Ignore an unknown timer mode" in {
-      val createJson: JValue = parse( s"""{ "timeout": { "duration": 5, "mode": "doesnotexist" } }""")
+      val createJson: JValue = parse( s"""{ "attributes": {"timeout": { "duration": 5, "mode": "doesnotexist" } } }""")
       val testJson = parse( """{ "test": "timer4" }""")
       class TestCoralActor extends MinimalCoralActor {
         override def jsonDef: JValue = createJson

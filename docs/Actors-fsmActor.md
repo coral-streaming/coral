@@ -36,28 +36,33 @@ field  | type | required | description
 #### Example
 {% highlight json %}
 {
-  "type": "fsm",
-  "params": {
-    "key": "transactionsize",
-    "table": {
-      "normal": {
-        "small": "normal",
-        "large": "normal",
-        "x-large": "suspicious"
-      },
-      "suspicious": {
-        "small": "normal",
-        "large": "suspicious",
-        "x-large": "alarm"
-      },
-      "alarm":{
-        "small": "suspicious",
-        "large": "alarm",
-        "x-large": "alarm"
+  "data": {
+      "type": "actors",
+      "attributes": {
+          "type": "fsm",
+          "params": {
+            "key": "transactionsize",
+            "table": {
+              "normal": {
+                "small": "normal",
+                "large": "normal",
+                "x-large": "suspicious"
+              },
+              "suspicious": {
+                "small": "normal",
+                "large": "suspicious",
+                "x-large": "alarm"
+              },
+              "alarm":{
+                "small": "suspicious",
+                "large": "alarm",
+                "x-large": "alarm"
+              }
+            },
+            "s0": "normal"
+          }
       }
-    },
-    "s0": "normal"
-  },
+  }
 }
 {% endhighlight %}
 Note that the initial state _s0_ must be a valid key in the table.

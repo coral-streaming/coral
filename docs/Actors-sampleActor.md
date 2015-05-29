@@ -35,12 +35,17 @@ field  | type |    | description
 One and only one of these parameters has to be specified for correct definition. The percentage simply is 100 times the fraction.
 
 #### Example
-```json
+{% highlight json %}
 {
-  "type": "sample",
-  "params": { "percentage": 12.5 }
+  "data": {
+    "type": "actors",
+    "attributes": {
+      "type": "sample",
+        "params": { "percentage": 12.5 }
+    }
+  }
 }
-```
+{% endhighlight %}
 This will create a sample actor that passes 12.5% of all messages.
 
 ## Trigger

@@ -23,10 +23,11 @@ class CoralActorFactorySpec extends WordSpecLike with Matchers {
     "Provide a GroupByActor for any type with group by clause" in {
       val json =
         """{
-          |"type": "stats",
+          |"type": "actors",
+          |"attributes": {"type": "stats",
           |"params": { "field": "val" },
           |"group": { "by": "somefield" }
-          |}""".stripMargin
+          |}}""".stripMargin
       implicit val injector = new Module {}
       val props = CoralActorFactory.getProps(parse(json))
       props.get.actorClass should be(classOf[GroupByActor])
@@ -34,7 +35,7 @@ class CoralActorFactorySpec extends WordSpecLike with Matchers {
 
     "Provide nothing for unknown type" in {
       implicit val injector = new Module {}
-      val json = """{"type": "nonexisting"}"""
+      val json = """{"type": "actors", "attributes": {"type": "nonexisting"}}"""
       val props = CoralActorFactory.getProps(parse(json))
       props should be(None)
     }
@@ -43,7 +44,7 @@ class CoralActorFactorySpec extends WordSpecLike with Matchers {
       implicit val injector = new Module {
         bind[List[ActorPropFactory]] to List(new FirstActorPropFactory())
       }
-      val json = """{"type": "actorOne"}"""
+      val json = """{"type": "actors", "attributes": {"type": "actorOne"}}"""
       val props = CoralActorFactory.getProps(parse(json))
       props.get.actorClass should be(classOf[ActorOne])
     }
@@ -52,7 +53,7 @@ class CoralActorFactorySpec extends WordSpecLike with Matchers {
       implicit val injector = new Module {
         bind[List[ActorPropFactory]] to List(new FirstActorPropFactory(), new SecondActorPropFactory())
       }
-      val json = """{"type": "actorTwo"}"""
+      val json = """{"type": "actors", "attributes": {"type": "actorTwo"}}"""
       val props = CoralActorFactory.getProps(parse(json))
       props.get.actorClass should be(classOf[ActorTwo])
     }
@@ -62,7 +63,7 @@ class CoralActorFactorySpec extends WordSpecLike with Matchers {
         bind[List[ActorPropFactory]] to List(new FirstActorPropFactory(), new SecondActorPropFactory())
       }
       val json =
-        """{"type": "actorOne"}"""
+        """{"type": "actors", "attributes": {"type": "actorOne"}}"""
       val props = CoralActorFactory.getProps(parse(json))
       props.get.actorClass should be(classOf[ActorOne])
     }

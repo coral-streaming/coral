@@ -43,26 +43,33 @@ Uniform | `U(max)` | Samples a value from a uniform distribution from 0 to `max`
 List choice | `['string','string','string']` | Samples a value uniformly from any of the given string choices. | `['a','b','c']`
 
 #### Creation example
-```json
+{% highlight json %}
 {
-  "type": "generator",
-  "format": {
-    "field1": "N(100, 10)",
-    "field2": "['a', 'b', 'c']",
-    "field3": {
-       "nested1": "U(100)",
-       "nested2": "U(20.3)",
-       "nested3": "N(20.5, 5.2)"
-    }
-  }, "timer": {
-    "rate": 10,
-    "times": 100,
-    "delay": 1000
+  "data": {
+      "type": "actors",
+      "attributes": {
+          "type": "generator",
+          "format": {
+            "field1": "N(100, 10)",
+            "field2": "['a', 'b', 'c']",
+            "field3": {
+               "nested1": "U(100)",
+               "nested2": "U(20.3)",
+               "nested3": "N(20.5, 5.2)"
+            }
+          },
+          "timer": {
+            "rate": 10,
+            "times": 100,
+            "delay": 1000
+          }
+      }
+  }
 }
-```
+{% endhighlight %}
 This will create a GeneratorActor that emits 10 objects per second, of which a couple of examples follow:
 
-```json
+{% highlight json %}
 {
   "field1": 82.85,
   "field2": "a",
@@ -72,11 +79,11 @@ This will create a GeneratorActor that emits 10 objects per second, of which a c
      "nested3": 18.97
   }
 }
-```
+{% endhighlight %}
 
 Next, the following object may be emitted:
 
-```json
+{% highlight json %}
 {
   "field1": 113.45,
   "field2": "b",
@@ -86,7 +93,7 @@ Next, the following object may be emitted:
      "nested3": 17.85
   }
 }
-```
+{% endhighlight %}
 
 Because delay is set to 1000 milliseconds, it waits 1 second before emitting the first object. When it has emitted 100 objects, it stops.
 

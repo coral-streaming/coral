@@ -38,10 +38,11 @@ class GroupByActorSpec(_system: ActorSystem)
   // in the current situation (the CoralActorFactory) it seems unavoidable to depend in some tests on an existing actor instead of injecting a test actor
   def statsGroupBy: GroupByActor = {
     val createJson = parse(
-      """{ "type": "stats",
+      """{ "type": "actors",
+        |  "attributes": {"type": "stats",
         |  "params": { "field": "amount" },
         |  "group": { "by": "tag" }
-        | }""".stripMargin
+        | } }""".stripMargin
     ).asInstanceOf[JObject]
     TestActorRef[GroupByActor](GroupByActor(createJson).get).underlyingActor
   }
@@ -50,18 +51,20 @@ class GroupByActorSpec(_system: ActorSystem)
 
     "Extract the the create json" in {
       val createJson = parse(
-        """{ "type": "bla",
+        """{ "type": "actors",
+          |  "attributes": {"type": "bla",
           |  "bla": "bla bla",
           |  "group": { "by": "some tag" },
           |  "more": "bla bla bla"
-          | }""".stripMargin
+          | } }""".stripMargin
       ).asInstanceOf[JObject]
       val actor = TestActorRef[GroupByActor](GroupByActor(createJson).get).underlyingActor
       val expectedChildJson = parse(
-        """{ "type": "bla",
+        """{ "type": "actors",
+          |  "attributes": {"type": "bla",
           |  "bla": "bla bla",
           |  "more": "bla bla bla"
-          | }""".stripMargin
+          | } }""".stripMargin
       )
       actor.jsonDef should be(createJson)
       actor.jsonChildrenDef should be(expectedChildJson)

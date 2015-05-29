@@ -33,15 +33,20 @@ field  | type |    | description
 `threshold` | number | required | the value in the trigger-JSON for the threshold field should be at least this value to emit
 
 #### Example
-```json
+{% highlight json %}
 {
-  "type": "threshold",
-  "params": {
-    "key": "amount",
-    "threshold": 100
+  "data": {
+    "type": "actors",
+    "attributes": {
+      "type": "threshold",
+      "params": {
+        "key": "amount",
+        "threshold": 100
+      }
+    }
   }
 }
-```
+{% endhighlight %}
 This will create a threshold actor for the field _amount_ with threshold _100_.
 
 ## Trigger

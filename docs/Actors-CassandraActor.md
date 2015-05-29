@@ -35,9 +35,14 @@ field  | type | required | description
 #### Creation example
 {% highlight json %}
 {
-  "type": "cassandra",
-  "seeds": ["10.0.0.1", "10.0.0.2"],
-  "keyspace": "keyspacename"
+  "data": {
+      "type": "actors",
+      "attributes": {
+        "type": "cassandra",
+        "seeds": ["10.0.0.1", "10.0.0.2"],
+        "keyspace": "keyspacename"
+      }
+  }
 }
 {% endhighlight %}
 This will create a CassandraActor connecting to any of the nodes 10.0.0.1 or 10.0.0.2 to keyspace "keyspacename".

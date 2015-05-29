@@ -45,8 +45,8 @@ class HttpClientActorSpec(_system: ActorSystem)
     "not create a new actor with an incorrect JSON definition" in {
       val instantiationJson = parse(
         s"""{
-           | "type": "httpclient",
-           | "params": { "url": "http://localhost:8111" }
+           | "type": "actors",
+           | "attributes": {"type": "httpclient", "params": { "url": "http://localhost:8111" }}
            | }""".stripMargin).asInstanceOf[JObject]
 
       val httpClientActor = HttpClientActor(instantiationJson)
@@ -56,8 +56,8 @@ class HttpClientActorSpec(_system: ActorSystem)
     "emit the retrieved content" in {
       val instantiationJson = parse(
         s"""{
-           | "type": "httpclient",
-           | "params": { "url": "http://localhost:8111/text", "method": "GET" }
+           | "type": "actors",
+           | "attributes": {"type": "httpclient", "params": { "url": "http://localhost:8111/text", "method": "GET" }}
            | }""".stripMargin).asInstanceOf[JObject]
       val props: Props = CoralActorFactory.getProps(instantiationJson).get
       val actorRef = TestActorRef[HttpClientActor](props)
@@ -77,8 +77,8 @@ class HttpClientActorSpec(_system: ActorSystem)
     "emit json content as json" in {
       val instantiationJson = parse(
         s"""{
-           | "type": "httpclient",
-           | "params": { "url": "http://localhost:8111/json", "method": "GET" }
+           | "type": "actors",
+           | "attributes": {"type": "httpclient", "params": { "url": "http://localhost:8111/json", "method": "GET" }}
            | }""".stripMargin).asInstanceOf[JObject]
       val props: Props = CoralActorFactory.getProps(instantiationJson).get
       val actorRef = TestActorRef[HttpClientActor](props)
@@ -95,8 +95,8 @@ class HttpClientActorSpec(_system: ActorSystem)
     "send header to the server" in {
       val instantiationJson = parse(
         s"""{
-           | "type": "httpclient",
-           | "params": { "url": "http://localhost:8111/header", "method": "GET", "headers": { "Authorization": "mykey" } }
+           | "type": "actors",
+           | "attributes": {"type": "httpclient", "params": { "url": "http://localhost:8111/header", "method": "GET", "headers": { "Authorization": "mykey" } } }
            | }""".stripMargin).asInstanceOf[JObject]
       val props: Props = CoralActorFactory.getProps(instantiationJson).get
       val actorRef = TestActorRef[HttpClientActor](props)
@@ -113,8 +113,8 @@ class HttpClientActorSpec(_system: ActorSystem)
     "send payload to the server " in {
       val instantiationJson = parse(
         s"""{
-           | "type": "httpclient",
-           | "params": { "url": "http://localhost:8111/text", "method": "POST" }
+           | "type": "actors",
+           | "attributes": {"type": "httpclient", "params": { "url": "http://localhost:8111/text", "method": "POST" }}
            | }""".stripMargin).asInstanceOf[JObject]
       val props: Props = CoralActorFactory.getProps(instantiationJson).get
       val actorRef = TestActorRef[HttpClientActor](props)
@@ -132,11 +132,12 @@ class HttpClientActorSpec(_system: ActorSystem)
     "emit the timer json when timer mode = 'continue'" in {
       val instantiationJson = parse(
         s"""{
-           | "type": "httpclient",
+           | "type": "actors",
+           | "attributes": {"type": "httpclient",
            | "timeout": { "duration": 0.5, "mode": "continue" },
            | "params": {
            | "url": "http://localhost:8111/json",
-           | "method": "GET"}
+           | "method": "GET"}}
            | }""".stripMargin).asInstanceOf[JObject]
       val props: Props = CoralActorFactory.getProps(instantiationJson).get
       val actorRef = TestActorRef[HttpClientActor](props)
