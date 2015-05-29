@@ -12,7 +12,7 @@ object JsonActor {
 
   def getParams(json: JValue) = {
     for {
-      template <- (json \ "params" \ "template").extractOpt[JObject]
+      template <- (json \ "attributes" \ "params" \ "template").extractOpt[JObject]
       if (JsonTemplate.validate(template))
     } yield {
       template

@@ -3,6 +3,7 @@ package io.coral.actors.transform
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestActorRef, TestKit}
 import akka.util.Timeout
+import org.json4s.JsonAST.JValue
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
@@ -30,42 +31,44 @@ class JsonActorSpec(_system: ActorSystem)
     actorRef.underlyingActor
   }
 
+  def apiJson(s: String): JValue = parse( s"""{"type": "actors", "attributes": $s }""")
+
   "JsonActor" should {
 
     "have a standard coral props supplier" in {
-      val json = parse( """{ "type": "json", "params": { "template": {} } }""")
+      val json = apiJson( """{ "type": "json", "params": { "template": {} } }""")
       val props = JsonActor(json).get
       props.actorClass shouldBe classOf[JsonActor]
     }
 
     "have jsonDef return the construction" in {
-      val json = parse( """{ "type": "json", "params": { "template": {} } }""")
+      val json = apiJson( """{ "type": "json", "params": { "template": {} } }""")
       val actor = createJsonActor(json)
       actor.jsonDef shouldBe json
     }
 
     "have no timer functionality" in {
-      val json = parse( """{ "type": "json", "params": { "template": {} } }""")
+      val json = apiJson( """{ "type": "json", "params": { "template": {} } }""")
       val actor = createJsonActor(json)
       actor.timer shouldBe JNothing
     }
 
     "have no state" in {
-      val json = parse( """{ "type": "json", "params": { "template": {} } }""")
+      val json = apiJson( """{ "type": "json", "params": { "template": {} } }""")
       val actor = createJsonActor(json)
       actor.state shouldBe Map.empty[String, JValue]
     }
 
     "read the template parameter" in {
       val template = """{ "a": "someReference" }"""
-      val json = parse( s"""{ "type": "json", "params": { "template": ${template} } }""")
+      val json = apiJson( s"""{ "type": "json", "params": { "template": ${template} } }""")
       val actor = createJsonActor(json)
       actor.template.template shouldBe parse(template)
     }
 
     "do nothing in the trigger" in {
       val template = """{ "a": "someReference" }"""
-      val json = parse( s"""{ "type": "json", "params": { "template": ${template} } }""")
+      val json = apiJson( s"""{ "type": "json", "params": { "template": ${template} } }""")
       val actor = createJsonActor(json)
       actor.trigger shouldBe actor.defaultTrigger
     }
@@ -80,7 +83,7 @@ class JsonActorSpec(_system: ActorSystem)
           |  "f": 1,
           |  "g": 1.0
           |}""".stripMargin
-      val json = parse( s"""{ "type": "json", "params": { "template": ${templateJson} } }""")
+      val json = apiJson( s"""{ "type": "json", "params": { "template": ${templateJson} } }""")
       val actor = createJsonActor(json)
       val triggerJson = parse(
         """{ "beta": "xyz",

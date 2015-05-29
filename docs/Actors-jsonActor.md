@@ -34,21 +34,26 @@ field  | type | required | description
 #### Example
 {% highlight json %}
 {
-  "type": "json",
-  "params": {
-    "template": {
-      "a": "some constant text",
-      "b": ":referenceField",
-      "c": ":ref.sub.sub[2]",
-      "d": {
-        "e": ":ref2",
-        "f": ":ref3"
+  "data": {
+    "type": "actors",
+    "attributes": {
+      "type": "json",
+      "params": {
+        "template": {
+          "a": "some constant text",
+          "b": ":referenceField",
+          "c": ":ref.sub.sub[2]",
+          "d": {
+            "e": ":ref2",
+            "f": ":ref3"
+          }
+        }
       }
     }
   }
 }
 {% endhighlight %}
-If fields are expressions the create a string field starting with a colon (`:`) followed by the expression (according to the coral JSON expression parser).
+If fields are expressions the create a string field starting with a the expression (according to the coral JSON expression parser) surrounde by `${` ... `}`.
 
 ## Trigger
 The `JsonActor` only does useful work if the trigger is connected.
