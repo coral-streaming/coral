@@ -16,8 +16,8 @@ object ThresholdActor {
   
   def getParams(json: JValue) = {
     for {
-      key <- (json \ "params" \ "key").extractOpt[String]
-      threshold <- (json \ "params" \ "threshold").extractOpt[Double]
+      key <- (json \ "attributes" \ "params" \ "key").extractOpt[String]
+      threshold <- (json \ "attributes" \ "params" \ "threshold").extractOpt[Double]
     } yield(key, threshold)
   }
   

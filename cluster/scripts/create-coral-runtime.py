@@ -26,4 +26,4 @@ def delete(path) :
     if (r.text):
         print json.dumps(json.loads(r.text), indent=2)
 
-post('/api/actors', { "type": "cassandra", "seeds": [ "127.0.0.1" ], "keyspace": "coralcluster" })
+post('/api/actors', { "type": "actors", "attributes": {"type": "cassandra", "seeds": [ "127.0.0.1" ], "keyspace": "coralcluster" }})

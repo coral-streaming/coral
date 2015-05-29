@@ -30,9 +30,9 @@ object HttpClientActor {
 
   def getParams(json: JValue) = {
     for {
-      url <- (json \ "params" \ "url").extractOpt[String]
-      method <- (json \ "params" \ "method").extractOpt[String].flatMap(createRequestBuilder)
-      headers <- Some((json \ "params" \ "headers").extractOrElse[JObject](JObject())).map(createHeaders)
+      url <- (json \ "attributes" \ "params" \ "url").extractOpt[String]
+      method <- (json \ "attributes" \ "params" \ "method").extractOpt[String].flatMap(createRequestBuilder)
+      headers <- Some((json \ "attributes" \ "params" \ "headers").extractOrElse[JObject](JObject())).map(createHeaders)
     } yield(url, method, headers)
   }
 

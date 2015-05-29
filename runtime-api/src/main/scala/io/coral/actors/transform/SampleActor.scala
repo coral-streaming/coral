@@ -15,8 +15,8 @@ object SampleActor {
 
   def getParams(json: JValue) = {
     for {
-      fraction <- (json \ "params" \ "fraction").extractOpt[Double]
-        .orElse((json \ "params" \ "percentage").extractOpt[Double].map(p => 0.01 * p))
+      fraction <- (json \ "attributes" \ "params" \ "fraction").extractOpt[Double]
+        .orElse((json \ "attributes" \ "params" \ "percentage").extractOpt[Double].map(p => 0.01 * p))
     } yield {
       fraction
     }

@@ -19,9 +19,9 @@ object FsmActor {
 
   def getParams(json: JValue) = {
     for {
-      key <- (json \ "params" \ "key").extractOpt[String]
-      table <- (json \ "params" \ "table").extractOpt[Map[String, Map[String, String]]]
-      s0 <- (json \ "params" \ "s0").extractOpt[String]
+      key <- (json \ "attributes" \ "params" \ "key").extractOpt[String]
+      table <- (json \ "attributes" \ "params" \ "table").extractOpt[Map[String, Map[String, String]]]
+      s0 <- (json \ "attributes" \ "params" \ "s0").extractOpt[String]
       if (table.contains(s0))
     } yield {
       (key, table, s0)

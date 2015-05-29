@@ -22,7 +22,7 @@ object StatsActor {
 
   def getParams(json: JValue) = {
     for {
-      field <- (json \ "params" \ "field").extractOpt[String]
+      field <- (json \ "attributes" \ "params" \ "field").extractOpt[String]
     } yield {
       field
     }

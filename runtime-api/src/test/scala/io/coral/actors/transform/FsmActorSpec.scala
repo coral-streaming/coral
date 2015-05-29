@@ -38,7 +38,8 @@ class FsmActorSpec(_system: ActorSystem)
   def createTestFsmActor = {
     val json = parse(
       s"""{
-         |"type": "fsm",
+         |"type": "actors",
+         |"attributes": {"type": "fsm",
          |"params": {
          | "key": "transactionsize",
          | "table": {
@@ -60,7 +61,7 @@ class FsmActorSpec(_system: ActorSystem)
          |   }
          | },
          | "s0": "normal"
-         |} }""".stripMargin)
+         |} } }""".stripMargin)
     createFsmActor(json)
   }
 
@@ -73,11 +74,13 @@ class FsmActorSpec(_system: ActorSystem)
 
     "Instantiate with complete json" in {
       val json = parse(
-        """{ "type": "fsm",
+        """{
+          |  "type": "actors",
+          |  "attributes": {"type": "fsm",
           |  "params": {
           |    "key": "a",
           |    "table": {"aa": {"bb":"cc"}},
-          |    "s0": "aa" } }""".stripMargin)
+          |    "s0": "aa" } } }""".stripMargin)
       val fsm = createFsmActor(json)
       fsm.jsonDef should be(json)
       fsm.key should be("a")
@@ -87,11 +90,13 @@ class FsmActorSpec(_system: ActorSystem)
 
     "Instantiate from companion object" in {
       val json = parse(
-        """{ "type": "fsm",
+        """{
+          |  "type": "actors",
+          |  "attributes": {"type": "fsm",
           |  "params": {
           |    "key": "a",
           |    "table": {"aa": {"bb":"cc"}},
-          |    "s0": "aa" } }""".stripMargin)
+          |    "s0": "aa" } } }""".stripMargin)
       val props = FsmActor(json)
       val fsm = TestActorRef[FsmActor](props.get).underlyingActor
       fsm.jsonDef should be(json)
@@ -102,11 +107,13 @@ class FsmActorSpec(_system: ActorSystem)
 
     "Not instantiate with a json without key/table/s0" in {
       val json = parse(
-        """{ "type": "fsm",
+        """{
+          |  "type": "actors",
+          |  "attributes": {"type": "fsm",
           |  "params": {
           |    "key": "a",
           |    "table": {"aa": {"bb":"cc"}},
-          |    "s0": "does not exist in able" } }""".stripMargin)
+          |    "s0": "does not exist in able" } } }""".stripMargin)
       val props = FsmActor(json)
       intercept[ActorInitializationException] {
         new FsmActor(json.asInstanceOf[JObject])

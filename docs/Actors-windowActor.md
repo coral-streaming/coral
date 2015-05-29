@@ -34,18 +34,24 @@ field  | type |    | description
 `sliding` | Int | not required | The number of events a window should slide. For instance, when sliding == 1, the window moves 1 event every time an event has been received. In the case of method == "time", sliding should be specified in milliseconds.
 
 #### Creation example
-```json
+{% highlight json %}
 {
-  "type": "window",
-  "params": {
-    "method": "count",
-    "number": 3,
-    "sliding": 1
+  "data": {
+    "type": "actors",
+    "attributes": {
+      "type": "window",
+      "params": {
+        "method": "count",
+        "number": 3,
+        "sliding": 1
+      }
+    }
+  }
 }
-```
+{% endhighlight %}
 This will create a WindowActor that waits until it receives 3 JSON objects, then emits these 3. Then, if a new event comes in, it moves the window, as in the following example:
 
-```json
+{% highlight json %}
 {
    "data": [
       { "name": "object1" },
@@ -53,11 +59,11 @@ This will create a WindowActor that waits until it receives 3 JSON objects, then
       { "name": "object3" }
    ]
 }
-```
+{% endhighlight %}
 
 Then, object4 comes in, and the WindowActor emits the following: 
 
-```json
+{% highlight json %}
 {
    "data": [
       { "name": "object2" },
@@ -65,7 +71,7 @@ Then, object4 comes in, and the WindowActor emits the following:
       { "name": "object4" }
    ]
 }
-```
+{% endhighlight %}
 
 ## Trigger
 The `WindowActor` is triggered by any incoming JSON event. It does not care about the structure of the JSON objects received, they can even be all different.

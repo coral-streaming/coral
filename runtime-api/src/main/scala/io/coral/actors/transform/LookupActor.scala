@@ -15,9 +15,9 @@ object LookupActor {
 
   def getParams(json: JValue) = {
     for {
-      lookup   <- (json \ "params" \ "lookup").extractOpt[Map[String, JObject]]
-      key      <- (json \ "params" \ "key").extractOpt[String]
-      function <- (json \ "params" \ "function").extractOpt[String]
+      lookup   <- (json \ "attributes" \ "params" \ "lookup").extractOpt[Map[String, JObject]]
+      key      <- (json \ "attributes" \ "params" \ "key").extractOpt[String]
+      function <- (json \ "attributes" \ "params" \ "function").extractOpt[String]
     } yield {
       (key, lookup, function)
     }

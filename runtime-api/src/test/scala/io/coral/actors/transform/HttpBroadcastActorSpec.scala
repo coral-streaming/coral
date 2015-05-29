@@ -24,7 +24,7 @@ class HttpBroadcastActorSpec(_system: ActorSystem)
   "A HttpBroadcastActor" should {
 
     "Instantiate with any json" in {
-      val createJson = parse( """{ "type": "httpbroadcast" }""")
+      val createJson = parse( """{ "type": "actors", "attributes": {"type": "httpbroadcast" } }""")
       val props = HttpBroadcastActor(createJson)
       val actor = TestActorRef[HttpBroadcastActor](props.get).underlyingActor
       actor.jsonDef should be(createJson)
@@ -38,7 +38,7 @@ class HttpBroadcastActorSpec(_system: ActorSystem)
     }
 
     "Emit the trigger contents" in {
-      val props = HttpBroadcastActor(parse( """{ "type": "httpbroadcast" }"""))
+      val props = HttpBroadcastActor(parse( """{ "type": "actors", "attributes": {"type": "httpbroadcast" } }"""))
       val actor = TestActorRef[HttpBroadcastActor](props.get).underlyingActor
       val json = parse("""{"emit":"whatever"}""")
       val result = actor.emit(json.asInstanceOf[JObject])

@@ -19,9 +19,9 @@ object ZscoreActor {
     for {
     // from json actor definition
     // possible parameters server/client, url, etc
-      by <- (json \ "params" \ "by").extractOpt[String]
-      field <- (json \ "params" \ "field").extractOpt[String]
-      score <- (json \ "params" \ "score").extractOpt[Double]
+      by <- (json \ "attributes" \ "params" \ "by").extractOpt[String]
+      field <- (json \ "attributes" \ "params" \ "field").extractOpt[String]
+      score <- (json \ "attributes" \ "params" \ "score").extractOpt[Double]
     } yield {
       (by, field, score)
     }

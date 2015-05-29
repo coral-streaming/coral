@@ -40,10 +40,11 @@ abstract class CoralActor extends Actor with ActorLogging {
 
   // transmit actor list
   var emitTargets = SortedSet.empty[ActorRef]
-  var triggerSource: Option[String] = None
 
   // numeric id  or None or "external"
   var collectSources = Map.empty[String, String] // zero or more alias to actorpath id
+
+  var inputJsonDef: JValue = JObject()
 
   // getting the default executor from the akka system
   implicit def executionContext: ExecutionContextExecutor = actorRefFactory.dispatcher
@@ -100,10 +101,10 @@ abstract class CoralActor extends Actor with ActorLogging {
       }
   }
 
-  def timerDuration: Double = (jsonDef \ "timeout" \ "duration").extractOrElse(0.0)
+  def timerDuration: Double = (jsonDef \ "attributes" \ "timeout" \ "duration").extractOrElse(0.0)
 
   def timerMode: TimerBehavior =
-    (jsonDef \ "timeout" \ "mode").extractOpt[String] match {
+    (jsonDef \ "attributes" \ "timeout" \ "mode").extractOpt[String] match {
       case Some("exit") => TimerExit
       case Some("continue") => TimerContinue
       case _ => TimerNone
@@ -167,35 +168,44 @@ abstract class CoralActor extends Actor with ActorLogging {
   def propHandling: Receive = {
     case UpdateProperties(json) =>
       // update trigger
-      triggerSource = (json \ "input" \ "trigger" \ "in" \ "type").extractOpt[String]
-      triggerSource.getOrElse("none") match {
-        case "none" =>
-        case "external" =>
-        case "actor" =>
-          val source = (json \ "input" \ "trigger" \ "in" \ "source").extractOpt[String]
+      val triggerSource = (json \ "attributes" \ "input" \ "trigger" \ "in" \ "type").extractOpt[String]
+      val triggerJsonDef = triggerSource match {
+        case Some("none") => render("trigger" -> (json \ "attributes" \ "input" \ "trigger"))
+        case Some("external") => render("trigger" -> (json \ "attributes" \ "input" \ "trigger"))
+        case Some("actor") =>
+          val source = (json \ "attributes" \ "input" \ "trigger" \ "in" \ "source").extractOpt[String]
           source map { v =>
             tellActor(s"/user/coral/$v", RegisterActor(self))
           }
+          render("trigger" -> (json \ "attributes" \ "input" \ "trigger"))
 
         case _ =>
+          JObject()
       }
 
-      val collectAliases = (json \ "input" \ "collect").extractOpt[Map[String, Any]]
-      collectSources = collectAliases match {
+      // update collect
+      val collectAliases = (json \ "attributes" \ "input" \ "collect").extractOpt[Map[String, Any]]
+      val result = collectAliases match {
         case Some(v) =>
-          val x = v.keySet.map(k => (k, (json \ "input" \ "collect" \ k \ "source")
+          val x = v.keySet.map(k => (k, (json \ "attributes" \ "input" \ "collect" \ k \ "source")
             .extractOpt[Int].map(v => s"/user/coral/$v")))
-          x.filter(_._2.isDefined).map(i => (i._1, i._2.get)).toMap
+          (x.filter(_._2.isDefined).map(i => (i._1, i._2.get)).toMap, render("collect" -> (json \ "attributes" \ "input" \ "collect")))
         case None =>
-          Map()
+          (Map[String, String](), JObject())
       }
+      collectSources = result._1
+      val collectJsonDef = result._2
+
+      inputJsonDef = triggerJsonDef merge collectJsonDef
 
       sender ! true
   }
 
   def resourceDesc: Receive = {
     case Get() =>
-      sender ! render(("actors", render(Map(("def", jsonDef), ("state", render(state))))))
+      sender ! (jsonDef
+        merge render("attributes" -> render("state" -> render(state)))
+        merge render("attributes" -> render("input" -> inputJsonDef)))
   }
 
   def execute(json:JObject, sender:Option[ActorRef]) = {
