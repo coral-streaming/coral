@@ -9,7 +9,7 @@ import com.typesafe.config.{Config, ConfigFactory}
  * E.g. Kafka uses java properties for producer and consumer instantiation
  * @param path configuration path (e.g. "kafka.consumer")
  */
-class ConfigurationBuilder(path: String) {
+case class ConfigurationBuilder(path: String) {
 
   private lazy val config: Config = ConfigFactory.load.getConfig(path)
 

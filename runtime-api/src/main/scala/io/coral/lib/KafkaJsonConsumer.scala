@@ -19,8 +19,11 @@ object KafkaJsonConsumer {
 
 class KafkaJsonConsumer(decoder: Decoder[JValue]) {
 
+  def connect(properties: Properties): ConsumerConnector =
+    Consumer.create(new ConsumerConfig(properties))
+
   def stream(topic: String, properties: Properties): KafkaJsonStream = {
-    val connection = Consumer.create(new ConsumerConfig(properties))
+    val connection = connect(properties)
     val stream = connection.createMessageStreamsByFilter(Whitelist(topic), 1, new DefaultDecoder, decoder)(0)
     new KafkaJsonStream(connection, stream)
   }
