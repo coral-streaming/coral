@@ -19,11 +19,8 @@ object KafkaJsonConsumer {
 
 class KafkaJsonConsumer(decoder: Decoder[JValue]) {
 
-  def connect(properties: Properties): ConsumerConnector =
-    Consumer.create(new ConsumerConfig(properties))
-
   def stream(topic: String, properties: Properties): KafkaJsonStream = {
-    val connection = connect(properties)
+    val connection = Consumer.create(new ConsumerConfig(properties))
     val stream = connection.createMessageStreamsByFilter(Whitelist(topic), 1, new DefaultDecoder, decoder)(0)
     new KafkaJsonStream(connection, stream)
   }
@@ -32,7 +29,7 @@ class KafkaJsonConsumer(decoder: Decoder[JValue]) {
 
 class KafkaJsonStream(connection: ConsumerConnector, stream: KafkaStream[Array[Byte], JValue]) {
 
-  lazy val it = stream.iterator
+  private lazy val it = stream.iterator
 
   // this method relies on a timeout value having been set
   @inline def hasNextInTime: Boolean =
