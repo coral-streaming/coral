@@ -40,7 +40,7 @@ name         | class | description
 `zscore`     | [ZscoreActor](https://github.com/coral-streaming/coral/wiki/ZscoreActor) | determine if a value is an outlier according to the Z-score statistic
 
 ## Creating a Coral actor
-The JSON to create a Coral Actor contains the following fields:
+The JSON to create a Coral Actor conforms to [JSON API](http://jsonapi.org/). The attributes in the JSON to create a Coral Actor contain the following fields:
 
 field     | type     | required | description
 :-------- | :------- | :------- | :------------
@@ -70,29 +70,43 @@ Having a group by field defined will invoke the (GroupByActor)[https://github.co
 Create the statistics actor with a timer action every 60 seconds.
 Group the statistics by the value of the trigger-field `tag`.
 {% highlight json %}
-{ "type":"stats",
-  "timeout": {
-    "duration": 60,
-    "mode": "continue"
-  },
-  "params": {
-    "field": "amount"
-  },
-  "group": {
-    "by": "tag"
+{
+  "data": {
+    "type": "actors",
+    "attributes": {
+      "type":"stats",
+      "timeout": {
+        "duration": 60,
+        "mode": "continue"
+      },
+      "params": {
+        "field": "amount"
+      },
+      "group": {
+        "by": "tag"
+      }
+    }
   }
 }
 {% endhighlight %}
+Note: the `data`, `attributes` and `"type": "actors"` are used because of the conformation to [JSON API](http://jsonapi.org/).
 
 ## Trigger
 
 #### Example
 {% highlight json %}
-{ "input":
-  { "trigger":
-    { "in":
-      { "type": "actor",
-        "source": 1
+{
+  "data": {
+    "type": "actors",
+    "id": "1",
+    "attributes": {
+      "input": {
+        "trigger": {
+          "in": {
+            "type": "actor",
+            "source": 2
+          }
+        }
       }
     }
   }

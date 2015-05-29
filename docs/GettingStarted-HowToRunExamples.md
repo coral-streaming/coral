@@ -24,3 +24,5 @@ topic: Getting started
 
 The "examples" directory contains several examples for the platform. This directory can be found in the source trunk of the platform. The examples have been written in Python,
 but any language or method that supports HTTP can be used to create a new pipeline on the platform. Other methods are [Postman](https://www.getpostman.com) or curl, which is a command-line program.
+When you create your own pipeline, you need to set the headers that are obligatory according to [JSON API](http://jsonapi.org/): the Accept header and the Content-Type header.
+So set the header `Accept: application/vnd.api+json` and `Content-Type: application/vnd.api+json`.

@@ -28,9 +28,16 @@ The creation JSON of the HttpBroadcastActor (see [Coral Actor](/actors/overview/
 There is no `params` field.
 
 #### Example
-```json
-{ "type": "httpbroadcast" }
-```
+{% highlight json %}
+{
+  "data": {
+     "type": "actors",
+     "attributes": {
+       "type": "httpbroadcast"
+     }
+  }
+}
+{% endhighlight %}
 
 ## Trigger
 The `HttpBroadcastActor` has no trigger implemented.
