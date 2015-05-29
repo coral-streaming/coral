@@ -73,9 +73,9 @@ class JsonActorSpec(_system: ActorSystem)
     "emit the json based on template" in {
       val templateJson =
         """{ "a": "ALPHA",
-          |  "b": ":beta",
+          |  "b": "${beta}",
           |  "c": { "d": 123,
-          |         "e": ":epsilon"
+          |         "e": "${epsilon}"
           |       },
           |  "f": 1,
           |  "g": 1.0

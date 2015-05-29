@@ -4,9 +4,13 @@ import org.json4s.JsonAST._
 
 object JsonTemplate {
 
-  private def isReference(field: String): Boolean = field.startsWith(":")
+  private def isReference(field: String): Boolean = {
+    field.startsWith("${") && field.endsWith("}")
+  }
 
-  private def extractReference(field: String): String = field.substring(1).trim
+  private def extractReference(field: String): String = {
+    field.substring(2, field.length - 1).trim
+  }
 
   private def parse(s: String, json: JObject): JValue = {
     val result = JsonExpressionParser.parse(s, json)

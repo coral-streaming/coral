@@ -17,9 +17,9 @@ class JsonTemplateSpec extends WordSpecLike with Matchers {
       template.interpret(parse("{}").asInstanceOf[JObject]) shouldBe templateJson
     }
 
-    "substitute references (identified with a colon)" in {
+    "substitute references (identified with a ${...}} construct" in {
       val templateJson = parse(
-        """{ "field1": ":abc",
+        """{ "field1": "${abc}",
           |  "field2": 123
           |}""".stripMargin)
       val template = JsonTemplate(templateJson.asInstanceOf[JObject])
@@ -37,9 +37,9 @@ class JsonTemplateSpec extends WordSpecLike with Matchers {
     "handle nested structure" in {
       val templateJson = parse(
         """{ "a": "ALPHA",
-          |  "b": ":beta",
+          |  "b": "${beta}",
           |  "c": { "d": 123,
-          |         "e": { "ee": ":epsilon" }
+          |         "e": { "ee": "${epsilon}" }
           |       },
           |  "f": 1,
           |  "g": 1.0
@@ -63,8 +63,8 @@ class JsonTemplateSpec extends WordSpecLike with Matchers {
 
     "handle expressions cf jsonExpressionParser" in {
       val templateJson = parse(
-        """{ "a": ":array[1]",
-          |  "b": ":field.sub.subsub",
+        """{ "a": "${array[1]}",
+          |  "b": "${ field.sub.subsub }",
           |  "c": 1.0
           |}""".stripMargin)
       val template = JsonTemplate(templateJson.asInstanceOf[JObject])
@@ -83,7 +83,7 @@ class JsonTemplateSpec extends WordSpecLike with Matchers {
 
     "use null when values are not found" in {
       val templateJson = parse(
-        """{ "field1": ":abc",
+        """{ "field1": "${abc}",
           |  "field2": 123
           |}""".stripMargin)
       val template = JsonTemplate(templateJson.asInstanceOf[JObject])
