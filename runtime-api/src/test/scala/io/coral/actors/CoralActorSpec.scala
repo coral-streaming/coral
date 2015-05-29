@@ -233,6 +233,22 @@ class CoralActorSpec(_system: ActorSystem)
       }
     }
 
+    "Get the trigger field as OptionT in 'getTriggerInputField' with default when defined" in {
+      val coral = createCoralActor()
+      val result = coral.getTriggerInputField[Double](parse("4.71"), 3.0)
+      whenReady(result.run) {
+        value => value should be(Some(4.71))
+      }
+    }
+
+    "Get the trigger field as OptionT in 'getTriggerInputField' with default when not defined" in {
+      val coral = createCoralActor()
+      val result = coral.getTriggerInputField[Double](JNothing, 3.0)
+      whenReady(result.run) {
+        value => value should be(Some(3.0))
+      }
+    }
+
     "Ignore an 'UpdateProperties' message without information" in {
       val coral = createCoralActor()
       coral.self ! UpdateProperties(parse( """{}""").asInstanceOf[JObject])
