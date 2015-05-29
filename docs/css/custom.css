@@ -1,0 +1,30 @@
+body {
+    padding-top: 40px;
+    overflow-y: scroll;
+    font-size: 14px;
+}
+
+table, th, td {
+    border: 1px solid #AAB;
+    padding: 3px;
+}
+
+.navbar-coral {
+  background-color:#ADD8C7;
+	color: white;
+}
+
+.navbar-coral a {
+  color: white;
+}
+
+.navbar-coral a:hover {
+  background-color: #1693A5;
+  color: white;
+}
+
+.nav > li > a:hover {
+  background-color: #1693A5;
+  color: white;
+}
+

@@ -10,7 +10,7 @@
     <!-- Disable all logging for ControlConnection because it logs errors when Cassandra isn't available anymore, which always happens when the test ends -->
     <logger name="com.datastax.driver.core.ControlConnection" level="OFF"/>
 
-    <root level="error">
+    <root level="off">
         <appender-ref ref="STDOUT" />
     </root>
 </configuration>

@@ -50,7 +50,7 @@ class RuntimeActorSpec(_system: ActorSystem) extends TestKit(_system)
 
       val json4 = parse(
         """{ "type": "actors", "attributes": {"type": "httpclient", "params": {
-          |"url": "http://localhost:8000/test" }}}"""
+          |"method": "GET", "url": "http://localhost:8000/test" }}}"""
           .stripMargin).asInstanceOf[JObject]
       runtime ! CreateActor(json4)
       val id4 = receiveOne(500.millisecond).asInstanceOf[Option[Long]]
