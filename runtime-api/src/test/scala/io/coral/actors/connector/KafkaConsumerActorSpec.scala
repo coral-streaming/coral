@@ -2,6 +2,7 @@ package io.coral.actors.connector
 
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestKit}
+import org.json4s.JsonAST.JValue
 import org.json4s.jackson.JsonMethods._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
@@ -20,10 +21,12 @@ class KafkaConsumerActorSpec(_system: ActorSystem)
     TestKit.shutdownActorSystem(system)
   }
 
+  def apiJson(s: String): JValue = parse( s"""{"type": "actors", "attributes": $s }""")
+
   "A KafkaConsumerActor" should {
 
     "read kafka parameters" in {
-      val json = parse(
+      val json = apiJson(
         """{ "type": "kafkaConsumer",
           |  "params": {
           |    "kafka" : {

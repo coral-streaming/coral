@@ -16,8 +16,8 @@ object KafkaConsumerActor {
 
   def getParams(json: JValue) = {
     for {
-      kafka <- (json \ "params" \ "kafka").extractOpt[JObject]
-      topic <- (json \ "params" \ "topic").extractOpt[String]
+      kafka <- (json \ "attributes" \ "params" \ "kafka").extractOpt[JObject]
+      topic <- (json \ "attributes" \ "params" \ "topic").extractOpt[String]
     } yield {
       val properties = consumerProperties(kafka)
       (properties, topic)
