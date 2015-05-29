@@ -36,34 +36,39 @@ field  | type | required | description
 The `function` field in the constructor defines the behavior of the `LookupActor`.
 
 #### Example
-```json
+{% highlight json %}
 {
-  "type": "lookup",
-  "params": {
-    "key": "city",
-    "lookup": {
-      "amsterdam": { "country": "netherlands", "population": 800000 },
-      "vancouver": { "country": "canada", "population": 600000 }
-    },
-    "function": "enrich"
+  "data: {
+    "type": "actors",
+    "attributes": {
+      "type": "lookup",
+      "params": {
+        "key": "city",
+        "lookup": {
+          "amsterdam": { "country": "netherlands", "population": 800000 },
+          "vancouver": { "country": "canada", "population": 600000 }
+        },
+        "function": "enrich"
+      }
+    }
   }
 }
-```
+{% endhighlight %}
 
 This `LookUpActor` will now wait for any incoming trigger messages and will look at the "city" field. 
 It will merge the "country" and "population" fields into the output message since "function" is set to "enrich".
 
 If this is the input:
-```json
+{% highlight json %}
 {
   "city": "amsterdam",
   "otherdata": "irrelevant",
   "somevalue": 10
 }
-```
+{% endhighlight %}
 
 Then `enrich` will emit this output:
-```json
+{% highlight json %}
 {
    "city": "amsterdam",
    "otherdata": "irrelevant",
@@ -71,27 +76,27 @@ Then `enrich` will emit this output:
    "country": "netherlands",
    "population": 800000
 }
-```
+{% endhighlight %}
 
 If the function is set to `filter`, the output is
 
-```json
+{% highlight json %}
 {
   "city": "amsterdam",
   "otherdata": "irrelevant",
   "somevalue": 10
 }
-```
+{% endhighlight %}
 
 but only if the "city" key is found in the lookup map. If it is not found, the input object is not emitted.
 
 In the case of `check`, the output is the looked up object if it exists, else, nothing is emitted:
-```json
+{% highlight json %}
 {
    "country": "netherlands",
    "population": 800000
 }
-```
+{% endhighlight %}
 
 ## Trigger
 The `LookupActor` accepts any JSON as trigger. If a key-field is encountered the fields corresponding to the value in that field will be used to look up additional data (from the lookup table).

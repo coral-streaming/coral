@@ -35,16 +35,21 @@ field  | type | required   | description
 `score` | float | yes | the value of the threshold for outliers
 
 #### Example
-```json
+{% highlight json %}
 {
-  "type": "zscore",
-  "params": {
-    "by": "tag",
-    "field": "amount",
-    "score" : 6.0
-  },
+  "data": {
+    "type": "actors",
+    "attributes": {
+      "type": "zscore",
+      "params": {
+        "by": "tag",
+        "field": "amount",
+        "score" : 6.0
+      }
+    }
+  }
 }
-```
+{% endhighlight %}
 This will create a Z-score component monitoring the field _amount_. Outliers are defined to be more than 6 sd from the average.
 
 ## Trigger

@@ -35,14 +35,20 @@ field  | type | required | description
 #### Example
 {% highlight json %}
 {
-  "type": "linearregression",
-  "params": {
-    "intercept": 3.972,
-    "weights": {
-      "salary": 0.47353,
-      "tnxcount1month": 1.86766,
-      "age": 4.52352
-    }
+  "data": {
+      "type": "actors",
+      "attributes": {
+          "type": "linearregression",
+          "params": {
+              "intercept": 3.972,
+              "weights": {
+                "salary": 0.47353,
+                "tnxcount1month": 1.86766,
+                "age": 4.52352
+              }
+          }
+      }
+  }
 }
 {% endhighlight %}
 

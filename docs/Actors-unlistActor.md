@@ -32,14 +32,18 @@ field  | type | required | description
 `field` | string | yes| The name of the array field in the JSON trigger object to unlist.
 
 #### Example
-```json
+{% highlight json %}
 {
-  "type": "unlist",
-  "params": {
-    "field": "data"
+  "data": {
+    "attributes": {
+      "type": "unlist",
+      "params": {
+        "field": "data"
+      }
+    }
   }
 }
-```
+{% endhighlight %}
 
 This will create an `UnlistActor` monitoring the field _data_. Each JSON object in the field data will be emitted separately every time the _UnlistActor_ is triggered.
 
@@ -59,9 +63,9 @@ The `UnlistActor` is triggered by an object that contains an array, as follows:
 ## Emit
 The `UnlistActor` emits all objects that are in the array separately, so in the example above it first emits
 
-```json
+{% highlight json %}
 { "name": "object1" }
-```
+{% endhighlight %}
 
 then 
 
@@ -70,15 +74,15 @@ then
 ```
  then
 
-```json
+{% highlight json %}
 { "name": "object3" }
-```
+{% endhighlight %}
 
 and then 
 
-```json
+{% highlight json %}
 { "name": "object4" }
-```
+{% endhighlight %}
 
 without delay between emits.
 
@@ -86,4 +90,4 @@ without delay between emits.
 The `UnlistActor` does not maintain any state.
 
 ## Collect
-The `StatsActor` does not collect state from other actors.
+The `UnlistActor` does not collect state from other actors.

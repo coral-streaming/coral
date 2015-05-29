@@ -28,8 +28,9 @@ class SampleActorSpec(_system: ActorSystem)
 
   def arbitrarySampleActor(): SampleActor = {
     val json = parse(
-      """{ "type": "sample",
-        |  "params": { "fraction": 0.707 } }
+      """{ "type": "actors",
+        | "attributes": {"type": "sample",
+        | "params": { "fraction": 0.707 } } }
       """.stripMargin)
     val props = SampleActor(json).get
     TestActorRef[SampleActor](props).underlyingActor
@@ -37,8 +38,9 @@ class SampleActorSpec(_system: ActorSystem)
 
   def notSoRandomSampleActor(fraction: Double, randoms: Double*): SampleActor = {
     val json = parse(
-      s"""{ "type": "sample",
-         |"params": { "fraction": ${fraction} } }
+      s"""{ "type": "actors",
+         |"attributes": {"type": "sample",
+         |"params": { "fraction": ${fraction} } } }
       """.stripMargin)
     val source = NotSoRandom(randoms: _*)
     val props = Props(classOf[SampleActor], json, Random(source))
@@ -51,8 +53,9 @@ class SampleActorSpec(_system: ActorSystem)
 
     "Be instantiated with sample fraction" in {
       val json = parse(
-        """{ "type": "sample",
-          |  "params": { "fraction": 0.5 } }
+        """{ "type": "actors",
+          | "attributes": {"type": "sample",
+          | "params": { "fraction": 0.5 } } }
         """.stripMargin)
       val props = SampleActor(json).get
       props.actorClass() should be(classOf[SampleActor])
@@ -62,8 +65,9 @@ class SampleActorSpec(_system: ActorSystem)
 
     "Be instantiated with sample percentage" in {
       val json = parse(
-        """{ "type": "sample",
-          |  "params": { "percentage": 25.6 } }
+        """{ "type": "actors",
+          | "attributes": {"type": "sample",
+          | "params": { "percentage": 25.6 } } }
         """.stripMargin)
       val props = SampleActor(json).get
       val actor = TestActorRef[SampleActor](props).underlyingActor
@@ -72,8 +76,9 @@ class SampleActorSpec(_system: ActorSystem)
 
     "Not be instantiated without fraction or percentage" in {
       val json = parse(
-        """{ "type": "sample",
-          |  "params": { "bla": "blabla" } }
+        """{ "type": "actors",
+          | "attributes": {"type": "sample",
+          | "params": { "bla": "blabla" } } }
         """.stripMargin)
       SampleActor(json) should be(None)
     }

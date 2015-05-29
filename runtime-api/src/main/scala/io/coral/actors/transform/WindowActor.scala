@@ -79,7 +79,7 @@ object WindowActor {
     }
 
     def getMethod(json: JValue): Option[String] = {
-        val method = (json \ "params" \ "method")
+        val method = (json \ "attributes" \ "params" \ "method")
 
         val value: String = method match {
             case JString(s) if List("count", "time").contains(s) => s
@@ -90,7 +90,7 @@ object WindowActor {
     }
 
     def getNumber(json: JValue, method: String): Option[Int] = {
-        val number = (json \ "params" \ "number")
+        val number = (json \ "attributes" \ "params" \ "number")
         val value: Int = number match {
             case JDouble(_) | JNothing => throw new IllegalArgumentException("number")
             case JInt(i) =>
@@ -106,7 +106,7 @@ object WindowActor {
     }
 
     def getSliding(json: JValue, number: Int, method: String): Option[Int] = {
-        val sliding = (json \ "params" \ "sliding")
+        val sliding = (json \ "attributes" \ "params" \ "sliding")
 
         val value: Int = sliding match {
             case JDouble(_) => throw new IllegalArgumentException("sliding")
