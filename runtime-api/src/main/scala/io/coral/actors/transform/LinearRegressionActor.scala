@@ -6,13 +6,6 @@ import scalaz.OptionT
 import org.json4s._
 import org.json4s.JsonDSL._
 import org.json4s.jackson.JsonMethods.{render, pretty}
-
-//import org.apache.spark.SparkContext
-//import org.apache.spark.mllib.optimization.{L1Updater, SimpleUpdater, SquaredL2Updater}
-//import org.apache.spark.mllib.regression.LinearRegressionWithSGD
-//import org.apache.spark.mllib.util.MLUtils
-
-// coral
 import io.coral.actors.CoralActor
 
 object LinearRegressionActor {
