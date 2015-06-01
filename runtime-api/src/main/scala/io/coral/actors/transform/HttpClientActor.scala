@@ -68,6 +68,7 @@ class HttpClientActor(json: JObject) extends CoralActor with ActorLogging {
   def timer: Timer = {
     val future = getResponse("").run.map{
       case Some(response) => createJson(response)
+      case None => JNothing
     }
     try {
       Await.result(future, TimeOut)
