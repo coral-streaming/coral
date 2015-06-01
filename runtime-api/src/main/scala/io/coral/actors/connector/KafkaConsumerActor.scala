@@ -33,7 +33,7 @@ object KafkaConsumerActor {
     properties
   }
 
-  private object ReadMessageQueue
+  object ReadMessageQueue
 
   def apply(json: JValue): Option[Props] = {
     getParams(json).map(_ => Props(classOf[KafkaConsumerActor], json, KafkaJsonConsumer()))
@@ -54,6 +54,7 @@ class KafkaConsumerActor(json: JValue, connection: KafkaJsonConsumer) extends Te
   lazy val stream = connection.stream(topic, properties)
 
   override def preStart(): Unit = {
+    super.preStart()
     self ! ReadMessageQueue
   }
 
