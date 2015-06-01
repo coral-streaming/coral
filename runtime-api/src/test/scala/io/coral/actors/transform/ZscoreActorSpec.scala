@@ -47,10 +47,11 @@ class ZscoreActorSpec(_system: ActorSystem)
 
   def createZscoreActor(n: Int, by: String, field: String, score: Double): ZscoreActor = {
     val createJson = parse(
-      s"""{ "type": "zscore",
+      s"""{ "type": "actors",
+         |"attributes": {"type": "zscore",
          |"params": { "by": "${by}",
          |"field": "${field}",
-         |"score": ${score} } }""".stripMargin)
+         |"score": ${score} } } }""".stripMargin)
       .asInstanceOf[JObject]
     val props = CoralActorFactory.getProps(createJson).get
     val actorRef = TestActorRef[ZscoreActor](props, s"${n}")

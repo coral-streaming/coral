@@ -32,17 +32,22 @@ field  | type | required | description
 `field` | string | yes| the name of the field in the trigger-JSON to monitor
 
 #### Example
-```json
+{% highlight json %}
 {
-  "type": "stats",
-  "params": {
-    "field": "amount"
-  },
-  "group": {
-    "by": "tag"
+  "data": {
+    "type": "actors",
+    "attributes": {
+      "type": "stats",
+      "params": {
+        "field": "amount"
+      },
+      "group": {
+        "by": "tag"
+      }
+    }
   }
 }
-```
+{% endhighlight %}
 This will create a statistics component monitoring the field _amount_. Each different value for the field _tag_ will have a separate state.
 
 ## Trigger

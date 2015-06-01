@@ -27,17 +27,22 @@ The `GroupByActor` is a technical [Coral Actor](/actors/overview/) that can part
 The `GroupByActor` is not created directly. If an actor that supports grouping has the group by field specified in its constructor, a GroupByActor will be created. The `GroupByActor` will redirect the object to the correct actor for distinct values of the group by field.
 
 #### Example
-```json
+{% highlight json %}
 {
-  "type": "stats",
-  "params": {
-    "field": "amount"
-  },
-  "group": {
-    "by": "tag"
+  "data": {
+      "type": "actors",
+      "attributes": {
+          "type": "stats",
+          "params": {
+            "field": "amount"
+          },
+          "group": {
+            "by": "tag"
+          }
+      }
   }
 }
-```
+{% endhighlight %}
 
 In this example, a `StatsActor` is being created partitioned by the field 'tag'.  The Coral platform creates a `GroupByActor`, and waits for distinct values of the 'tag' field. An actual instance of the `StatsActor` is only created when a 'tag' field comes along containing a new value that was not encountered before.
 

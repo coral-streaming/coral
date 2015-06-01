@@ -33,12 +33,17 @@ field  | type | required | description
 `headers` | JSON object | no | additional headers to send for the request
 
 #### Example
-```json
+{% highlight json %}
 {
-  "type": "httpclient"
-  "params": {"url": "http://www.google.com", "method": "GET"}
+  "data": {
+      "type": "actors",
+      "attributes": {
+          "type": "httpclient"
+          "params": {"url": "http://www.google.com", "method": "GET"}
+      }
+  }
 }
-```
+{% endhighlight %}
 
 ## Trigger
 The `HttpClientActor` is triggered by a JSON. This JSON can be an empty object or can contain the field '**payload**'.
@@ -51,11 +56,11 @@ PUT
 DELETE
 
 #### Example
-```json
+{% highlight json %}
 {
   "payload": "my payload"
 }
-```
+{% endhighlight %}
 
 ## Emit
 The `HttpClientActor` emits a json with the '**status**', '**header**' and '**body**' of the response of the http method that was triggered.

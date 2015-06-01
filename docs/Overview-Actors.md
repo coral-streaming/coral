@@ -27,20 +27,21 @@ The following Coral Actors for stream transformations are defined:
 
 name         | class | description
 :----------- | :---- | :----------
-`cassandra`  | [CassandraActor](https://github.com/coral-streaming/coral/wiki/CassandraActor) | connect to a Cassandra datasource
-`fsm`        | [FsmActor](https://github.com/coral-streaming/coral/wiki/FsmActor) | select a state according to key
-`generator` | [GeneratorActor](https://github.com/coral-streaming/coral/wiki/GeneratorActor) | generate data based on a JSON template and distribution definitions
-`group`      | [GroupByActor](https://github.com/coral-streaming/coral/wiki/GroupByActor) | partition the stream
-`httpbroadcast` | [HttpBroadcastActor](https://github.com/coral-streaming/coral/wiki/HttpBroadcastActor) | pass (HTTP supplied) JSON to other actors
-`httpclient` | [HttpClientActor](https://github.com/coral-streaming/coral/wiki/HttpClientActor) | post to a service URL
-`lookup`     | [LookupActor](https://github.com/coral-streaming/coral/wiki/LookupActor) | find data for a key value
-`stats`      | [StatsActor](https://github.com/coral-streaming/coral/wiki/StatsActor) | accumulate some basic statistics
-`threshold`  | [ThresholdActor](https://github.com/coral-streaming/coral/wiki/ThresholdActor) | emit only when a specified field value exceeds a threshold
-`window`     | [WindowActor](https://github.com/coral-streaming/coral/wiki/WindowActor) | collect input objects and emit only when reaching a certain number or a certain time
-`zscore`     | [ZscoreActor](https://github.com/coral-streaming/coral/wiki/ZscoreActor) | determine if a value is an outlier according to the Z-score statistic
+`cassandra`  | [CassandraActor](/coral/docs/Actors-CassandraActor.html) | connect to a Cassandra datasource
+`fsm`        | [FsmActor](/coral/docs/Actors-fsmActor.html) | select a state according to key
+`generator` | [GeneratorActor](/coral/docs/Actors-generatorActor.html) | generate data based on a JSON template and distribution definitions
+`group`      | [GroupByActor](/coral/docs/Actors-groupByActor.html) | partition the stream
+`json`        | [JsonActor](/coral/docs/Actors-jsonActor.html) | transform an input JSON
+`httpbroadcast` | [HttpBroadcastActor](/coral/docs/Actors-httpBroadcastActor.html) | pass (HTTP supplied) JSON to other actors
+`httpclient` | [HttpClientActor](/coral/docs/Actors-httpClientActor.html) | post to a service URL
+`lookup`     | [LookupActor](/coral/docs/Actors-lookupActor.html) | find data for a key value
+`stats`      | [StatsActor](/coral/docs/Actors-statsActor.html) | accumulate some basic statistics
+`threshold`  | [ThresholdActor](/coral/docs/Actors-thresholdActor.html) | emit only when a specified field value exceeds a threshold
+`window`     | [WindowActor](/coral/docs/Actors-windowActor.html) | collect input objects and emit only when reaching a certain number or a certain time
+`zscore`     | [ZscoreActor](/coral/docs/Actors-zscoreActor.html) | determine if a value is an outlier according to the Z-score statistic
 
 ## Creating a Coral actor
-The JSON to create a Coral Actor contains the following fields:
+The JSON to create a Coral Actor conforms to [JSON API](http://jsonapi.org/). The attributes in the JSON to create a Coral Actor contain the following fields:
 
 field     | type     | required | description
 :-------- | :------- | :------- | :------------
@@ -70,29 +71,43 @@ Having a group by field defined will invoke the (GroupByActor)[https://github.co
 Create the statistics actor with a timer action every 60 seconds.
 Group the statistics by the value of the trigger-field `tag`.
 {% highlight json %}
-{ "type":"stats",
-  "timeout": {
-    "duration": 60,
-    "mode": "continue"
-  },
-  "params": {
-    "field": "amount"
-  },
-  "group": {
-    "by": "tag"
+{
+  "data": {
+    "type": "actors",
+    "attributes": {
+      "type":"stats",
+      "timeout": {
+        "duration": 60,
+        "mode": "continue"
+      },
+      "params": {
+        "field": "amount"
+      },
+      "group": {
+        "by": "tag"
+      }
+    }
   }
 }
 {% endhighlight %}
+Note: the `data`, `attributes` and `"type": "actors"` are used because of the conformation to [JSON API](http://jsonapi.org/).
 
 ## Trigger
 
 #### Example
 {% highlight json %}
-{ "input":
-  { "trigger":
-    { "in":
-      { "type": "actor",
-        "source": 1
+{
+  "data": {
+    "type": "actors",
+    "id": "1",
+    "attributes": {
+      "input": {
+        "trigger": {
+          "in": {
+            "type": "actor",
+            "source": 2
+          }
+        }
       }
     }
   }

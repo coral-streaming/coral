@@ -34,13 +34,14 @@ class LookupActorSpec(_system: ActorSystem) extends TestKit(_system)
   "A Lookup actor" should {
     "Do nothing on missing function setting" in {
       val definition = parse( """ {
-                "type": "lookup",
+                "type": "actors",
+                "attributes": {"type": "lookup",
                 "params": {
                   "key": "city",
                   "lookup": {
                     "amsterdam": { "country": "netherlands", "population": 800000 },
                     "vancouver": { "country": "canada", "population": 600000 }
-                  }}}""").asInstanceOf[JObject]
+                  }}}}""").asInstanceOf[JObject]
 
       val props = CoralActorFactory.getProps(definition)
       assert(props == None)
@@ -48,13 +49,14 @@ class LookupActorSpec(_system: ActorSystem) extends TestKit(_system)
 
     "Do nothing on missing key setting" in {
       val definition = parse( """ {
-                "type": "lookup",
+                "type": "actors",
+                "attributes": {"type": "lookup",
                 "params": {
                   "function": "enrich",
                   "lookup": {
                     "amsterdam": { "country": "netherlands", "population": 800000 },
                     "vancouver": { "country": "canada", "population": 600000 }
-                  }}}""").asInstanceOf[JObject]
+                  }}}}""").asInstanceOf[JObject]
 
       val props = CoralActorFactory.getProps(definition)
       assert(props == None)
@@ -62,11 +64,12 @@ class LookupActorSpec(_system: ActorSystem) extends TestKit(_system)
 
     "Do nothing on missing lookup table" in {
       val definition = parse( """ {
-                "type": "lookup",
+                "type": "actors",
+                "attributes": {"type": "lookup",
                 "params": {
                   "key": "city",
                   "function": "enrich"
-                }}""").asInstanceOf[JObject]
+                }}}""").asInstanceOf[JObject]
 
       val props = CoralActorFactory.getProps(definition)
       assert(props == None)
@@ -216,14 +219,15 @@ class LookupActorSpec(_system: ActorSystem) extends TestKit(_system)
 
   def getLookupActor(method: String) = {
     val definition = parse( s""" {
-            "type": "lookup",
+            "type": "actors",
+            "attributes": {"type": "lookup",
             "params": {
               "key": "city",
               "function": "$method",
               "lookup": {
                 "amsterdam": { "country": "netherlands", "population": 800000 },
                 "vancouver": { "country": "canada", "population": 600000 }
-              }}}""").asInstanceOf[JObject]
+              }}}}""").asInstanceOf[JObject]
 
     val props = CoralActorFactory.getProps(definition).get
     val lookup = TestActorRef[LookupActor](props)

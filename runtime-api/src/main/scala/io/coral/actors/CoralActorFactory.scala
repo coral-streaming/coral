@@ -17,13 +17,13 @@ object CoralActorFactory {
 
 		// check for grouping, if so generate a group actor and move on ...
 		// otherwise, generate the proper actor
-		val groupByProps = (json \ "group" \ "by").extractOpt[String] match {
+		val groupByProps = (json \ "attributes" \ "group" \ "by").extractOpt[String] match {
 			case Some(x) => GroupByActor(json)
 			case None => None
 		}
 
 		val actorProps = for {
-			actorType <- (json \ "type").extractOpt[String] 
+			actorType <- (json \ "attributes" \ "type").extractOpt[String]
       props <- getActorProps(actorType, json, actorPropFactories)
     } yield props
 

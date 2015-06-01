@@ -17,7 +17,7 @@ object GroupByActor {
 
   def getParams(json: JValue) = {
     for {
-      by <- (json \ "group" \ "by").extractOpt[String]
+      by <- (json \ "attributes" \ "group" \ "by").extractOpt[String]
     } yield {
       by
     }
@@ -29,8 +29,8 @@ object GroupByActor {
 }
 
 class GroupByActor(json: JObject)(implicit injector: Injector) extends CoralActor with ActorLogging {
-  val Diff(_, _, jsonChildrenDef) = json diff JObject(("group",   json \ "group"))
-  val Diff(_, _, jsonDef)         = json diff JObject(("timeout", json \ "timeout"))
+  val Diff(_, _, jsonChildrenDef) = json diff JObject(("attributes", JObject(("group",   json \ "attributes" \ "group"))))
+  val Diff(_, _, jsonDef)         = json diff JObject(("attributes", JObject(("timeout", json \ "attributes" \ "timeout"))))
 
   val by = GroupByActor.getParams(json).get
 
