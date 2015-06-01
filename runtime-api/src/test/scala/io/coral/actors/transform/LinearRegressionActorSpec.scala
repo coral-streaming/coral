@@ -29,10 +29,12 @@ class LinearRegressionActorSpec(_system: ActorSystem)
   def createLinearRegressionActor(intercept: Double, weights: Map[String, Double]) = {
     implicit val formats = DefaultFormats
     val str =
-      s"""{ "type": "linearregression",
-         |"params": { "intercept": ${intercept},
-         |"weights": ${write(weights)}
-         |}}""".stripMargin
+      s"""{ "type": "actors",
+         |"attributes":{
+         |"type":"linearregression",
+          |"params": { "intercept": ${intercept},
+          |"weights": ${write(weights)}
+         |}}}""".stripMargin
 
     val createJson   = parse(str).asInstanceOf[JObject]
     val props        = CoralActorFactory.getProps(createJson).get
