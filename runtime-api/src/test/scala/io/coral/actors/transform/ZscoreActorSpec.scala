@@ -99,4 +99,5 @@ class ZscoreActorSpec(_system: ActorSystem)
         be(parse( s"""{ "dummy": "", "val": 50.0, "outlier": true }"""))
     }
   }
+
 }
