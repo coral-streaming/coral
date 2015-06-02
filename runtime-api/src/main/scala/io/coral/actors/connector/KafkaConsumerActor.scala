@@ -25,11 +25,8 @@ object KafkaConsumerActor {
   }
 
   def consumerProperties(json: JObject): Properties = {
-    val consumerTimeout = 500 // ms
     val properties = builder.properties
-    json.values.foreach { case (k: String, v: String) =>
-      properties.setProperty(k, v)
-    }
+    json.values.foreach { case (k: String, v: String) => properties.setProperty(k, v) }
     properties
   }
 

@@ -3,13 +3,11 @@ package io.coral.lib
 import java.util.Properties
 
 import kafka.consumer._
-import kafka.serializer.{Decoder, DefaultDecoder, StringDecoder}
+import kafka.serializer.{Decoder, DefaultDecoder}
 import org.json4s.JsonAST.{JObject, JValue}
 import org.json4s.jackson.JsonMethods._
 
 object KafkaJsonConsumer {
-
-  val builder = new ConfigurationBuilder("kafka.consumer")
 
   def apply() = new KafkaJsonConsumer(JsonDecoder)
 
@@ -47,10 +45,10 @@ class KafkaJsonStream(connection: ConsumerConnector, stream: KafkaStream[Array[B
 
 object JsonDecoder extends Decoder[JValue] {
 
-  val stringDecoder = new StringDecoder
+  val encoding = "UTF8"
 
   override def fromBytes(bytes: Array[Byte]): JObject = {
-    val s = stringDecoder.fromBytes(bytes)
+    val s = new String(bytes, encoding)
     parse(s).asInstanceOf[JObject]
   }
 
