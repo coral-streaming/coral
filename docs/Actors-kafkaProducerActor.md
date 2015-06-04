@@ -32,6 +32,17 @@ field  | type | required | description
 `topic` | String | yes| the name of the Kafka topic
 `kafka` | JSON | yes | the configuration parameters for the Kafka producer
 
+The properties of the kafka attribute should include at least the following:
+
+field  | type | required | description
+:----- | :---- | :--- | :------------
+`metadata.broker.list` | string | yes| the brokers to use initially.
+
+The producer type is configured as async. You can change this, but the KafkaProducerActor is designed for non-blocking
+communication with Kafka.
+
+Other properties may be supplied cf. the [Kafka producer properties](https://kafka.apache.org/documentation.html#producerconfigs).
+
 #### Example
 {% highlight json %}
 {
