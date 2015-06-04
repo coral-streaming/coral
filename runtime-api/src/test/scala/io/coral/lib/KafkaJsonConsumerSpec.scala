@@ -14,10 +14,6 @@ class KafkaJsonConsumerSpec extends WordSpec with Matchers with MockitoSugar {
 
   "KafkaJsonConsumer" should {
 
-    "provide a properties builder" in {
-      KafkaJsonConsumer.builder shouldBe new ConfigurationBuilder("kafka.consumer")
-    }
-
     "provide a stream" in {
       val consumer = KafkaJsonConsumer()
       intercept[IllegalArgumentException] {
