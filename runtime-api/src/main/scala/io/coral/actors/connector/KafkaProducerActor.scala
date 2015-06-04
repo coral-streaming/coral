@@ -7,9 +7,11 @@ import io.coral.actors.CoralActor
 import io.coral.lib.ConfigurationBuilder
 import kafka.producer.{ProducerConfig, KeyedMessage, Producer}
 import org.json4s.JsonAST.{JObject, JValue}
+import org.json4s.jackson.JsonMethods._
 
 import scala.concurrent.Future
 import scalaz.OptionT
+
 
 object KafkaProducerActor {
 
@@ -41,7 +43,7 @@ object KafkaProducerActor {
 class KafkaProducerActor(json: JObject) extends CoralActor with ActorLogging {
   val (properties, topic) = KafkaProducerActor.getParams(json).get
 
-  val producer = new Producer[String, Array[Byte]](new ProducerConfig(properties))
+  val producer = createProducer(properties)
 
   def jsonDef = json
 
@@ -57,8 +59,12 @@ class KafkaProducerActor(json: JObject) extends CoralActor with ActorLogging {
       OptionT.some(Future.successful({}))
   }
 
+  def createProducer(properties: Properties) = {
+    new Producer[String, Array[Byte]](new ProducerConfig(properties))
+  }
+
   def encode(message: JObject): Array[Byte] = {
-    message.toString.getBytes("UTF-8")
+    compact(message).getBytes("UTF-8")
   }
 
   private def send(key: Option[String], message: JObject) = {
