@@ -24,7 +24,7 @@ topic: Actors
 The `KafkaProducerActor` is a [Coral Actor](/coral/docs/Overview-Actors.html) that can write to Kafka.
 
 ## Creating a KafkaProducerActor
-The creation JSON of the KafkaProducerActor (see [Coral Actor](/coral/docs/Overview-Actors.html)) has `"type": "kafkaproducer"`.
+The creation JSON of the KafkaProducerActor (see [Coral Actor](/coral/docs/Overview-Actors.html)) has `"type": "kafka-producer"`.
 The `params` value is a JSON with the following fields:
 
 field  | type | required | description
@@ -38,11 +38,11 @@ field  | type | required | description
   "data": {
     "type": "actors",
     "attributes": {
-      "type": "kafkaproducer",
+      "type": "kafka-producer",
       "params": {
         "topic": "test"
         "kafka" : {
-          "metadata.broker.list": "broker1,broker2,broker3"
+          "metadata.broker.list": "broker1:9092,broker2:9092,broker3:9092"
         }
       }
     }
@@ -51,11 +51,23 @@ field  | type | required | description
 {% endhighlight %}
 
 ## Trigger
-The `KafkaProducerActor` only does useful work if the trigger is connected.
-The trigger can be any JSON. The supplied JSON will be send to Kafka.
+The `KafkaProducerActor` only does useful work if the trigger is connected. The trigger JSON needs to contain a field `message`.
+The value of this field is send to Kafka. The optional field `key` contains the key to use.
+
+#### Example
+{% highlight json %}
+{
+    "key": "somekey",
+    "message": {
+        "key1": "value1",
+        "key2": "value2"
+    }
+}
+{% endhighlight %}
 
 ## Emit
 The `KafkaProducerActor` emits nothing.
+Conceptually, the Kafka stream can be thought of as emit.
 
 ## State
 The `KafkaProducerActor` keeps no state.
