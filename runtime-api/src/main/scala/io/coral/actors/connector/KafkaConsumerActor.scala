@@ -61,8 +61,8 @@ class KafkaConsumerActor(json: JValue, connection: KafkaJsonConsumer) extends Te
 
     case ReadMessageQueue if stream.hasNextInTime =>
       val message: JValue = stream.next
-      transmit(message)
       stream.commitOffsets
+      transmit(message)
       self ! ReadMessageQueue
 
     case ReadMessageQueue =>
