@@ -1,0 +1,64 @@
+---
+layout: default
+title: kafkaProducerActor
+topic: Actors
+---
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+
+# KafkaProducerActor
+The `KafkaProducerActor` is a [Coral Actor](/coral/docs/Overview-Actors.html) that can write to Kafka.
+
+## Creating a KafkaProducerActor
+The creation JSON of the KafkaProducerActor (see [Coral Actor](/coral/docs/Overview-Actors.html)) has `"type": "kafkaproducer"`.
+The `params` value is a JSON with the following fields:
+
+field  | type | required | description
+:----- | :---- | :--- | :------------
+`topic` | String | yes| the name of the Kafka topic
+`kafka` | JSON | yes | the configuration parameters for the Kafka producer
+
+#### Example
+{% highlight json %}
+{
+  "data": {
+    "type": "actors",
+    "attributes": {
+      "type": "kafkaproducer",
+      "params": {
+        "topic": "test"
+        "kafka" : {
+          "metadata.broker.list": "broker1,broker2,broker3"
+        }
+      }
+    }
+  }
+}
+{% endhighlight %}
+
+## Trigger
+The `KafkaProducerActor` only does useful work if the trigger is connected.
+The trigger can be any JSON. The supplied JSON will be send to Kafka.
+
+## Emit
+The `KafkaProducerActor` emits nothing.
+
+## State
+The `KafkaProducerActor` keeps no state.
+
+## Collect
+The `KafkaProducerActor` does not collect state from other actors.
