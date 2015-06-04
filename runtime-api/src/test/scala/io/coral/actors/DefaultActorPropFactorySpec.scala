@@ -1,5 +1,6 @@
 package io.coral.actors
 
+import io.coral.actors.connector.KafkaConsumerActor
 import io.coral.actors.database.CassandraActor
 import io.coral.actors.transform._
 import org.json4s.native.JsonMethods._
@@ -82,6 +83,17 @@ class DefaultActorPropFactorySpec
           |}}""".stripMargin
       val props = factory.getProps("sample", parse(json))
       props.get.actorClass should be(classOf[SampleActor])
+    }
+
+    "Provide a KafkaConsumerActor for type 'kafka-consumer'" in {
+      val json =
+        """{
+          |"type": "actors",
+          |"attributes": {"type": "kafka-consumer",
+          |"params": { "topic": "bla", "kafka": {} }
+          |}}""".stripMargin
+      val props = factory.getProps("kafka-consumer", parse(json))
+      props.get.actorClass should be(classOf[KafkaConsumerActor])
     }
 
     "Provide a StatsActor for type 'stats'" in {
