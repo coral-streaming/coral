@@ -6,7 +6,7 @@ import akka.actor.Props
 import io.coral.actors.TemplateCoralActor
 import io.coral.lib.{ConfigurationBuilder, KafkaJsonConsumer}
 import kafka.serializer.Decoder
-import org.json4s.JsonAST.{JObject, JValue}
+import org.json4s.JsonAST.{JNothing, JObject, JValue}
 
 object KafkaConsumerActor {
 
@@ -55,14 +55,14 @@ class KafkaConsumerActor(json: JValue, connection: KafkaJsonConsumer) extends Te
     self ! ReadMessageQueue
   }
 
-  override def receive = super.receive orElse receiveKafka
-
-  def receiveKafka: Receive = {
+  override def receiveExtra: Receive = {
 
     case ReadMessageQueue if stream.hasNextInTime =>
       val message: JValue = stream.next
       stream.commitOffsets
-      transmit(message)
+      if (message != JNothing) {
+        transmit(message)
+      }
       self ! ReadMessageQueue
 
     case ReadMessageQueue =>
