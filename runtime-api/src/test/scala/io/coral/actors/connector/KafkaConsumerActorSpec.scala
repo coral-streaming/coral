@@ -81,7 +81,7 @@ class KafkaConsumerActorSpec(_system: ActorSystem)
 
     "provide actor properties" in {
       val json = apiJson(
-        """{ "type": "kafkaConsumer",
+        """{ "type": "kafka-consumer",
           |  "params": {
           |    "kafka" : {
           |      "group.id": "xyz",
@@ -97,7 +97,7 @@ class KafkaConsumerActorSpec(_system: ActorSystem)
 
     "read kafka parameters" in {
       val json = apiJson(
-        """{ "type": "kafkaConsumer",
+        """{ "type": "kafka-consumer",
           |  "params": {
           |    "kafka" : {
           |      "group.id": "xyz",
@@ -116,7 +116,7 @@ class KafkaConsumerActorSpec(_system: ActorSystem)
 
     "emit on receiving a message" in {
       val json = apiJson(
-        """{ "type": "kafkaConsumer",
+        """{ "type": "kafka-consumer",
           |  "params": {
           |    "kafka" : {
           |      "group.id": "xyz",
@@ -139,7 +139,7 @@ class KafkaConsumerActorSpec(_system: ActorSystem)
 
     "emit nothing when there are no messages message" in {
       val json = apiJson(
-        """{ "type": "kafkaConsumer",
+        """{ "type": "kafka-consumer",
           |  "params": {
           |    "kafka" : {
           |      "group.id": "xyz",
