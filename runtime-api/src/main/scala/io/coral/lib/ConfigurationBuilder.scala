@@ -18,7 +18,7 @@ case class ConfigurationBuilder(path: String) {
   def properties: Properties = {
     val props = new Properties()
     val it = config.entrySet().asScala
-    it.foreach { entry => println(s"key=${entry.getKey}, value=${entry.getValue.unwrapped}");props.setProperty(entry.getKey, entry.getValue.unwrapped.toString) }
+    it.foreach { entry => props.setProperty(entry.getKey, entry.getValue.unwrapped.toString) }
     props
   }
 
