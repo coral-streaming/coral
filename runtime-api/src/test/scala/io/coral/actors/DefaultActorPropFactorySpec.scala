@@ -74,7 +74,7 @@ class DefaultActorPropFactorySpec
       props.get.actorClass should be(classOf[HttpClientActor])
     }
 
-    "Provide a SampleActor for type 'threshold'" in {
+    "Provide a SampleActor for type 'sample'" in {
       val json =
         """{
           |"type": "actors",
@@ -83,6 +83,17 @@ class DefaultActorPropFactorySpec
           |}}""".stripMargin
       val props = factory.getProps("sample", parse(json))
       props.get.actorClass should be(classOf[SampleActor])
+    }
+
+    "Provide a JsonActor for type 'json" in {
+      val json =
+        """{
+          |"type": "actors",
+          |"attributes": {"type": "json",
+          |"params": {"template": {"a": "${b}"}}
+          |}}""".stripMargin
+      val props = factory.getProps("json", parse(json))
+      props.get.actorClass should be(classOf[JsonActor])
     }
 
     "Provide a KafkaConsumerActor for type 'kafka-consumer'" in {
@@ -96,7 +107,7 @@ class DefaultActorPropFactorySpec
       props.get.actorClass should be(classOf[KafkaConsumerActor])
     }
 
-    "Provide a KafkaProducerActor for type 'kafkaproducer'" in {
+    "Provide a KafkaProducerActor for type 'kafka-producer'" in {
       val json =
         """{
           |"type": "actors",
