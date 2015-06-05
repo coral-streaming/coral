@@ -10,6 +10,7 @@ class ConfigurationBuilderSpec extends WordSpecLike with Matchers {
       val builder = new ConfigurationBuilder("test.builder")
       val properties = builder.properties
       properties.getProperty("someProperty") shouldBe "someValue"
+      properties.getProperty("anInteger") shouldBe "3"
     }
 
     "allow to add properties" in {
@@ -18,7 +19,7 @@ class ConfigurationBuilderSpec extends WordSpecLike with Matchers {
       properties.setProperty("vis", "blub")
       properties.getProperty("someProperty") shouldBe "someValue"
       properties.getProperty("vis") shouldBe "blub"
-      properties.size shouldBe 2
+      properties.size shouldBe 3
     }
 
     "allow to replace properties" in {
