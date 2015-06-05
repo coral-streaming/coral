@@ -14,6 +14,7 @@ class DefaultActorPropFactory extends ActorPropFactory {
       case "generator" => GeneratorActor(params)
       case "httpbroadcast" => HttpBroadcastActor(params)
       case "httpclient" => HttpClientActor(params)
+      case "json" => JsonActor(params)
       case "kafka-consumer" => KafkaConsumerActor(params)
       case "kafka-producer" => KafkaProducerActor(params)
       case "lookup" => LookupActor(params)
