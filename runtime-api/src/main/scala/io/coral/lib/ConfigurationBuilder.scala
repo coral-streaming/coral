@@ -4,6 +4,8 @@ import java.util.Properties
 
 import com.typesafe.config.{Config, ConfigFactory}
 
+import scala.collection.JavaConverters._
+
 /**
  * Helper class to obtain properties, but have application defined properties already added
  * E.g. Kafka uses java properties for producer and consumer instantiation
@@ -13,22 +15,11 @@ case class ConfigurationBuilder(path: String) {
 
   private lazy val config: Config = ConfigFactory.load.getConfig(path)
 
-  def properties: Properties = new ConfigProperties(config)
-
-}
-
-/**
- * Read properties from configuration and
- * - Make these accessible as Properties
- * - Allow properties to be overwritten
- * @param config base configuration
- */
-private final class ConfigProperties(config: Config) extends Properties() {
-
-  override def getProperty(name: String): String =
-    if (super.containsKey(name)) super.getProperty(name)
-    else config.getString(name)
-
-  override def size = config.entrySet().size + super.size
+  def properties: Properties = {
+    val props = new Properties()
+    val it = config.entrySet().asScala
+    it.foreach { entry => println(s"key=${entry.getKey}, value=${entry.getValue.unwrapped}");props.setProperty(entry.getKey, entry.getValue.unwrapped.toString) }
+    props
+  }
 
 }
