@@ -4,7 +4,7 @@ import java.util.Properties
 
 import kafka.consumer._
 import kafka.message.MessageAndMetadata
-import org.json4s.JsonAST.JValue
+import org.json4s.JsonAST.{JNothing, JValue}
 import org.json4s.jackson.JsonMethods._
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
@@ -53,6 +53,12 @@ class KafkaJsonConsumerSpec extends WordSpec with Matchers with MockitoSugar {
       val bytes = jsonString.getBytes
       val jsonValue = parse(jsonString)
       JsonDecoder.fromBytes(bytes) shouldBe jsonValue
+    }
+
+    "return JNothing for invalid JSon" in {
+      val jsonString = """hello"""
+      val bytes = jsonString.getBytes
+      JsonDecoder.fromBytes(bytes) shouldBe JNothing
     }
 
   }

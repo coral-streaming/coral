@@ -6,7 +6,7 @@ import akka.actor.{ActorSystem, Props}
 import akka.testkit.{ImplicitSender, TestKit, TestProbe}
 import io.coral.actors.Messages.RegisterActor
 import io.coral.lib.{JsonDecoder, KafkaJsonConsumer, KafkaJsonStream}
-import org.json4s.JsonAST.{JNull, JValue}
+import org.json4s.JsonAST.{JNothing, JNull, JValue}
 import org.json4s.jackson.JsonMethods._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
@@ -25,11 +25,18 @@ object KafkaConsumerActorSpec {
 
     private var message: List[JValue] = Nil
 
-    def publish(value: String*): Unit = {
-      message = value.toList.map(json)
+    def publish(value: Any*): Unit = {
+      message = value.toList.map(_ match {
+        case j: JValue => j
+        case _ => JNothing
+      })
     }
 
-    def json(message: String): JValue = parse( s"""{ "message": "${message}" }""")
+    def json(message: String): JValue = try {
+      parse( s"""{ "message": "${message}" }""")
+    } catch {
+      case e: Throwable => JNothing
+    }
 
     @inline
     override def hasNextInTime: Boolean = message match {
@@ -130,7 +137,7 @@ class KafkaConsumerActorSpec(_system: ActorSystem)
       val actorRef = system.actorOf(props) // using TestActorRef blocks test thread
       val probe = TestProbe()
       actorRef ! RegisterActor(probe.ref)
-      stream.publish("bla", "blabla", "blablabla")
+      stream.publish(stream.json("bla"), stream.json("blabla"), stream.json("blablabla"))
       probe.expectMsg(100.millis, stream.json("bla"))
       probe.expectMsg(100.millis, stream.json("blabla"))
       probe.expectMsg(100.millis, stream.json("blablabla"))
@@ -156,6 +163,25 @@ class KafkaConsumerActorSpec(_system: ActorSystem)
       probe.expectNoMsg(500.millis)
     }
 
+    "emit nothing when the Kafka message is not valid Json" in {
+      val json = apiJson(
+        """{ "type": "kafka-consumer",
+          |  "params": {
+          |    "kafka" : {
+          |      "group.id": "xyz",
+          |      "zookeeper.connect": "localhost:2181"
+          |    },
+          |    "topic": "abc"
+          | } }""".stripMargin)
+      val stream = new TestKafkaJsonStream
+      val kafka = new TestKafkaJsonConsumer(stream)
+      val props = Props(classOf[KafkaConsumerActor], json, kafka)
+      val actorRef = system.actorOf(props) // using TestActorRef blocks test thread
+      val probe = TestProbe()
+      actorRef ! RegisterActor(probe.ref)
+      stream.publish("oops")
+      probe.expectNoMsg(500.millis)
+    }
   }
 
 }

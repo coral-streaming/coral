@@ -2,9 +2,10 @@ package io.coral.lib
 
 import java.util.Properties
 
+import com.fasterxml.jackson.core.JsonParseException
 import kafka.consumer._
 import kafka.serializer.{Decoder, DefaultDecoder}
-import org.json4s.JsonAST.{JObject, JValue}
+import org.json4s.JsonAST.{JNothing, JValue}
 import org.json4s.jackson.JsonMethods._
 
 object KafkaJsonConsumer {
@@ -47,9 +48,13 @@ object JsonDecoder extends Decoder[JValue] {
 
   val encoding = "UTF8"
 
-  override def fromBytes(bytes: Array[Byte]): JObject = {
+  override def fromBytes(bytes: Array[Byte]): JValue = {
     val s = new String(bytes, encoding)
-    parse(s).asInstanceOf[JObject]
+    try {
+      parse(s)
+    } catch {
+      case jpe: JsonParseException => JNothing
+    }
   }
 
 }
