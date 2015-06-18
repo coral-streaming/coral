@@ -1,7 +1,8 @@
 from httpMethods import *
-import time
 
-
+# Create an actor
+# adds obligatory json-api structure to actor specific parameters
+# TODO: handle group by
 def create_actor(type, params):
     return post('/api/actors',
                 {"data":
@@ -10,7 +11,8 @@ def create_actor(type, params):
                           {"type": type,
                            "params": params}}})
 
-
+# Create the generator actor
+# TODO: modify generator actor to conform to other actors (format -> params)
 def create_generator(params, rate, times, delay=0):
     return post('/api/actors',
                 {"data":
@@ -23,6 +25,9 @@ def create_generator(params, rate, times, delay=0):
                                 "times": times,
                                 "delay": delay}}}})
 
+# Connect an actor to the emit of another actor
+# source: emitting actor
+# target: actor triggered by source
 def connect_actor(source, target):
     return patch('/api/actors/' + str(target),
                  {"data":
@@ -35,29 +40,4 @@ def connect_actor(source, target):
                                           {"type": "actor",
                                            "source": source}}}}}})
 
-# GENERATE DEMO DATA
-# 1 - Generate fake ip data
-create_generator({"ip": "['0.0.0.0', '0.0.0.1', '0.0.0.2', '0.0.0.3']"}, rate=100, times=100000, delay=1000)
-# 2 - Prepare for kafka producer by with "message" envelope
-create_actor("json", {"template": {"message": {"ip": "${ip}"}}})
-# 3 - Send data to Kafka
-create_actor("kafka-producer", {"topic": "demo_in", "kafka": {"metadata.broker.list": "localhost:9092"}})
 
-# PIPELINE
-# 4 - Read from Kafka
-create_actor("kafka-consumer", {"topic": "demo_in", "kafka": {"zookeeper.connect": "localhost:2181", "group.id": "demo001"}})
-# 5 - Check IP statically
-create_actor("lookup", {"key": "ip", "lookup": {"0.0.0.0": {}}, "function": "filter"})
-# 6 - Prepare for kafka producer by with "message" envelope
-create_actor("json", {"template": {"message": {"ip": "${ip}", "result": "suspicious"}}})
-# 7 - Send result to Kafka
-create_actor("kafka-producer", {"topic": "demo_out", "kafka": {"metadata.broker.list": "localhost:9092"}})
-
-time.sleep(1)
-
-connect_actor(1, 2)
-connect_actor(2, 3)
-connect_actor(3, 4)
-connect_actor(4, 5)
-connect_actor(5, 6)
-connect_actor(6, 7)
