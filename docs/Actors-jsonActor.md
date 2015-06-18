@@ -1,6 +1,6 @@
 ---
 layout: default
-title: jsonActor
+title: JsonActor
 topic: Actors
 ---
 <!--
@@ -41,11 +41,11 @@ field  | type | required | description
       "params": {
         "template": {
           "a": "some constant text",
-          "b": ":referenceField",
-          "c": ":ref.sub.sub[2]",
+          "b": "${referenceField}",
+          "c": "${ref.sub.sub[2]}",
           "d": {
-            "e": ":ref2",
-            "f": ":ref3"
+            "e": "${ref2}",
+            "f": "${ref3}"
           }
         }
       }
@@ -53,7 +53,7 @@ field  | type | required | description
   }
 }
 {% endhighlight %}
-If fields are expressions the create a string field starting with a the expression (according to the coral JSON expression parser) surrounde by `${` ... `}`.
+If fields are expressions the create a string field starting with a the expression (according to the coral JSON expression parser) surrounded by `${` ... `}`.
 
 ## Trigger
 The `JsonActor` only does useful work if the trigger is connected.
