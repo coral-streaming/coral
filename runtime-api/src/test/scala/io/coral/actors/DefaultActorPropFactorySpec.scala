@@ -140,15 +140,15 @@ class DefaultActorPropFactorySpec
       props.get.actorClass should be(classOf[ThresholdActor])
     }
 
-    "Provide a MarkovScoreActor for type 'markovscore'" in {
+    "Provide a LinearRegressionActor for type 'linearregression'" in {
       val json =
         """{
           |"type": "actors",
-          |"attributes": {"type": "markovscore",
-          |"params": {"transitionProbs": [{"source": "s009", "destination": "s010", "prob": 0.1}]}
+          |"attributes": {"type": "linearregression",
+          |"params": {"intercept": 0.1, "weights":{"salary": 0.43, "age": 1.8 }}
           |}}""".stripMargin
-      val props = factory.getProps("markovscore", parse(json))
-      props.get.actorClass should be(classOf[MarkovScoreActor])
+      val props = factory.getProps("linearregression", parse(json))
+      props.get.actorClass should be(classOf[LinearRegressionActor])
     }
 
     "Provide a WindowActor for type 'window'" in {
