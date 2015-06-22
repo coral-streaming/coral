@@ -1,5 +1,6 @@
 package io.coral.actors.transform
 
+import akka.actor.FSM.->
 import akka.actor.{ActorRef, ActorSystem}
 import akka.testkit.{TestProbe, TestActorRef, ImplicitSender, TestKit}
 import io.coral.actors.CoralActorFactory
@@ -33,7 +34,6 @@ class MarkovScoreActorSpec(_system: ActorSystem) extends TestKit(_system)
          |"type":"markovscore",
          |"params": { "transitionProbs": [${writeMapJson(transitionProbs)}]                                                }
           |}}}""".stripMargin
-
     val createJson   = parse(str).asInstanceOf[JObject]
     val props        = CoralActorFactory.getProps(createJson).get
     val actorTestRef = TestActorRef[MarkovScoreActor](props)
@@ -43,19 +43,30 @@ class MarkovScoreActorSpec(_system: ActorSystem) extends TestKit(_system)
     actorTestRef
   }
 
-  def writeMapJson(map: Map[(String, String), Double]){
-    //s"""{"source": ${map}} ""
+  def writeMapJson(map: Map[(String, String), Double]): String = {
     val objects = map.map{case ((source, destination), prob) => s"""{"source": "$source", "destination": "$destination", "prob": $prob}"""}
-    println(objects.mkString(","))
     objects.mkString(",")
   }
 
   "MarkovScoreActor" should {
     "Instantiate from companion object" in {
-      val actor = createMarkovScoreActor(Map(("s00", "s01") -> 0.2, ("s00", "s02") -> 0.1 ))
+      //val actor = createMarkovScoreActor(Map(("s00", "s01") -> 0.2, ("s00", "s02") -> 0.1))
+      val actor = createMarkovScoreActor(Map(("s00", "s01") -> 0.2))
       println(pretty(actor.underlyingActor.jsonDef))
-      //actor.underlyingActor.transitionProbs should be (Map(("s00", "s01") -> 0.2))
+      actor.underlyingActor.transitionProbs should be (Map(("s00", "s01") -> 0.2))
     }
+
+    "have no state" in {
+      val actor = createMarkovScoreActor(Map(("s00", "s01") -> 0.2))
+      actor.underlyingActor.state should be(Map.empty)
+    }
+
+    "have no timer action" in {
+      val actor = createMarkovScoreActor(Map(("s00", "s01") -> 0.2))
+      actor.underlyingActor.timer should be(actor.underlyingActor.noTimer)
+    }
+
+
 
   }
 

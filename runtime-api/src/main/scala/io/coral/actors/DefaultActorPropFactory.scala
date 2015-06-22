@@ -24,6 +24,7 @@ class DefaultActorPropFactory extends ActorPropFactory {
       case "window" => WindowActor(params)
       case "zscore" => ZscoreActor(params)
       case "linearregression" => LinearRegressionActor(params)
+      case "markovscore" => MarkovScoreActor(params)
       case _ => None
     }
   }
