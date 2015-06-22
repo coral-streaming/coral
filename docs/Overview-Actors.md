@@ -29,9 +29,9 @@ name         | class | description
 :----------- | :---- | :----------
 `cassandra`  | [CassandraActor](/coral/docs/Actors-CassandraActor.html) | connect to a Cassandra datasource
 `fsm`        | [FsmActor](/coral/docs/Actors-fsmActor.html) | select a state according to key
-`generator` | [GeneratorActor](/coral/docs/Actors-generatorActor.html) | generate data based on a JSON template and distribution definitions
+`generator`  | [GeneratorActor](/coral/docs/Actors-generatorActor.html) | generate data based on a JSON template and distribution definitions
 `group`      | [GroupByActor](/coral/docs/Actors-groupByActor.html) | partition the stream
-`json`        | [JsonActor](/coral/docs/Actors-jsonActor.html) | transform an input JSON
+`json`       | [JsonActor](/coral/docs/Actors-jsonActor.html) | transform an input JSON
 `httpbroadcast` | [HttpBroadcastActor](/coral/docs/Actors-httpBroadcastActor.html) | pass (HTTP supplied) JSON to other actors
 `httpclient` | [HttpClientActor](/coral/docs/Actors-httpClientActor.html) | post to a service URL
 `lookup`     | [LookupActor](/coral/docs/Actors-lookupActor.html) | find data for a key value
@@ -39,6 +39,7 @@ name         | class | description
 `threshold`  | [ThresholdActor](/coral/docs/Actors-thresholdActor.html) | emit only when a specified field value exceeds a threshold
 `window`     | [WindowActor](/coral/docs/Actors-windowActor.html) | collect input objects and emit only when reaching a certain number or a certain time
 `zscore`     | [ZscoreActor](/coral/docs/Actors-zscoreActor.html) | determine if a value is an outlier according to the Z-score statistic
+`markovscore` | [MarkovScoreActor](/coral/docs/Actors-markovScoreActor.html) | produce markov score for click path streaming
 
 ## Creating a Coral actor
 The JSON to create a Coral Actor conforms to [JSON API](http://jsonapi.org/). The attributes in the JSON to create a Coral Actor contain the following fields:
