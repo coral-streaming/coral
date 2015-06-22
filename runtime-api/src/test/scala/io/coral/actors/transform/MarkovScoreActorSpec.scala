@@ -50,9 +50,8 @@ class MarkovScoreActorSpec(_system: ActorSystem) extends TestKit(_system)
 
   "MarkovScoreActor" should {
     "Instantiate from companion object" in {
-      //val actor = createMarkovScoreActor(Map(("s00", "s01") -> 0.2, ("s00", "s02") -> 0.1))
       val actor = createMarkovScoreActor(Map(("s00", "s01") -> 0.2))
-      println(pretty(actor.underlyingActor.jsonDef))
+      //println(pretty(actor.underlyingActor.jsonDef))
       actor.underlyingActor.transitionProbs should be (Map(("s00", "s01") -> 0.2))
     }
 
@@ -66,8 +65,19 @@ class MarkovScoreActorSpec(_system: ActorSystem) extends TestKit(_system)
       actor.underlyingActor.timer should be(actor.underlyingActor.noTimer)
     }
 
+    "calculate Markov score of the click path with known states" in {
+      val actor = createMarkovScoreActor(Map(("s00", "s01") -> 0.2, ("s01", "s02") -> 0.1))
+      val message = parse(s"""{"transitions": ["s00", "s01", "s02"]}""").asInstanceOf[JObject]
+      actor ! message
+      actor.underlyingActor.result should be(0.2 * 0.1)
+    }
 
-
+    "return zero when click path contains unknown state" in {
+      val actor = createMarkovScoreActor(Map(("s00", "s01") -> 0.2, ("s01", "s02") -> 0.1))
+      val message = parse(s"""{"transitions": ["s00", "s01", "s03"]}""").asInstanceOf[JObject]
+      actor ! message
+      actor.underlyingActor.result should be(0.0)
+    }
   }
 
 
