@@ -1,6 +1,3 @@
-// Natalino Busa
-// http://www.linkedin.com/in/natalinobusa
-
 import com.typesafe.sbt.packager.archetypes.JavaAppPackaging
 import sbt.Keys._
 import sbt._
@@ -13,7 +10,7 @@ object Packaging {
 
   val packagingSettings = Seq(
     name := Settings.appName,
-    NativePackagerKeys.packageName := "natalinobusa"
+    NativePackagerKeys.packageName := "coral"
   ) ++ buildSettings
 
 }

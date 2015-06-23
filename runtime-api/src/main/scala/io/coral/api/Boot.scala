@@ -1,6 +1,3 @@
-// Natalino Busa
-// http://www.linkedin.com/in/natalinobusa
-
 package io.coral.api
 
 import akka.actor.ActorSystem

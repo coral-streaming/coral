@@ -4,7 +4,7 @@ import Keys._
 object Settings {
   val appName = "coral"
 
-  val buildOrganization = "com.natalinobusa"
+  val buildOrganization = "io.coral"
   val buildVersion      = "1.0.0"
   val buildScalaVersion = "2.11.5"
 
