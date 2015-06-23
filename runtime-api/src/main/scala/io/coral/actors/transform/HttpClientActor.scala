@@ -15,7 +15,7 @@ import akka.actor.{ActorLogging, Props}
 //json goodness
 import org.json4s._
 import org.json4s.JsonDSL._
-import org.json4s.jackson.JsonMethods.render
+import org.json4s.jackson.JsonMethods.{compact, render}
 import org.json4s.native.JsonMethods._
 
 // coral
@@ -84,8 +84,7 @@ class HttpClientActor(json: JObject) extends CoralActor with ActorLogging {
   def trigger: (JObject) => OptionT[Future, Unit] = {
     json: JObject =>
       for {
-        payload <- getTriggerInputField[String](json \ "payload", "")
-        response <- getResponse(payload)
+        response <- getResponse(compact(render(json)))
       } yield {
         answer = response
       }

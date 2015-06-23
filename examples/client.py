@@ -6,7 +6,6 @@ import time
 import random 
 
 api = 'http://localhost:8000'
-#api = 'http://natalinobusa-coral.herokuapp.com'
 headers = {'Content-Type': 'application/vnd.api+json', 'Accept': 'application/vnd.api+json'}
 
 def post(path, payload={}) :
