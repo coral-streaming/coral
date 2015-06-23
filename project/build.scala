@@ -36,17 +36,11 @@ object TopLevelBuild extends Build {
   lazy val coral = Project (
     id = Settings.appName,
     base = file (".")
-  ).aggregate(coralCore, coralApi)
+  ).aggregate(coralApi)
 
   lazy val coralApi = Project (
     id = "runtime-api",
     base = file ("runtime-api"),
-    settings = projectSettings
-  ).configs( IntegrationTest ).settings( Defaults.itSettings : _*).enablePlugins(Plugins.enablePlugins: _*)
-
-  lazy val coralCore = Project (
-    id = "coral-core",
-    base = file ("coral-core"),
     settings = projectSettings
   ).configs( IntegrationTest ).settings( Defaults.itSettings : _*).enablePlugins(Plugins.enablePlugins: _*)
 }
