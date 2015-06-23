@@ -1,8 +1,8 @@
 package io.coral.lib
 
-import org.scalatest.{Matchers, WordSpecLike}
 import org.json4s._
 import org.json4s.native.JsonMethods._
+import org.scalatest.{Matchers, WordSpecLike}
 
 class JsonExpressionParserSpec extends WordSpecLike with Matchers {
   implicit val formats = org.json4s.DefaultFormats
@@ -10,7 +10,7 @@ class JsonExpressionParserSpec extends WordSpecLike with Matchers {
   "A JsonExpressionParser" should {
     "Properly extract array values" in {
       val expr = "field[0]"
-      val json = parse( 
+      val json = parse(
         """{ "field": [
               { "value": "first" },
                  { "value": "second" },
@@ -19,7 +19,7 @@ class JsonExpressionParserSpec extends WordSpecLike with Matchers {
               }""")
         .asInstanceOf[JObject]
       val actual = JsonExpressionParser.parse(expr, json)
-      val expected = parse("""{ "value": "first" }""").asInstanceOf[JObject]
+      val expected = parse( """{ "value": "first" }""").asInstanceOf[JObject]
       assert(actual == expected)
     }
 
@@ -44,7 +44,7 @@ class JsonExpressionParserSpec extends WordSpecLike with Matchers {
 
     "Properly extract double from simple field" in {
       val expr = "field"
-      val json = parse("""{ "field": 2.0 }""")
+      val json = parse( """{ "field": 2.0 }""")
         .asInstanceOf[JObject]
       val actual = JsonExpressionParser.parse(expr, json)
       val expected = 2.0
@@ -156,7 +156,7 @@ class JsonExpressionParserSpec extends WordSpecLike with Matchers {
 
     "Do not extract nonexisting simple field" in {
       val expr = "doesnotexist"
-      val json = parse("""{ "field": 2.0 }""")
+      val json = parse( """{ "field": 2.0 }""")
         .asInstanceOf[JObject]
       val actual = JsonExpressionParser.parse(expr, json)
       val expected = JNothing
@@ -273,6 +273,25 @@ class JsonExpressionParserSpec extends WordSpecLike with Matchers {
         .asInstanceOf[JObject]
       val actual = JsonExpressionParser.parse(expr, json)
       val expected = JNothing
+      assert(actual == expected)
+    }
+
+    "Extract the whole json for reference *" in {
+      val expr = "*"
+      val json = parse(
+        """{ "field": {
+             "inner": {
+                "nested": 1,
+                "double": 2.0,
+                "array": [
+                   { "inner1": "bla" },
+                   { "inner2": "value" }
+                ]
+             }
+           }
+         }""").asInstanceOf[JObject]
+      val actual = JsonExpressionParser.parse(expr, json)
+      val expected = json
       assert(actual == expected)
     }
   }
