@@ -1,6 +1,6 @@
 ---
 layout: default
-title: markovActor
+title: markovScoreActor
 topic: Actors
 ---
 <!--
@@ -24,7 +24,7 @@ topic: Actors
 The `MarkovScore` is a [Coral Actor](https://github.com/coral-streaming/coral/wiki/Coral-Actors) which provides Markov score on click streaming path.
 
 ## Creating a MarkovScoreActor
-The creation JSON of the MarkovScore actor (see [Coral Actor](https://github.com/coral-streaming/coral/wiki/Coral-Actors)) has `"type": "MarkovScore"`.
+The creation JSON of the MarkovScore actor (see [Coral Actor](https://github.com/coral-streaming/coral/wiki/Coral-Actors)) has `"type": "markovscore"`.
 The `params` value contains the following fields:
 
 field  | type | required | description
