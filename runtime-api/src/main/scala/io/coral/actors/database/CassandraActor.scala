@@ -33,9 +33,7 @@ object CassandraActor {
     }
 }
 
-class CassandraActor(json: JObject) extends CoralActor with CassandraHelper {
-    def jsonDef = json
-
+class CassandraActor(json: JObject) extends CoralActor(json) with CassandraHelper {
     var (seeds, port, keyspace) = CassandraActor.getParams(json).get
 
     override def preStart() {

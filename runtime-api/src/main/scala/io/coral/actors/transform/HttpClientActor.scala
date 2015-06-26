@@ -57,13 +57,11 @@ object HttpClientActor {
   }
 }
 
-class HttpClientActor(json: JObject) extends CoralActor with ActorLogging {
+class HttpClientActor(json: JObject) extends CoralActor(json) with ActorLogging {
   private val ContentTypeJson = "application/json"
   private val TimeOut = 5.seconds
 
   val (url, method, headers) = HttpClientActor.getParams(jsonDef).get
-
-  def jsonDef = json
 
   override def timer: Timer = {
     val future = getResponse("").run.map{

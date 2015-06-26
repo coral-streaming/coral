@@ -17,7 +17,6 @@ object HttpBroadcastActor {
   }
 }
 
-class HttpBroadcastActor(json: JObject) extends CoralActor with ActorLogging {
-  def jsonDef = json
+class HttpBroadcastActor(json: JObject) extends CoralActor(json) with ActorLogging {
   override def emit    = emitPass
 }

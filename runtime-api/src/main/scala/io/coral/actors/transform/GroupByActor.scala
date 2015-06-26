@@ -28,11 +28,13 @@ object GroupByActor {
   }
 }
 
-class GroupByActor(json: JObject)(implicit injector: Injector) extends CoralActor with ActorLogging {
+class GroupByActor(json: JObject)(implicit injector: Injector) extends CoralActor(json) with ActorLogging {
   val Diff(_, _, jsonChildrenDef) = json diff JObject(("attributes", JObject(("group",   json \ "attributes" \ "group"))))
-  val Diff(_, _, jsonDef)         = json diff JObject(("attributes", JObject(("timeout", json \ "attributes" \ "timeout"))))
+  val Diff(_, _, jsonDefinition)         = json diff JObject(("attributes", JObject(("timeout", json \ "attributes" \ "timeout"))))
 
   val by = GroupByActor.getParams(json).get
+
+  override def jsonDef = jsonDefinition.asInstanceOf[JObject]
 
   override def state = Map(("actors", render(children)))
 

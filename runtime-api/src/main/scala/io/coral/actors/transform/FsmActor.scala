@@ -34,9 +34,7 @@ object FsmActor {
 
 }
 
-class FsmActor(json: JObject) extends CoralActor with ActorLogging {
-
-  def jsonDef = json
+class FsmActor(json: JObject) extends CoralActor(json) with ActorLogging {
 
   val (key, table, s0) = FsmActor.getParams(json).get
 

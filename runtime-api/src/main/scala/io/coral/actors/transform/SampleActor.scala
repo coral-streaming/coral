@@ -28,7 +28,7 @@ object SampleActor {
 
 }
 
-class SampleActor(json: JValue, random: Random) extends CoralActor {
+class SampleActor(json: JObject, random: Random) extends CoralActor(json) {
 
   val fraction: Double = SampleActor.getParams(json).get
 
@@ -41,8 +41,6 @@ class SampleActor(json: JValue, random: Random) extends CoralActor {
   }
 
   var pass: Boolean = false
-
-  def jsonDef = json
 
   override def trigger = {
     _ => {

@@ -128,9 +128,7 @@ object WindowActor {
     }
 }
 
-class WindowActor(json: JObject) extends CoralActor with ActorLogging {
-    def jsonDef = json
-
+class WindowActor(json: JObject) extends CoralActor(json) with ActorLogging {
     var (method, number, sliding) = WindowActor.getParams(json).get
 
     // The list of items is a tuple with adding time

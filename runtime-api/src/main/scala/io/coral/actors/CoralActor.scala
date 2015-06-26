@@ -32,11 +32,11 @@ object TimerExit     extends TimerBehavior
 object TimerContinue extends TimerBehavior
 object TimerNone     extends TimerBehavior
 
-abstract class CoralActor extends Actor with ActorLogging {
+abstract class CoralActor(json: JObject) extends Actor with ActorLogging {
   // begin: implicits and general actor init
   def actorRefFactory = context
 
-  def jsonDef: JValue
+  def jsonDef = json
 
   // transmit actor list
   var emitTargets = SortedSet.empty[ActorRef]

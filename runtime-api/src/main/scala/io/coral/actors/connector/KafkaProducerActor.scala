@@ -44,12 +44,10 @@ object KafkaProducerActor {
   }
 }
 
-class KafkaProducerActor[T <: Encoder[JValue]](json: JObject, connection: KafkaJsonProducer[T]) extends CoralActor with ActorLogging {
+class KafkaProducerActor[T <: Encoder[JValue]](json: JObject, connection: KafkaJsonProducer[T]) extends CoralActor(json) with ActorLogging {
   val (properties, topic) = KafkaProducerActor.getParams(json).get
 
   lazy val kafkaSender = connection.createSender(topic, properties)
-
-  def jsonDef = json
 
   override def trigger = {
     json =>

@@ -28,8 +28,7 @@ object LookupActor {
   }
 }
 
-class LookupActor(json: JObject) extends CoralActor with ActorLogging {
-  def jsonDef = json
+class LookupActor(json: JObject) extends CoralActor(json) with ActorLogging {
   val (key, lookup, function) = LookupActor.getParams(json).get
 
   //local state

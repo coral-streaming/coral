@@ -41,12 +41,6 @@ class JsonActorSpec(_system: ActorSystem)
       props.actorClass shouldBe classOf[JsonActor]
     }
 
-    "have jsonDef return the construction" in {
-      val json = apiJson( """{ "type": "json", "params": { "template": {} } }""")
-      val actor = createJsonActor(json)
-      actor.jsonDef shouldBe json
-    }
-
     "read the template parameter" in {
       val template = """{ "a": "someReference" }"""
       val json = apiJson( s"""{ "type": "json", "params": { "template": ${template} } }""")

@@ -34,11 +34,9 @@ object StatsActor {
   }
 }
 
-class StatsActor(json: JObject) extends CoralActor with ActorLogging {
+class StatsActor(json: JObject) extends CoralActor(json) with ActorLogging {
 
   implicit def double2jvalue(x: Double): JValue = if (x.isNaN) JNull else JDouble(x)
-
-  def jsonDef = json
 
   val field = StatsActor.getParams(json).get
 

@@ -23,11 +23,10 @@ object LinearRegressionActor {
   }
 }
 
-class LinearRegressionActor(json: JObject) extends CoralActor with ActorLogging {
+class LinearRegressionActor(json: JObject) extends CoralActor(json) with ActorLogging {
   val (intercept, weights) = LinearRegressionActor.getParams(json).get
 
   var result: Double = _
-  def jsonDef = json
 
   override def trigger = {
     json =>

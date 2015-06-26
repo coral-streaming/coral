@@ -79,8 +79,7 @@ object GeneratorActor {
   }
 }
 
-class GeneratorActor(json: JObject) extends CoralActor {
-  def jsonDef = json
+class GeneratorActor(json: JObject) extends CoralActor(json) {
 
   val (format, rate, times, delay) = GeneratorActor.getParams(json).get
 

@@ -25,11 +25,9 @@ object JsonActor {
 
 }
 
-class JsonActor(json: JObject) extends CoralActor {
+class JsonActor(json: JObject) extends CoralActor(json) {
 
   val template = JsonTemplate(JsonActor.getParams(json).get)
-
-  override def jsonDef: JValue = json
 
   override def emit: Emit = json => template.interpret(json)
 
