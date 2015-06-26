@@ -49,8 +49,6 @@ class KafkaProducerActor(json: JObject) extends CoralActor with ActorLogging {
 
   def state = Map.empty
 
-  def timer = noTimer
-
   def trigger = {
     json =>
       val key = (json \ "key").extractOpt[String]

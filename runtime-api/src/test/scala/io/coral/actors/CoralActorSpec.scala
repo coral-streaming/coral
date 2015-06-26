@@ -43,7 +43,6 @@ class CoralActorSpec(_system: ActorSystem)
     def jsonDef: JValue = JNothing
     def state   = Map.empty[String, JValue]
 
-    def timer   = noTimer
     def emit    = emitNothing
     def trigger = defaultTrigger
 

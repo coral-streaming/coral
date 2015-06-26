@@ -215,8 +215,6 @@ class ApiServiceSpec
 class TestActor1 extends CoralActor {
   def jsonDef = parse("""{"type": "actors", "attributes": {"type": "testactor", "key": "value"}}""")
 
-  def timer = noTimer
-
   def state = Map.empty
 
   def emit = emitNothing
@@ -226,8 +224,6 @@ class TestActor1 extends CoralActor {
 
 class TestActor2 extends CoralActor {
   def jsonDef = parse("""{}""")
-
-  def timer = noTimer
 
   def state = Map.empty
 

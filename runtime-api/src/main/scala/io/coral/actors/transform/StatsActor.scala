@@ -52,7 +52,7 @@ class StatsActor(json: JObject) extends CoralActor with ActorLogging {
     ("max", render(stats.max))
   )
 
-  def timer = {
+  override def timer = {
     stats.reset()
     JNothing
   }

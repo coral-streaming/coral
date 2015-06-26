@@ -112,7 +112,7 @@ abstract class CoralActor extends Actor with ActorLogging {
 
   type Timer = JValue
 
-  def timer:Timer
+  def timer:Timer = noTimer
   val noTimer: Timer = JNothing
 
   def receiveTimeout: Receive = {

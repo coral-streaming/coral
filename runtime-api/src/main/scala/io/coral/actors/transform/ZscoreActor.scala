@@ -44,8 +44,6 @@ class ZscoreActor(json: JObject) extends CoralActor {
 
   def state = Map.empty
 
-  def timer = noTimer
-
   def trigger = {
     json: JObject =>
       for {

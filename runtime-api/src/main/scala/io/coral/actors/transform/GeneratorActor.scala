@@ -110,7 +110,7 @@ class GeneratorActor(json: JObject) extends CoralActor {
 
   def emit = emitNothing
 
-  def timer = {
+  override def timer = {
     val currentTime = System.currentTimeMillis
 
     // If this is true, we are not in the initial delay period any more

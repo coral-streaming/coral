@@ -65,7 +65,7 @@ class HttpClientActor(json: JObject) extends CoralActor with ActorLogging {
 
   def jsonDef = json
   def state   = Map.empty
-  def timer: Timer = {
+  override def timer: Timer = {
     val future = getResponse("").run.map{
       case Some(response) => createJson(response)
       case None => JNothing

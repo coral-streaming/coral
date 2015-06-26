@@ -51,8 +51,6 @@ class CassandraActor(json: JObject) extends CoralActor with CassandraHelper {
         ("schema", render(getSchema(session, keyspace)))
     )
 
-    def timer = JNothing
-
     var result: Option[ResultSet] = _
     var lastQuery: String = _
     var lastError: String = _
