@@ -98,7 +98,7 @@ class GeneratorActor(json: JObject) extends CoralActor {
     self ! TimeoutEvent
   }
 
-  def state = Map(
+  override def state = Map(
     ("rate", render(rate)),
     ("times", render(times)),
     ("delay", render(delay)),

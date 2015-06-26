@@ -99,13 +99,6 @@ class LookupActorSpec(_system: ActorSystem) extends TestKit(_system)
       assert(actual == expected)
     }
 
-    "Properly instantiate state and timer" in {
-      val lookup = getLookupActor("check")
-      val actor = lookup.underlyingActor
-      actor.state should be(Map.empty[String, JValue])
-      actor.timer should be (JNothing)
-    }
-
     "Emit nothing for check when lookup value does not match any entry in the table" in {
       val lookup = getLookupActor("check")
       val actor = lookup.underlyingActor

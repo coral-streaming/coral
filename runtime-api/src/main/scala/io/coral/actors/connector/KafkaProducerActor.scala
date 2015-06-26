@@ -51,8 +51,6 @@ class KafkaProducerActor[T <: Encoder[JValue]](json: JObject, connection: KafkaJ
 
   def jsonDef = json
 
-  def state = Map.empty
-
   override def trigger = {
     json =>
       val key = (json \ "key").extractOpt[String]

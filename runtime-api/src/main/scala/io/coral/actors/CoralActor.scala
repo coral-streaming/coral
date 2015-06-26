@@ -246,7 +246,8 @@ abstract class CoralActor extends Actor with ActorLogging {
                 receiveTimeout     orElse
                 receiveExtra
 
-  def state: Map[String, JValue]
+  def state: Map[String, JValue] = noState
+  val noState: Map[String, JValue] = Map.empty
 
   def stateResponse(x:String,by:Option[String],sender:ActorRef) = {
     if ( by.getOrElse("").isEmpty) {

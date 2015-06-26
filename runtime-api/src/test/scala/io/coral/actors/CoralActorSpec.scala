@@ -41,7 +41,6 @@ class CoralActorSpec(_system: ActorSystem)
   class MinimalCoralActor extends CoralActor {
 
     def jsonDef: JValue = JNothing
-    def state   = Map.empty[String, JValue]
 
     def emit    = emitNothing
 

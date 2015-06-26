@@ -31,10 +31,6 @@ class JsonActor(json: JObject) extends CoralActor {
 
   override def jsonDef: JValue = json
 
-  override def timer: Timer = JNothing
-
-  override def state: Map[String, JValue] = Map.empty[String, JValue]
-
   override def emit: Emit = json => template.interpret(json)
 
 }

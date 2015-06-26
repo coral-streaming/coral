@@ -32,8 +32,6 @@ class LookupActor(json: JObject) extends CoralActor with ActorLogging {
   def jsonDef = json
   val (key, lookup, function) = LookupActor.getParams(json).get
 
-  def state =  Map.empty
-
   //local state
   var lookupObject: Option[JValue] = None
 

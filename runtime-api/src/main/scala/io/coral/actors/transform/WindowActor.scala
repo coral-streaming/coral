@@ -155,7 +155,7 @@ class WindowActor(json: JObject) extends CoralActor with ActorLogging {
         }
     }
 
-    def state = Map(
+    override def state = Map(
         ("method", render(JString(method))),
         ("number", render(JInt(number))),
         ("sliding", render(JInt(sliding)))

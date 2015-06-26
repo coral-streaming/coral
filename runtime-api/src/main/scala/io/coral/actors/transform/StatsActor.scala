@@ -44,7 +44,7 @@ class StatsActor(json: JObject) extends CoralActor with ActorLogging {
 
   val stats = SummaryStatistics.mutable
 
-  def state = Map(
+  override def state = Map(
     ("count", render(stats.count)),
     ("avg", render(stats.average)),
     ("sd", render(stats.populationSd)),

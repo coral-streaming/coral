@@ -28,7 +28,6 @@ class LinearRegressionActor(json: JObject) extends CoralActor with ActorLogging 
 
   var result: Double = _
   def jsonDef = json
-  def state = Map.empty
 
   override def trigger = {
     json =>

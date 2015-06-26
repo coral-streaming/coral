@@ -42,8 +42,6 @@ class ZscoreActor(json: JObject) extends CoralActor {
   val (by, field, score) = ZscoreActor.getParams(jsonDef).get
   var outlier: Boolean = false
 
-  def state = Map.empty
-
   override def trigger = {
     json: JObject =>
       for {

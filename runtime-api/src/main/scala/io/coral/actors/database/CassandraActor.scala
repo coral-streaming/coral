@@ -45,7 +45,7 @@ class CassandraActor(json: JObject) extends CoralActor with CassandraHelper {
     var cluster: Cluster = _
     var session: Session = _
     var schema: JValue = _
-    def state = Map(
+    override def state = Map(
         ("connected", render(session != null && !session.isClosed)),
         ("keyspace", render(keyspace)),
         ("schema", render(getSchema(session, keyspace)))

@@ -28,7 +28,6 @@ class HttpBroadcastActorSpec(_system: ActorSystem)
       val props = HttpBroadcastActor(createJson)
       val actor = TestActorRef[HttpBroadcastActor](props.get).underlyingActor
       actor.jsonDef should be(createJson)
-      actor.state should be(Map.empty[String, JValue])
       val json = parse("""{"trigger":"whatever"}""")
       val result = actor.trigger(json.asInstanceOf[JObject])
       whenReady(result.run) {
