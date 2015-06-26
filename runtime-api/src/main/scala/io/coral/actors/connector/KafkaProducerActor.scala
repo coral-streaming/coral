@@ -4,6 +4,7 @@ import java.util.Properties
 
 import akka.actor.{Props, ActorLogging}
 import io.coral.actors.CoralActor
+import io.coral.lib.KafkaJsonProducer.KafkaEncoder
 import io.coral.lib.{KafkaJsonProducer, ConfigurationBuilder}
 import org.json4s.JsonAST.{JObject, JValue}
 import kafka.serializer.Encoder
@@ -35,15 +36,15 @@ object KafkaProducerActor {
   }
 
   def apply(json: JValue): Option[Props] = {
-    getParams(json).map(_ => Props(classOf[KafkaProducerActor], json, KafkaJsonProducer()))
+    getParams(json).map(_ => Props(classOf[KafkaProducerActor[KafkaEncoder]], json, KafkaJsonProducer()))
   }
 
-  def apply(json: JValue, encoder: Class[Encoder[JValue]]): Option[Props] = {
-    getParams(json).map(_ => Props(classOf[KafkaProducerActor], json, KafkaJsonProducer(encoder)))
+  def apply[T <: KafkaEncoder](json: JValue, encoder: Class[T]): Option[Props] = {
+    getParams(json).map(_ => Props(classOf[KafkaProducerActor[T]], json, KafkaJsonProducer(encoder)))
   }
 }
 
-class KafkaProducerActor(json: JObject, connection: KafkaJsonProducer) extends CoralActor with ActorLogging {
+class KafkaProducerActor[T <: Encoder[JValue]](json: JObject, connection: KafkaJsonProducer[T]) extends CoralActor with ActorLogging {
   val (properties, topic) = KafkaProducerActor.getParams(json).get
 
   lazy val kafkaSender = connection.createSender(topic, properties)

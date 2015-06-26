@@ -2,7 +2,7 @@ package io.coral.lib
 
 import java.util.Properties
 
-import io.coral.lib.KafkaJsonProducer.EncoderJson
+import io.coral.lib.KafkaJsonProducer.KafkaEncoder
 import kafka.producer.{KeyedMessage, ProducerConfig, Producer}
 import kafka.serializer.Encoder
 import kafka.utils.VerifiableProperties
@@ -10,20 +10,24 @@ import org.json4s.JsonAST.{JObject, JValue}
 import org.json4s.jackson.JsonMethods._
 
 object KafkaJsonProducer {
-  type EncoderJson = Encoder[JValue]
+  type KafkaEncoder = Encoder[JValue]
 
   def apply() = new KafkaJsonProducer(classOf[JsonEncoder])
 
-  def apply(encoder: Class[Encoder[JValue]]) = new KafkaJsonProducer(encoder)
+  def apply[T <: KafkaEncoder](encoder: Class[T]) = new KafkaJsonProducer(encoder)
 
 }
 
-class KafkaJsonProducer(encoderClass: Class[EncoderJson]) {
+class KafkaJsonProducer[T <: KafkaEncoder](encoderClass: Class[T]) {
   def createSender(topic: String, properties: Properties): KafkaSender = {
     val props = properties.clone.asInstanceOf[Properties]
     props.put("serializer.class", encoderClass.getName)
-    val producer = new Producer[String, JValue](new ProducerConfig(props))
+    val producer = createProducer(props)
     new KafkaSender(topic, producer)
+  }
+
+  def createProducer(props: Properties): Producer[String, JValue] = {
+    new Producer[String, JValue](new ProducerConfig(props))
   }
 }
 
@@ -37,7 +41,7 @@ class KafkaSender(topic: String, producer: Producer[String, JValue]) {
   }
 }
 
-class JsonEncoder(verifiableProperties: VerifiableProperties) extends Encoder[JValue] {
+class JsonEncoder(verifiableProperties: VerifiableProperties) extends KafkaEncoder {
   override def toBytes(value: JValue): Array[Byte] = {
     compact(value).getBytes("UTF-8")
   }
