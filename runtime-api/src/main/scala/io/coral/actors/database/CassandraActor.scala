@@ -55,7 +55,7 @@ class CassandraActor(json: JObject) extends CoralActor with CassandraHelper {
     var lastQuery: String = _
     var lastError: String = _
 
-    def trigger = {
+    override def trigger = {
         json: JObject =>
             ensureConnection(seeds, port, keyspace)
 

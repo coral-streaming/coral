@@ -81,7 +81,7 @@ class HttpClientActor(json: JObject) extends CoralActor with ActorLogging {
 
   var answer: HttpResponse = _
 
-  def trigger: (JObject) => OptionT[Future, Unit] = {
+  override def trigger = {
     json: JObject =>
       for {
         payload <- getTriggerInputField[String](json \ "payload", "")

@@ -36,7 +36,7 @@ class ThresholdActor(json: JObject) extends CoralActor with ActorLogging {
   
   def state = Map.empty
   
-  def trigger = {
+  override def trigger = {
     json =>
       for {
         value <- getTriggerInputField[Double](json \ key)

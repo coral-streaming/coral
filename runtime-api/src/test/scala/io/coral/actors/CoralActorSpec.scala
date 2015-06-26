@@ -44,7 +44,6 @@ class CoralActorSpec(_system: ActorSystem)
     def state   = Map.empty[String, JValue]
 
     def emit    = emitNothing
-    def trigger = defaultTrigger
 
   }
 
@@ -194,7 +193,7 @@ class CoralActorSpec(_system: ActorSystem)
 
     "Have 'noProcess' produce empty future option" in {
       val coral = createCoralActor()
-      val result = coral.defaultTrigger(parse( """{"test": "whatever"}""").asInstanceOf[JObject])
+      val result = coral.trigger(parse( """{"test": "whatever"}""").asInstanceOf[JObject])
       whenReady(result.run) {
         value => value should be(Some(()))
       }

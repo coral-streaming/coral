@@ -37,7 +37,7 @@ class LookupActor(json: JObject) extends CoralActor with ActorLogging {
   //local state
   var lookupObject: Option[JValue] = None
 
-  def trigger = {
+  override def trigger = {
     json: JObject =>
       for {
       // from trigger data

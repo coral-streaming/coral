@@ -35,8 +35,6 @@ class JsonActor(json: JObject) extends CoralActor {
 
   override def state: Map[String, JValue] = Map.empty[String, JValue]
 
-  override def trigger: Trigger = defaultTrigger
-
   override def emit: Emit = json => template.interpret(json)
 
 }

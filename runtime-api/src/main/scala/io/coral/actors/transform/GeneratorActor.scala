@@ -106,8 +106,6 @@ class GeneratorActor(json: JObject) extends CoralActor {
     ("count", render(count))
   )
 
-  def trigger = defaultTrigger
-
   def emit = emitNothing
 
   override def timer = {

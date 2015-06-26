@@ -37,7 +37,7 @@ class GroupByActor(json: JObject)(implicit injector: Injector) extends CoralActo
   def state = Map(("actors", render(children)))
   def emit  = emitNothing
 
-  def trigger = {
+  override def trigger = {
     json =>
       for {
         value <- getTriggerInputField[String](json \ by)

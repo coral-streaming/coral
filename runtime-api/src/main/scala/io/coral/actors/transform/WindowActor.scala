@@ -161,7 +161,7 @@ class WindowActor(json: JObject) extends CoralActor with ActorLogging {
         ("sliding", render(JInt(sliding)))
     )
 
-    def trigger = {
+    override def trigger = {
         json: JObject =>
             items.enqueue((System.currentTimeMillis, json))
 

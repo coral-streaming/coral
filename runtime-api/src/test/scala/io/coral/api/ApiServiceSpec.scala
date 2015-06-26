@@ -218,8 +218,6 @@ class TestActor1 extends CoralActor {
   def state = Map.empty
 
   def emit = emitNothing
-
-  def trigger = defaultTrigger
 }
 
 class TestActor2 extends CoralActor {
@@ -228,6 +226,4 @@ class TestActor2 extends CoralActor {
   def state = Map.empty
 
   def emit = emitNothing
-
-  def trigger = defaultTrigger
 }

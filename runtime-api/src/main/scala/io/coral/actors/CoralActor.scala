@@ -138,7 +138,7 @@ abstract class CoralActor extends Actor with ActorLogging {
 
   type Trigger =  JObject => OptionT[Future, Unit]
 
-  def trigger: Trigger
+  def trigger: Trigger = defaultTrigger
   val defaultTrigger : Trigger =
     json => OptionT.some(Future.successful({}))
 

@@ -57,7 +57,7 @@ class StatsActor(json: JObject) extends CoralActor with ActorLogging {
     JNothing
   }
 
-  def trigger = {
+  override def trigger = {
     json: JObject =>
       for {
         value <- getTriggerInputField[Double](json \ field)

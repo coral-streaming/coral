@@ -66,13 +66,6 @@ class JsonActorSpec(_system: ActorSystem)
       actor.template.template shouldBe parse(template)
     }
 
-    "do nothing in the trigger" in {
-      val template = """{ "a": "someReference" }"""
-      val json = apiJson( s"""{ "type": "json", "params": { "template": ${template} } }""")
-      val actor = createJsonActor(json)
-      actor.trigger shouldBe actor.defaultTrigger
-    }
-
     "emit the json based on template" in {
       val templateJson =
         """{ "a": "ALPHA",

@@ -10,6 +10,4 @@ abstract class TemplateCoralActor(json: JValue) extends CoralActor {
 
   override def emit: Emit = emitNothing
 
-  override def trigger: Trigger = defaultTrigger
-
 }

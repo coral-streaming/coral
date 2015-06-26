@@ -46,7 +46,7 @@ class SampleActor(json: JValue, random: Random) extends CoralActor {
 
   def state: Map[String, JValue] = Map.empty[String, JValue]
 
-  def trigger = {
+  override def trigger = {
     _ => {
       pass = next()
       OptionT.some(Future.successful({}))

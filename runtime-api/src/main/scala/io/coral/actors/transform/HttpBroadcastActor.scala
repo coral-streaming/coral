@@ -20,6 +20,5 @@ object HttpBroadcastActor {
 class HttpBroadcastActor(json: JObject) extends CoralActor with ActorLogging {
   def jsonDef = json
   def state   = Map.empty
-  def trigger = defaultTrigger
   def emit    = emitPass
 }

@@ -45,7 +45,7 @@ class FsmActor(json: JObject) extends CoralActor with ActorLogging {
 
   def state = Map(("s", JString(s)))
 
-  def trigger = {
+  override def trigger = {
     json: JObject =>
       for {
       // from trigger data
