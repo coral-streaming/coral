@@ -42,8 +42,6 @@ class CoralActorSpec(_system: ActorSystem)
 
     def jsonDef: JValue = JNothing
 
-    def emit    = emitNothing
-
   }
 
   def createCoralActor(props: Props = null, name: String = ""): CoralActor = {

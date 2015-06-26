@@ -46,7 +46,7 @@ class LookupActor(json: JObject) extends CoralActor with ActorLogging {
       }
   }
 
-  def emit = {
+  override def emit = {
     json: JObject =>
       function match {
         case "enrich" => json merge render(lookupObject.getOrElse(JNothing))

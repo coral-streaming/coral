@@ -92,7 +92,7 @@ class CassandraActor(json: JObject) extends CoralActor with CassandraHelper {
             OptionT.some(Future.successful({}))
     }
 
-    def emit = {
+    override def emit = {
         json: JObject =>
             result match {
                 case Some(data) =>

@@ -42,7 +42,8 @@ class ThresholdActor(json: JObject) extends CoralActor with ActorLogging {
         thresholdReached = value >= threshold
       }
   }
-  def emit = {
+
+  override def emit = {
     json =>
       thresholdReached match {
         case true => {

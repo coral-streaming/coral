@@ -51,7 +51,7 @@ class SampleActor(json: JValue, random: Random) extends CoralActor {
     }
   }
 
-  def emit =
+  override def emit =
     json => pass match {
       case false => JNothing
       case true => json

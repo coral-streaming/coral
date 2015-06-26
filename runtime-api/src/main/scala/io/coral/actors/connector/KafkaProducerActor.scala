@@ -66,6 +66,4 @@ class KafkaProducerActor[T <: Encoder[JValue]](json: JObject, connection: KafkaJ
       case e: Exception => log.error(e, "failed to send message to Kafka")
     }
   }
-
-  def emit = emitNothing
 }

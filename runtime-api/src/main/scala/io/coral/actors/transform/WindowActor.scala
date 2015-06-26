@@ -233,7 +233,7 @@ class WindowActor(json: JObject) extends CoralActor with ActorLogging {
         }
     }
 
-    def emit = {
+    override def emit = {
         json: JObject =>
             if (method == "count" && toEmit.length < number) {
                 JNothing

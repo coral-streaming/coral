@@ -106,8 +106,6 @@ class GeneratorActor(json: JObject) extends CoralActor {
     ("count", render(count))
   )
 
-  def emit = emitNothing
-
   override def timer = {
     val currentTime = System.currentTimeMillis
 

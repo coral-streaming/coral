@@ -214,12 +214,8 @@ class ApiServiceSpec
 
 class TestActor1 extends CoralActor {
   def jsonDef = parse("""{"type": "actors", "attributes": {"type": "testactor", "key": "value"}}""")
-
-  def emit = emitNothing
 }
 
 class TestActor2 extends CoralActor {
   def jsonDef = parse("""{}""")
-
-  def emit = emitNothing
 }

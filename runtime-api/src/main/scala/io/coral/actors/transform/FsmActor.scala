@@ -57,6 +57,4 @@ class FsmActor(json: JObject) extends CoralActor with ActorLogging {
       }
   }
 
-  def emit = emitNothing
-
 }

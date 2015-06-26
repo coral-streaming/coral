@@ -63,7 +63,7 @@ class ZscoreActor(json: JObject) extends CoralActor {
       }
   }
 
-  def emit = {
+  override def emit = {
     json: JObject =>
       outlier match {
         case true =>

@@ -146,7 +146,7 @@ abstract class CoralActor extends Actor with ActorLogging {
 
   type Emit = JObject => JValue
 
-  def emit: Emit
+  def emit: Emit = emitNothing
   val emitNothing: Emit = _    => JNothing
   val emitPass   : Emit = json => json
 

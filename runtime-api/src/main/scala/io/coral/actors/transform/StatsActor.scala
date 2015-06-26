@@ -66,5 +66,4 @@ class StatsActor(json: JObject) extends CoralActor with ActorLogging {
       }
   }
 
-  def emit = emitNothing
 }

@@ -97,7 +97,7 @@ class HttpClientActor(json: JObject) extends CoralActor with ActorLogging {
     OptionT.optionT(value)
   }
 
-  def emit = {
+  override def emit = {
     json: JObject => createJson(answer)
   }
 
