@@ -4,10 +4,10 @@ import java.util.Properties
 
 import akka.actor.{Props, ActorLogging}
 import io.coral.actors.CoralActor
-import io.coral.lib.ConfigurationBuilder
-import kafka.producer.{ProducerConfig, KeyedMessage, Producer}
+import io.coral.lib.KafkaJsonProducer.KafkaEncoder
+import io.coral.lib.{KafkaJsonProducer, ConfigurationBuilder}
 import org.json4s.JsonAST.{JObject, JValue}
-import org.json4s.jackson.JsonMethods._
+import kafka.serializer.Encoder
 
 import scala.concurrent.Future
 import scalaz.OptionT
@@ -36,14 +36,18 @@ object KafkaProducerActor {
   }
 
   def apply(json: JValue): Option[Props] = {
-    getParams(json).map(_ => Props(classOf[KafkaProducerActor], json))
+    getParams(json).map(_ => Props(classOf[KafkaProducerActor[KafkaEncoder]], json, KafkaJsonProducer()))
+  }
+
+  def apply[T <: KafkaEncoder](json: JValue, encoder: Class[T]): Option[Props] = {
+    getParams(json).map(_ => Props(classOf[KafkaProducerActor[T]], json, KafkaJsonProducer(encoder)))
   }
 }
 
-class KafkaProducerActor(json: JObject) extends CoralActor with ActorLogging {
+class KafkaProducerActor[T <: Encoder[JValue]](json: JObject, connection: KafkaJsonProducer[T]) extends CoralActor with ActorLogging {
   val (properties, topic) = KafkaProducerActor.getParams(json).get
 
-  val producer = createProducer(properties)
+  lazy val kafkaSender = connection.createSender(topic, properties)
 
   def jsonDef = json
 
@@ -59,22 +63,9 @@ class KafkaProducerActor(json: JObject) extends CoralActor with ActorLogging {
       OptionT.some(Future.successful({}))
   }
 
-  def createProducer(properties: Properties) = {
-    new Producer[String, Array[Byte]](new ProducerConfig(properties))
-  }
-
-  def encode(message: JObject): Array[Byte] = {
-    compact(message).getBytes("UTF-8")
-  }
-
   private def send(key: Option[String], message: JObject) = {
-    val encodedMessage = encode(message)
-    val keyedMessage: KeyedMessage[String, Array[Byte]] = key match {
-      case Some(key) => new KeyedMessage(topic, key, encodedMessage)
-      case None => new KeyedMessage(topic, encodedMessage)
-    }
     try {
-      producer.send(keyedMessage)
+      kafkaSender.send(key, message)
     } catch {
       case e: Exception => log.error(e, "failed to send message to Kafka")
     }

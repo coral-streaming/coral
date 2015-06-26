@@ -3,6 +3,7 @@ package io.coral.actors
 import io.coral.actors.connector.{KafkaProducerActor, KafkaConsumerActor}
 import io.coral.actors.database.CassandraActor
 import io.coral.actors.transform._
+import io.coral.lib.KafkaJsonProducer.KafkaEncoder
 import org.json4s.native.JsonMethods._
 import org.scalatest.{Matchers, WordSpecLike}
 import scala.language.postfixOps
@@ -115,7 +116,7 @@ class DefaultActorPropFactorySpec
           |"params": {"topic": "test", "kafka": {} }
           |}}""".stripMargin
       val props = factory.getProps("kafka-producer", parse(json))
-      props.get.actorClass should be(classOf[KafkaProducerActor])
+      props.get.actorClass should be(classOf[KafkaProducerActor[KafkaEncoder]])
     }
 
     "Provide a StatsActor for type 'stats'" in {
