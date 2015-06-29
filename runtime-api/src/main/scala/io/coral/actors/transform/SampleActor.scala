@@ -1,7 +1,7 @@
 package io.coral.actors.transform
 
 import akka.actor.Props
-import io.coral.actors.CoralActor
+import io.coral.actors.{SimpleEmitTrigger, CoralActor}
 import io.coral.lib.Random
 import org.json4s.JsonAST.JNothing
 import org.json4s.{JObject, JValue}
@@ -28,7 +28,9 @@ object SampleActor {
 
 }
 
-class SampleActor(json: JObject, random: Random) extends CoralActor(json) {
+class SampleActor(json: JObject, random: Random)
+  extends CoralActor(json)
+  with SimpleEmitTrigger {
 
   val fraction: Double = SampleActor.getParams(json).get
 
@@ -40,19 +42,11 @@ class SampleActor(json: JObject, random: Random) extends CoralActor(json) {
     value
   }
 
-  var pass: Boolean = false
-
-  override def trigger = {
-    _ => {
-      pass = next()
-      OptionT.some(Future.successful({}))
+  override def simpleEmitTrigger(json: JObject): Option[JValue] = {
+    next() match {
+      case false => Some(JNothing)
+      case true => Some(json)
     }
   }
-
-  override def emit =
-    json => pass match {
-      case false => JNothing
-      case true => json
-    }
 
 }

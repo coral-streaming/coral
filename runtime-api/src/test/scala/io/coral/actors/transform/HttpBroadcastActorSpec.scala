@@ -39,8 +39,8 @@ class HttpBroadcastActorSpec(_system: ActorSystem)
       val props = HttpBroadcastActor(parse( """{ "type": "actors", "attributes": {"type": "httpbroadcast" } }"""))
       val actor = TestActorRef[HttpBroadcastActor](props.get).underlyingActor
       val json = parse("""{"emit":"whatever"}""")
-      val result = actor.emit(json.asInstanceOf[JObject])
-      result should be(json)
+      val result = actor.simpleEmitTrigger(json.asInstanceOf[JObject])
+      result should be(Some(json))
     }
 
   }

@@ -139,8 +139,25 @@ abstract class CoralActor(json: JObject) extends Actor with ActorLogging {
   type Trigger =  JObject => OptionT[Future, Unit]
 
   def trigger: Trigger = defaultTrigger
+  var triggerResultToEmit: Option[JValue] = _
   val defaultTrigger : Trigger =
-    json => OptionT.some(Future.successful({}))
+    json => {
+      if (isInstanceOf[NoEmitTrigger]) {
+        val noEmitTrigger = asInstanceOf[NoEmitTrigger]
+        noEmitTrigger.noEmitTrigger(json)
+        OptionT.some(Future.successful({}))
+      } else if (isInstanceOf[SimpleEmitTrigger]) {
+        val simpleEmitTrigger = asInstanceOf[SimpleEmitTrigger]
+        triggerResultToEmit = simpleEmitTrigger.simpleEmitTrigger(json)
+        if (triggerResultToEmit.isDefined) {
+          OptionT.some(Future.successful({}))
+        } else {
+          OptionT.none
+        }
+      } else {
+        OptionT.some(Future.successful({}))
+      }
+    }
 
   // emitting
 
@@ -214,7 +231,11 @@ abstract class CoralActor(json: JObject) extends Actor with ActorLogging {
 
     r.onSuccess {
       case Some(_) =>
-        val result = emit(json)
+        val result = if (isInstanceOf[SimpleEmitTrigger]) {
+          triggerResultToEmit.get
+        } else {
+          emit(json)
+        }
         transmit(result)
         sender.foreach(_ ! result)
 

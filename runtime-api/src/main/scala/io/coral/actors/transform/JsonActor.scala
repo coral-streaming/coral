@@ -1,7 +1,7 @@
 package io.coral.actors.transform
 
 import akka.actor.Props
-import io.coral.actors.CoralActor
+import io.coral.actors.{SimpleEmitTrigger, CoralActor}
 import io.coral.lib.JsonTemplate
 import org.json4s.JsonAST.{JObject, JValue}
 import org.json4s._
@@ -25,10 +25,14 @@ object JsonActor {
 
 }
 
-class JsonActor(json: JObject) extends CoralActor(json) {
+class JsonActor(json: JObject)
+  extends CoralActor(json)
+  with SimpleEmitTrigger {
 
   val template = JsonTemplate(JsonActor.getParams(json).get)
 
-  override def emit: Emit = json => template.interpret(json)
+  override def simpleEmitTrigger(json: JObject): Option[JValue] = {
+    Some(template.interpret(json))
+  }
 
 }

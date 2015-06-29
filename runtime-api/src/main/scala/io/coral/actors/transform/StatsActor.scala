@@ -11,7 +11,7 @@ import org.json4s._
 import org.json4s.jackson.JsonMethods.render
 
 // coral
-import io.coral.actors.CoralActor
+import io.coral.actors.{NoEmitTrigger, CoralActor}
 import io.coral.lib.SummaryStatistics
 
 import scala.language.implicitConversions
@@ -34,7 +34,10 @@ object StatsActor {
   }
 }
 
-class StatsActor(json: JObject) extends CoralActor(json) with ActorLogging {
+class StatsActor(json: JObject)
+  extends CoralActor(json)
+  with ActorLogging
+  with NoEmitTrigger {
 
   implicit def double2jvalue(x: Double): JValue = if (x.isNaN) JNull else JDouble(x)
 
@@ -55,13 +58,12 @@ class StatsActor(json: JObject) extends CoralActor(json) with ActorLogging {
     JNothing
   }
 
-  override def trigger = {
-    json: JObject =>
-      for {
-        value <- getTriggerInputField[Double](json \ field)
-      } yield {
-        stats.append(value)
-      }
+  override def noEmitTrigger(json: JObject) = {
+    for {
+      value <- (json \ field).extractOpt[Double]
+    } yield {
+      stats.append(value)
+    }
   }
 
 }
