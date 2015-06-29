@@ -61,24 +61,12 @@ abstract class CoralActor(json: JObject) extends Actor with ActorLogging {
     def bind[A, B](fa: Future[A])(f: A => Future[B]): Future[B] = fa flatMap f
   }
 
-  // Future[Option[A]] to Option[Future, A] using the OptionT monad transformer
-  def getCollectInputField[A](actorAlias: String, by: String, field: String)(implicit mf: Manifest[A]) = {
-    val result = collectSources.get(actorAlias) match {
+  def getCollectInputField[A](actorAlias: String, by: String, field: String)(implicit mf: Manifest[A]): Future[Option[A]] = {
+    collectSources.get(actorAlias) match {
       case Some(actorPath) =>
         askActor(actorPath, GetFieldBy(field, by)).mapTo[JValue].map(json => json.extractOpt[A])
       case None => Future.failed(throw new Exception(s"Collect actor not defined"))
     }
-    optionT(result)
-  }
-
-  def getTriggerInputField[A](jsonValue: JValue)(implicit mf: Manifest[A]): OptionT[Future, A] = {
-    val value = Future.successful(jsonValue.extractOpt[A])
-    optionT(value)
-  }
-
-  def getTriggerInputField[A](jsonValue: JValue, defaultValue: A)(implicit mf: Manifest[A]): OptionT[Future, A] = {
-    val value: Future[Option[A]] = Future.successful(Some(jsonValue.extractOrElse[A](defaultValue)))
-    optionT(value)
   }
 
   def getActorResponse[A](path: String, msg: Any) = {
@@ -136,36 +124,22 @@ abstract class CoralActor(json: JObject) extends Actor with ActorLogging {
 
   // trigger
 
-  type Trigger =  JObject => OptionT[Future, Unit]
+  type Trigger =  JObject => Future[Option[JValue]]
 
   def trigger: Trigger = defaultTrigger
-  var triggerResultToEmit: Option[JValue] = _
   val defaultTrigger : Trigger =
     json => {
       if (isInstanceOf[NoEmitTrigger]) {
         val noEmitTrigger = asInstanceOf[NoEmitTrigger]
         noEmitTrigger.noEmitTrigger(json)
-        OptionT.some(Future.successful({}))
+        Future.successful(Some(JNothing))
       } else if (isInstanceOf[SimpleEmitTrigger]) {
         val simpleEmitTrigger = asInstanceOf[SimpleEmitTrigger]
-        triggerResultToEmit = simpleEmitTrigger.simpleEmitTrigger(json)
-        if (triggerResultToEmit.isDefined) {
-          OptionT.some(Future.successful({}))
-        } else {
-          OptionT.none
-        }
+        Future.successful(simpleEmitTrigger.simpleEmitTrigger(json))
       } else {
-        OptionT.some(Future.successful({}))
+        Future.successful(Some(JNothing))
       }
     }
-
-  // emitting
-
-  type Emit = JObject => JValue
-
-  def emit: Emit = emitNothing
-  val emitNothing: Emit = _    => JNothing
-  val emitPass   : Emit = json => json
 
   // transmitting to the subscribing coral actors
 
@@ -226,23 +200,17 @@ abstract class CoralActor(json: JObject) extends Actor with ActorLogging {
   }
 
   def execute(json:JObject, sender:Option[ActorRef]) = {
-    val stage = trigger(json)
-    val r = stage.run
+    val future = trigger(json)
 
-    r.onSuccess {
-      case Some(_) =>
-        val result = if (isInstanceOf[SimpleEmitTrigger]) {
-          triggerResultToEmit.get
-        } else {
-          emit(json)
-        }
+    future.onSuccess {
+      case Some(result) =>
         transmit(result)
         sender.foreach(_ ! result)
 
       case None => log.warning("not processed")
     }
 
-    r.onFailure {
+    future.onFailure {
       case _ => log.warning("actor execution")
     }
   }

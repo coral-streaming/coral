@@ -5,8 +5,6 @@ package io.coral.actors.transform
 import spray.http.HttpHeaders.RawHeader
 
 import scala.concurrent.{Await, Future}
-import scala.util.{Failure, Success}
-import scalaz.OptionT
 import scala.concurrent.duration._
 
 // akka
@@ -15,7 +13,7 @@ import akka.actor.{ActorLogging, Props}
 //json goodness
 import org.json4s._
 import org.json4s.JsonDSL._
-import org.json4s.jackson.JsonMethods.render
+import org.json4s.jackson.JsonMethods.{compact, render}
 import org.json4s.native.JsonMethods._
 
 // coral
@@ -64,12 +62,9 @@ class HttpClientActor(json: JObject) extends CoralActor(json) with ActorLogging 
   val (url, method, headers) = HttpClientActor.getParams(jsonDef).get
 
   override def timer: Timer = {
-    val future = getResponse("").run.map{
-      case Some(response) => createJson(response)
-      case None => JNothing
-    }
+    val future = getResponse("")
     try {
-      Await.result(future, TimeOut)
+      Await.result(future, TimeOut).get
     } catch {
       case e: Exception =>
         log.warning("Exception waiting for response", e)
@@ -77,41 +72,23 @@ class HttpClientActor(json: JObject) extends CoralActor(json) with ActorLogging 
     }
   }
 
-  var answer: HttpResponse = _
-
   override def trigger = {
-    json: JObject =>
-      for {
-        payload <- getTriggerInputField[String](json \ "payload", "")
-        response <- getResponse(payload)
-      } yield {
-        answer = response
-      }
+    json: JObject => getResponse(compact(render(json)))
   }
 
-  def getResponse(payload: String): OptionT[Future, HttpResponse] = {
+  def getResponse(payload: String): Future[Option[JValue]] = {
     val pipeline: HttpRequest => Future[HttpResponse] = sendReceive
-    val value: Future[Option[HttpResponse]] = pipeline(method(url, payload).withHeaders(headers)).map(Some(_))
-    OptionT.optionT(value)
-  }
-
-  override def emit = {
-    json: JObject => createJson(answer)
+    pipeline(method(url, payload).withHeaders(headers)).map(result => Some(createJson(result)))
   }
 
   def createJson(response: HttpResponse): JValue = {
-    if (response != null) {
-      val headers = JObject(response.headers.map(header => JField(header.name, header.value)))
-      val contentType = (headers \ "Content-Type").extractOpt[String] getOrElse ""
-      val json = contentType == ContentTypeJson || contentType.startsWith(ContentTypeJson + ";")
-      val body = if (json) parse(response.entity.asString) else JString(response.entity.asString)
-      val result = render(
-        ("status" -> response.status.value)
-          ~ ("headers" -> headers)
-          ~ ("body" -> body))
-      result
-    } else {
-      JNothing
-    }
+    val headers = JObject(response.headers.map(header => JField(header.name, header.value)))
+    val contentType = (headers \ "Content-Type").extractOpt[String] getOrElse ""
+    val json = contentType == ContentTypeJson || contentType.startsWith(ContentTypeJson + ";")
+    val body = if (json) parse(response.entity.asString) else JString(response.entity.asString)
+    render(
+      ("status" -> response.status.value)
+        ~ ("headers" -> headers)
+        ~ ("body" -> body))
   }
 }

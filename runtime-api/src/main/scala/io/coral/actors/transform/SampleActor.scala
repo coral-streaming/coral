@@ -6,9 +6,6 @@ import io.coral.lib.Random
 import org.json4s.JsonAST.JNothing
 import org.json4s.{JObject, JValue}
 
-import scala.concurrent.Future
-import scalaz.OptionT
-
 object SampleActor {
 
   implicit val formats = org.json4s.DefaultFormats

@@ -13,7 +13,6 @@ import org.json4s.jackson.JsonMethods.render
 // coral
 import io.coral.actors.{SimpleEmitTrigger, CoralActor}
 
-import scalaz.OptionT
 import scala.collection.mutable.{ListBuffer => mList}
 
 object CassandraActor {

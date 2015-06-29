@@ -3,25 +3,14 @@ package io.coral.actors.transform
 import akka.actor.{ActorLogging, Props}
 import com.datastax.driver.core.{ResultSet, Session, Cluster}
 import io.coral.actors.{SimpleEmitTrigger, CoralActor}
-import org.json4s.JsonAST.JValue
-import org.json4s._
-import org.json4s.jackson.JsonMethods._
 import scala.collection.mutable.Queue
-import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.language.postfixOps
-import scala.util.Try
-import scalaz.OptionT
 import akka.actor.Props
-import com.datastax.driver.core.{DataType, ResultSet, Session, Cluster}
-import org.json4s.JValue
 import org.json4s.JsonAST.JValue
-import scala.concurrent.{Promise, Future}
 import org.json4s._
 import org.json4s.JsonDSL._
 import org.json4s.jackson.JsonMethods._
-import scalaz.{OptionT, Monad}
-import scalaz.OptionT._
 
 
 /**

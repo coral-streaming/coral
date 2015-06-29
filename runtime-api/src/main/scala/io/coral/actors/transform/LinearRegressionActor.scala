@@ -1,8 +1,6 @@
 package io.coral.actors.transform
 
 import akka.actor.{ActorLogging, Props}
-import scala.concurrent.Future
-import scalaz.OptionT
 import org.json4s._
 import org.json4s.JsonDSL._
 import org.json4s.jackson.JsonMethods.{render, pretty}

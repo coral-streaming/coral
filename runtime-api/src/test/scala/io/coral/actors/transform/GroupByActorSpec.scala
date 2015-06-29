@@ -77,11 +77,6 @@ class GroupByActorSpec(_system: ActorSystem)
       actor.state should be(Map(("actors", render(Map.empty[String, Long]))))
     }
 
-    "Emit nothing by itself" in {
-      val actor = statsGroupBy
-      actor.emit(parse("{}").asInstanceOf[JObject]) should be(JNothing)
-    }
-
     "Have no timer action of itself" in {
       val actor = statsGroupBy
       actor.timer should be(JNothing)

@@ -10,6 +10,7 @@ import org.json4s.JsonDSL._
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import scala.concurrent.ExecutionContext.Implicits.global
 
 import scala.concurrent.duration._
 
@@ -68,25 +69,19 @@ class ZscoreActorSpec(_system: ActorSystem)
     }
 
     // this should be better separated, even if only from a unit testing point of view
-    "process trigger and collect data" in {
+    "emit only when outlier is true" in {
       val zscore = createZscoreActor(4, by = "", field = "val", score = 6.1)
       val mockStats = createMockStats("mock1", count = 20L, avg = 3.0, sd = 2.0)
       zscore.collectSources = Map("stats" -> "/user/mock1")
-      zscore.trigger(parse( s"""{ "dummy": "", "val": 50.0 }""").asInstanceOf[JObject])
-      awaitCond(zscore.outlier==false)
-      mockStats.count = 21L // count > 20 before considering outlyer
-      zscore.trigger(parse( s"""{ "dummy": "", "val": 4.0 }""").asInstanceOf[JObject])
-      awaitCond(zscore.outlier==false)
-    }
+      val future1 = zscore.trigger(parse( s"""{ "dummy": "", "val": 50.0 }""").asInstanceOf[JObject])
+      future1.onComplete(result => assert(result.get == JNothing))
 
-    "emit only when outlier is true" in {
-      val zscore = createZscoreActor(5, by = "dummy", field = "val", score = 1.0)
-      zscore.outlier = false
-      zscore.emit(parse( s"""{ "dummy": "", "val": 50.0 }""").asInstanceOf[JObject]) should
-        be(JNothing)
-      zscore.outlier = true
-      zscore.emit(parse( s"""{ "dummy": "", "val": 50.0 }""").asInstanceOf[JObject]) should
-        be(parse( s"""{ "dummy": "", "val": 50.0, "outlier": true }"""))
+      mockStats.count = 21L // count > 20 before considering outlyer
+      val future2 = zscore.trigger(parse( s"""{ "dummy": "", "val": 4.0 }""").asInstanceOf[JObject])
+      future2.onComplete(result => assert(result.get == JNothing))
+
+      val future3 = zscore.trigger(parse( s"""{ "dummy": "", "val": 50.0 }""").asInstanceOf[JObject])
+      future3.onComplete(result => assert(result.get == Some(parse("""{ "dummy": "", "val": 50.0, "outlier": true}"""))))
     }
   }
 

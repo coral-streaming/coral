@@ -3,13 +3,15 @@ package io.coral.actors.transform
 // akka
 import akka.actor.{ActorLogging, Props}
 
+import scala.concurrent.Future
+
 //json goodness
 import org.json4s._
 import org.json4s.JsonDSL._
 import org.json4s.jackson.JsonMethods.{render, compact}
 
 // coral
-import io.coral.actors.CoralActor
+import io.coral.actors.{SimpleEmitTrigger, CoralActor}
 
 
 object ZscoreActor {
@@ -35,34 +37,56 @@ object ZscoreActor {
 }
 
 // metrics actor example
-class ZscoreActor(json: JObject) extends CoralActor(json) {
+class ZscoreActor(json: JObject)
+  extends CoralActor(json) {
 
   val (by, field, score) = ZscoreActor.getParams(jsonDef).get
-  var outlier: Boolean = false
 
   override def trigger = {
-    json: JObject =>
-      for {
-      // from trigger data
-        subpath <- getTriggerInputField[String](json \ by)
-        value <- getTriggerInputField[Double](json \ field)
+    json =>
+      val triggerParams = getTriggerParams(json)
 
-        // from other actors
-        count <- getCollectInputField[Long]("stats", subpath, "count")
-        avg   <- getCollectInputField[Double]("stats", subpath, "avg")
-        std   <- getCollectInputField[Double]("stats", subpath, "sd")
-
-      //alternative syntax from other actors multiple fields
-      //(avg,std) <- getActorField[Double](s"/user/events/histogram/$city", List("avg", "sd"))
-      } yield {
-        // compute (local variables & update state)
-        val th = avg + score * std
-        outlier = (value > th) & (count > 20)
+      triggerParams match {
+        case None => Future.successful(None)
+        case Some(params) => {
+          val subpath = params._1
+          val value = params._2
+          val collectParams = getCollectParams(subpath)
+          val outlier = collectParams.map{o => o.map{case (count, avg, std) => isOutlier(count, avg, std, value)}}
+          outlier.map(o => o.map(determineOutput(json, _)))
+        }
       }
   }
 
-  override def emit = {
-    json: JObject =>
+  private def isOutlier(count: Long, avg: Double, std: Double, value: Double): Boolean = {
+    val th = avg + score * std
+    (value > th) & (count > 20)
+  }
+
+  private def getCollectParams(subpath: String): Future[Option[(Long, Double, Double)]] = {
+    val optionalParams = for {
+      count <- getCollectInputField[Long]("stats", subpath, "count")
+      avg <- getCollectInputField[Double]("stats", subpath, "avg")
+      std <- getCollectInputField[Double]("stats", subpath, "sd")
+    } yield ((count, avg, std))
+
+    optionalParams.map{
+      case ((optCount, optAvg, optStd)) => for {
+        count <- optCount
+          avg <- optAvg
+        std <- optStd
+      } yield ((count, avg, std))
+    }
+  }
+
+  private def getTriggerParams(json: JObject): Option[(String, Double)] = {
+    for {
+      subpath <- (json \ by).extractOpt[String]
+      value <- (json \ field).extractOpt[Double]
+    } yield((subpath, value))
+  }
+
+  private def determineOutput(json: JObject, outlier: Boolean): JValue = {
       outlier match {
         case true =>
           // produce emit my results (dataflow)

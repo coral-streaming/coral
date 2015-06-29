@@ -120,7 +120,7 @@ class CoralActorSpec(_system: ActorSystem)
     "Handle any JSON message" in {
       val testJson: JValue = parse( """{ "test": "emit" }""")
       class TestCoralActor extends MinimalCoralActor {
-        override def emit = json => testJson.merge(json)
+        override def trigger = json => Future.successful(Some(testJson.merge(json)))
       }
       val coral = createCoralActor(Props(new TestCoralActor))
       val probe = TestProbe()
@@ -134,7 +134,7 @@ class CoralActorSpec(_system: ActorSystem)
     "Ignore an incomplete JSON message (that is, makes trigger returns nothing)" in {
       val testJson: JValue = parse( """{ "test": "incomplete" }""")
       class TestCoralActor extends MinimalCoralActor {
-        override def trigger: JObject => OptionT[Future, Unit] = _ => OptionT.none
+        override def trigger = _ => Future.successful(None)
       }
       val coral = createCoralActor(Props(new TestCoralActor))
       val probe = TestProbe()
@@ -146,9 +146,9 @@ class CoralActorSpec(_system: ActorSystem)
     "Ignore an JSON message that makes trigger fail" in {
       val testJson: JValue = parse( """{ "test": "fail" }""")
       class TestCoralActor extends MinimalCoralActor {
-        override def trigger: JObject => OptionT[Future, Unit] = _ => OptionT.some(Future.failed({
+        override def trigger = _ => Future.failed({
           new Exception
-        }))
+        })
       }
       val coral = createCoralActor(Props(new TestCoralActor))
       val probe = TestProbe()
@@ -160,7 +160,7 @@ class CoralActorSpec(_system: ActorSystem)
     "Handle a 'Shunt' message" in {
       val testJson: JValue = parse( """{ "test": "emit" }""")
       class TestCoralActor extends MinimalCoralActor {
-        override def emit = json => testJson.merge(json)
+        override def trigger = json => Future.successful(Some(testJson.merge(json)))
       }
       val coral = createCoralActor(Props(new TestCoralActor))
       val json = parse( """{ "something": "else" }""")
@@ -172,7 +172,7 @@ class CoralActorSpec(_system: ActorSystem)
     "Ignore a 'Shunt' message that triggers none" in {
       val testJson: JValue = parse( """{ "test": "emit" }""")
       class TestCoralActor extends MinimalCoralActor {
-        override def trigger: JObject => OptionT[Future, Unit] = _ => OptionT.none
+        override def trigger = _ => Future.successful(None)
       }
       val coral = createCoralActor(Props(new TestCoralActor))
       val json = parse( """{ "something": "else" }""")
@@ -180,16 +180,11 @@ class CoralActorSpec(_system: ActorSystem)
       expectNoMsg(100 millis)
     }
 
-    "Have 'doNotEmit' produce JNothing" in {
-      val coral = createCoralActor()
-      coral.emitNothing(parse( """{"a":"b"}""").asInstanceOf[JObject]) should be(JNothing)
-    }
-
     "Have 'noProcess' produce empty future option" in {
       val coral = createCoralActor()
       val result = coral.trigger(parse( """{"test": "whatever"}""").asInstanceOf[JObject])
-      whenReady(result.run) {
-        value => value should be(Some(()))
+      whenReady(result) {
+        value => value should be(Some(JNothing))
       }
     }
   }
@@ -200,7 +195,7 @@ class CoralActorSpec(_system: ActorSystem)
       val testJson: JValue = parse( """{ "test": "trigger" }""")
       class TestCoralActor extends MinimalCoralActor {
         var wasExecuted = false
-        override def trigger: JObject => OptionT[Future, Unit] = _ => OptionT.some(Future.successful(wasExecuted = true))
+        override def trigger = _ => Future.successful({wasExecuted = true; None})
       }
 
       val coral = createCoralActor(Props(new TestCoralActor))
@@ -215,38 +210,14 @@ class CoralActorSpec(_system: ActorSystem)
       class TestCoralActor extends MinimalCoralActor {
         var wasExecuted = false
 
-        override def trigger: JObject => OptionT[Future, Unit] = _ => OptionT.some(Future.successful(wasExecuted = true))
+        override def trigger = _ => Future.successful{wasExecuted = true; None}
       }
       val coral = createCoralActor(Props(new TestCoralActor))
       val result = coral.trigger(testJson.asInstanceOf[JObject])
-      whenReady(result.run) {
-        value => value should be(Some(()))
+      whenReady(result) {
+        value => value should be(None)
       }
       coral.asInstanceOf[TestCoralActor].wasExecuted should be(true)
-    }
-
-    "Get the trigger field as OptionT in 'getTriggerInputField'" in {
-      val coral = createCoralActor()
-      val result = coral.getTriggerInputField[Double](parse("2.71"))
-      whenReady(result.run) {
-        value => value should be(Some(2.71))
-      }
-    }
-
-    "Get the trigger field as OptionT in 'getTriggerInputField' with default when defined" in {
-      val coral = createCoralActor()
-      val result = coral.getTriggerInputField[Double](parse("4.71"), 3.0)
-      whenReady(result.run) {
-        value => value should be(Some(4.71))
-      }
-    }
-
-    "Get the trigger field as OptionT in 'getTriggerInputField' with default when not defined" in {
-      val coral = createCoralActor()
-      val result = coral.getTriggerInputField[Double](JNothing, 3.0)
-      whenReady(result.run) {
-        value => value should be(Some(3.0))
-      }
     }
 
     "Ignore an 'UpdateProperties' message without information" in {
@@ -280,18 +251,7 @@ class CoralActorSpec(_system: ActorSystem)
 
   }
 
-  "CoralActor emit" should {
-
-    "Be defined in concrete implementations of 'emit'" in {
-      val testJson: JValue = parse( """{ "test": "input" }""")
-      val emitJson: JValue = parse( """{ "test": "emit2" }""")
-      class TestCoralActor extends MinimalCoralActor {
-        override def emit = json => emitJson.merge(json)
-      }
-      val coral = createCoralActor(Props(new TestCoralActor))
-      val expected = emitJson.merge(testJson)
-      coral.emit(testJson.asInstanceOf[JObject]) should be(expected)
-    }
+  "CoralActor trigger with emit" should {
 
     "Emit to actors registered with a 'RegisterActor' message" in {
       val coral = createCoralActor()
@@ -357,7 +317,7 @@ class CoralActorSpec(_system: ActorSystem)
       val result = coral.getCollectInputField[Int]("test", "", "testField")
       probe.expectMsg(GetFieldBy("testField", ""))
       probe.reply(JInt(42))
-      whenReady(result.run) {
+      whenReady(result) {
         value => value should be(Some(42))
       }
     }
@@ -370,7 +330,7 @@ class CoralActorSpec(_system: ActorSystem)
       val result = coral.getCollectInputField[Int]("test", "dummypath", "testField")
       probe.expectMsg(GetFieldBy("testField", "dummypath"))
       probe.reply(JInt(48))
-      whenReady(result.run) {
+      whenReady(result) {
         value => value should be(Some(48))
       }
     }
