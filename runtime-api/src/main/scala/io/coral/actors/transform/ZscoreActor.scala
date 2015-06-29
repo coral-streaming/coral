@@ -5,6 +5,10 @@ import akka.actor.{ActorLogging, Props}
 
 import scala.concurrent.Future
 
+import scalaz._
+import Scalaz._
+import scalaz.OptionT._
+
 //json goodness
 import org.json4s._
 import org.json4s.JsonDSL._
@@ -44,46 +48,20 @@ class ZscoreActor(json: JObject)
 
   override def trigger = {
     json =>
-      val triggerParams = getTriggerParams(json)
-
-      triggerParams match {
-        case None => Future.successful(None)
-        case Some(params) => {
-          val subpath = params._1
-          val value = params._2
-          val collectParams = getCollectParams(subpath)
-          val outlier = collectParams.map{o => o.map{case (count, avg, std) => isOutlier(count, avg, std, value)}}
-          outlier.map(o => o.map(determineOutput(json, _)))
-        }
-      }
+      val result = for {
+        subpath <- optionT(Future.successful((json \ by).extractOpt[String]))
+        value <- optionT(Future.successful((json \ field).extractOpt[Double]))
+        count <- optionT(getCollectInputField[Long]("stats", subpath, "count"))
+        avg <- optionT(getCollectInputField[Double]("stats", subpath, "avg"))
+        std <- optionT(getCollectInputField[Double]("stats", subpath, "sd"))
+        outlier = isOutlier(count, avg, std, value)
+      } yield(determineOutput(json, outlier))
+      result.run
   }
 
   private def isOutlier(count: Long, avg: Double, std: Double, value: Double): Boolean = {
     val th = avg + score * std
     (value > th) & (count > 20)
-  }
-
-  private def getCollectParams(subpath: String): Future[Option[(Long, Double, Double)]] = {
-    val optionalParams = for {
-      count <- getCollectInputField[Long]("stats", subpath, "count")
-      avg <- getCollectInputField[Double]("stats", subpath, "avg")
-      std <- getCollectInputField[Double]("stats", subpath, "sd")
-    } yield ((count, avg, std))
-
-    optionalParams.map{
-      case ((optCount, optAvg, optStd)) => for {
-        count <- optCount
-          avg <- optAvg
-        std <- optStd
-      } yield ((count, avg, std))
-    }
-  }
-
-  private def getTriggerParams(json: JObject): Option[(String, Double)] = {
-    for {
-      subpath <- (json \ by).extractOpt[String]
-      value <- (json \ field).extractOpt[Double]
-    } yield((subpath, value))
   }
 
   private def determineOutput(json: JObject, outlier: Boolean): JValue = {
