@@ -34,20 +34,16 @@ object FsmActor {
 
 }
 
-class FsmActor(json: JObject) extends CoralActor with ActorLogging {
-
-  def jsonDef = json
+class FsmActor(json: JObject) extends CoralActor(json) with ActorLogging {
 
   val (key, table, s0) = FsmActor.getParams(json).get
 
   // fsm state
   var s = s0
 
-  def state = Map(("s", JString(s)))
+  override def state = Map(("s", JString(s)))
 
-  def timer = noTimer
-
-  def trigger = {
+  override def trigger = {
     json: JObject =>
       for {
       // from trigger data
@@ -58,7 +54,5 @@ class FsmActor(json: JObject) extends CoralActor with ActorLogging {
         s = e.getOrElse(value, s)
       }
   }
-
-  def emit = emitNothing
 
 }

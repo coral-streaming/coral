@@ -27,18 +27,12 @@ object ThresholdActor {
   }
 }
 
-class ThresholdActor(json: JObject) extends CoralActor with ActorLogging {
+class ThresholdActor(json: JObject) extends CoralActor(json) with ActorLogging {
   val (key, threshold) = ThresholdActor.getParams(json).get
   
   var thresholdReached = false
   
-  def jsonDef = json
-  
-  def state = Map.empty
-  
-  def timer = noTimer
-  
-  def trigger = {
+  override def trigger = {
     json =>
       for {
         value <- getTriggerInputField[Double](json \ key)
@@ -46,7 +40,8 @@ class ThresholdActor(json: JObject) extends CoralActor with ActorLogging {
         thresholdReached = value >= threshold
       }
   }
-  def emit = {
+
+  override def emit = {
     json =>
       thresholdReached match {
         case true => {

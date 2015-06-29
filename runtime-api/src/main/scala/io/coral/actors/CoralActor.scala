@@ -32,11 +32,11 @@ object TimerExit     extends TimerBehavior
 object TimerContinue extends TimerBehavior
 object TimerNone     extends TimerBehavior
 
-abstract class CoralActor extends Actor with ActorLogging {
+abstract class CoralActor(json: JObject) extends Actor with ActorLogging {
   // begin: implicits and general actor init
   def actorRefFactory = context
 
-  def jsonDef: JValue
+  def jsonDef = json
 
   // transmit actor list
   var emitTargets = SortedSet.empty[ActorRef]
@@ -112,7 +112,7 @@ abstract class CoralActor extends Actor with ActorLogging {
 
   type Timer = JValue
 
-  def timer:Timer
+  def timer:Timer = noTimer
   val noTimer: Timer = JNothing
 
   def receiveTimeout: Receive = {
@@ -138,7 +138,7 @@ abstract class CoralActor extends Actor with ActorLogging {
 
   type Trigger =  JObject => OptionT[Future, Unit]
 
-  def trigger: Trigger
+  def trigger: Trigger = defaultTrigger
   val defaultTrigger : Trigger =
     json => OptionT.some(Future.successful({}))
 
@@ -146,7 +146,7 @@ abstract class CoralActor extends Actor with ActorLogging {
 
   type Emit = JObject => JValue
 
-  def emit: Emit
+  def emit: Emit = emitNothing
   val emitNothing: Emit = _    => JNothing
   val emitPass   : Emit = json => json
 
@@ -246,7 +246,8 @@ abstract class CoralActor extends Actor with ActorLogging {
                 receiveTimeout     orElse
                 receiveExtra
 
-  def state: Map[String, JValue]
+  def state: Map[String, JValue] = noState
+  val noState: Map[String, JValue] = Map.empty
 
   def stateResponse(x:String,by:Option[String],sender:ActorRef) = {
     if ( by.getOrElse("").isEmpty) {

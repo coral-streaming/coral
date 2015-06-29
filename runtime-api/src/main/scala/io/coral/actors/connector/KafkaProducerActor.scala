@@ -44,18 +44,12 @@ object KafkaProducerActor {
   }
 }
 
-class KafkaProducerActor[T <: Encoder[JValue]](json: JObject, connection: KafkaJsonProducer[T]) extends CoralActor with ActorLogging {
+class KafkaProducerActor[T <: Encoder[JValue]](json: JObject, connection: KafkaJsonProducer[T]) extends CoralActor(json) with ActorLogging {
   val (properties, topic) = KafkaProducerActor.getParams(json).get
 
   lazy val kafkaSender = connection.createSender(topic, properties)
 
-  def jsonDef = json
-
-  def state = Map.empty
-
-  def timer = noTimer
-
-  def trigger = {
+  override def trigger = {
     json =>
       val key = (json \ "key").extractOpt[String]
       val message = (json \"message").extract[JObject]
@@ -70,6 +64,4 @@ class KafkaProducerActor[T <: Encoder[JValue]](json: JObject, connection: KafkaJ
       case e: Exception => log.error(e, "failed to send message to Kafka")
     }
   }
-
-  def emit = emitNothing
 }

@@ -41,36 +41,11 @@ class JsonActorSpec(_system: ActorSystem)
       props.actorClass shouldBe classOf[JsonActor]
     }
 
-    "have jsonDef return the construction" in {
-      val json = apiJson( """{ "type": "json", "params": { "template": {} } }""")
-      val actor = createJsonActor(json)
-      actor.jsonDef shouldBe json
-    }
-
-    "have no timer functionality" in {
-      val json = apiJson( """{ "type": "json", "params": { "template": {} } }""")
-      val actor = createJsonActor(json)
-      actor.timer shouldBe JNothing
-    }
-
-    "have no state" in {
-      val json = apiJson( """{ "type": "json", "params": { "template": {} } }""")
-      val actor = createJsonActor(json)
-      actor.state shouldBe Map.empty[String, JValue]
-    }
-
     "read the template parameter" in {
       val template = """{ "a": "someReference" }"""
       val json = apiJson( s"""{ "type": "json", "params": { "template": ${template} } }""")
       val actor = createJsonActor(json)
       actor.template.template shouldBe parse(template)
-    }
-
-    "do nothing in the trigger" in {
-      val template = """{ "a": "someReference" }"""
-      val json = apiJson( s"""{ "type": "json", "params": { "template": ${template} } }""")
-      val actor = createJsonActor(json)
-      actor.trigger shouldBe actor.defaultTrigger
     }
 
     "emit the json based on template" in {

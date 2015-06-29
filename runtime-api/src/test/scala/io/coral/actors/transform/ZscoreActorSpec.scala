@@ -67,16 +67,6 @@ class ZscoreActorSpec(_system: ActorSystem)
       actor.score should be(6.1)
     }
 
-    "have no state" in {
-      val actor = createZscoreActor(2, "field1", "field2", 6.1)
-      actor.state should be(Map.empty)
-    }
-
-    "have no timer action" in {
-      val actor = createZscoreActor(3, "field1", "field2", 6.1)
-      actor.timer should be(actor.noTimer)
-    }
-
     // this should be better separated, even if only from a unit testing point of view
     "process trigger and collect data" in {
       val zscore = createZscoreActor(4, by = "", field = "val", score = 6.1)

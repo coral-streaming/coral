@@ -28,7 +28,7 @@ object SampleActor {
 
 }
 
-class SampleActor(json: JValue, random: Random) extends CoralActor {
+class SampleActor(json: JObject, random: Random) extends CoralActor(json) {
 
   val fraction: Double = SampleActor.getParams(json).get
 
@@ -42,20 +42,14 @@ class SampleActor(json: JValue, random: Random) extends CoralActor {
 
   var pass: Boolean = false
 
-  def jsonDef = json
-
-  def timer = noTimer
-
-  def state: Map[String, JValue] = Map.empty[String, JValue]
-
-  def trigger = {
+  override def trigger = {
     _ => {
       pass = next()
       OptionT.some(Future.successful({}))
     }
   }
 
-  def emit =
+  override def emit =
     json => pass match {
       case false => JNothing
       case true => json

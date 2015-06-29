@@ -83,16 +83,6 @@ class SampleActorSpec(_system: ActorSystem)
       SampleActor(json) should be(None)
     }
 
-    "Have no time function implemented" in {
-      val actor = arbitrarySampleActor()
-      actor.timer should be(JNothing)
-    }
-
-    "Have no state for collection" in {
-      val actor = arbitrarySampleActor()
-      actor.state should be(Map.empty[String, JValue])
-    }
-
     "Be constructible with a io.coral.lib.Random for random boolean stream" in {
       val actor = notSoRandomSampleActor(fraction = 0.5, randoms = 0.1, 0.49, 0.50, 0.51, 0.8, 0.4)
       actor.next() should be(true)

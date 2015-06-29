@@ -35,18 +35,12 @@ object ZscoreActor {
 }
 
 // metrics actor example
-class ZscoreActor(json: JObject) extends CoralActor {
-
-  def jsonDef = json
+class ZscoreActor(json: JObject) extends CoralActor(json) {
 
   val (by, field, score) = ZscoreActor.getParams(jsonDef).get
   var outlier: Boolean = false
 
-  def state = Map.empty
-
-  def timer = noTimer
-
-  def trigger = {
+  override def trigger = {
     json: JObject =>
       for {
       // from trigger data
@@ -67,7 +61,7 @@ class ZscoreActor(json: JObject) extends CoralActor {
       }
   }
 
-  def emit = {
+  override def emit = {
     json: JObject =>
       outlier match {
         case true =>

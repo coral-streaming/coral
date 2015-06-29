@@ -128,9 +128,7 @@ object WindowActor {
     }
 }
 
-class WindowActor(json: JObject) extends CoralActor with ActorLogging {
-    def jsonDef = json
-
+class WindowActor(json: JObject) extends CoralActor(json) with ActorLogging {
     var (method, number, sliding) = WindowActor.getParams(json).get
 
     // The list of items is a tuple with adding time
@@ -155,17 +153,13 @@ class WindowActor(json: JObject) extends CoralActor with ActorLogging {
         }
     }
 
-    def state = Map(
+    override def state = Map(
         ("method", render(JString(method))),
         ("number", render(JInt(number))),
         ("sliding", render(JInt(sliding)))
     )
 
-    def timer = {
-        JNothing
-    }
-
-    def trigger = {
+    override def trigger = {
         json: JObject =>
             items.enqueue((System.currentTimeMillis, json))
 
@@ -237,7 +231,7 @@ class WindowActor(json: JObject) extends CoralActor with ActorLogging {
         }
     }
 
-    def emit = {
+    override def emit = {
         json: JObject =>
             if (method == "count" && toEmit.length < number) {
                 JNothing

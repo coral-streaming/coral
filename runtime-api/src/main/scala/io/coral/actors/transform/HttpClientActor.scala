@@ -57,15 +57,13 @@ object HttpClientActor {
   }
 }
 
-class HttpClientActor(json: JObject) extends CoralActor with ActorLogging {
+class HttpClientActor(json: JObject) extends CoralActor(json) with ActorLogging {
   private val ContentTypeJson = "application/json"
   private val TimeOut = 5.seconds
 
   val (url, method, headers) = HttpClientActor.getParams(jsonDef).get
 
-  def jsonDef = json
-  def state   = Map.empty
-  def timer: Timer = {
+  override def timer: Timer = {
     val future = getResponse("").run.map{
       case Some(response) => createJson(response)
       case None => JNothing
@@ -81,7 +79,7 @@ class HttpClientActor(json: JObject) extends CoralActor with ActorLogging {
 
   var answer: HttpResponse = _
 
-  def trigger: (JObject) => OptionT[Future, Unit] = {
+  override def trigger = {
     json: JObject =>
       for {
         payload <- getTriggerInputField[String](json \ "payload", "")
@@ -97,7 +95,7 @@ class HttpClientActor(json: JObject) extends CoralActor with ActorLogging {
     OptionT.optionT(value)
   }
 
-  def emit = {
+  override def emit = {
     json: JObject => createJson(answer)
   }
 

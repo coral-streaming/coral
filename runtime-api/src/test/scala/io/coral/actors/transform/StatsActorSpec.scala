@@ -87,11 +87,6 @@ class StatsActorSpec(_system: ActorSystem)
       actor.state should be(expectedInitialState)
     }
 
-    "emit nothing" in {
-      val actor = createStatsActor
-      actor.emit should be(actor.emitNothing)
-    }
-
   }
 
 }

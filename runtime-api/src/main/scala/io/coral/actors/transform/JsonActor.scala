@@ -25,17 +25,9 @@ object JsonActor {
 
 }
 
-class JsonActor(json: JObject) extends CoralActor {
+class JsonActor(json: JObject) extends CoralActor(json) {
 
   val template = JsonTemplate(JsonActor.getParams(json).get)
-
-  override def jsonDef: JValue = json
-
-  override def timer: Timer = JNothing
-
-  override def state: Map[String, JValue] = Map.empty[String, JValue]
-
-  override def trigger: Trigger = defaultTrigger
 
   override def emit: Emit = json => template.interpret(json)
 

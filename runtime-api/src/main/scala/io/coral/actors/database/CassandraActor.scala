@@ -33,9 +33,7 @@ object CassandraActor {
     }
 }
 
-class CassandraActor(json: JObject) extends CoralActor with CassandraHelper {
-    def jsonDef = json
-
+class CassandraActor(json: JObject) extends CoralActor(json) with CassandraHelper {
     var (seeds, port, keyspace) = CassandraActor.getParams(json).get
 
     override def preStart() {
@@ -45,19 +43,17 @@ class CassandraActor(json: JObject) extends CoralActor with CassandraHelper {
     var cluster: Cluster = _
     var session: Session = _
     var schema: JValue = _
-    def state = Map(
+    override def state = Map(
         ("connected", render(session != null && !session.isClosed)),
         ("keyspace", render(keyspace)),
         ("schema", render(getSchema(session, keyspace)))
     )
 
-    def timer = JNothing
-
     var result: Option[ResultSet] = _
     var lastQuery: String = _
     var lastError: String = _
 
-    def trigger = {
+    override def trigger = {
         json: JObject =>
             ensureConnection(seeds, port, keyspace)
 
@@ -94,7 +90,7 @@ class CassandraActor(json: JObject) extends CoralActor with CassandraHelper {
             OptionT.some(Future.successful({}))
     }
 
-    def emit = {
+    override def emit = {
         json: JObject =>
             result match {
                 case Some(data) =>

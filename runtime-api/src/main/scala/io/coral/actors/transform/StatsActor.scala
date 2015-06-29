@@ -34,17 +34,15 @@ object StatsActor {
   }
 }
 
-class StatsActor(json: JObject) extends CoralActor with ActorLogging {
+class StatsActor(json: JObject) extends CoralActor(json) with ActorLogging {
 
   implicit def double2jvalue(x: Double): JValue = if (x.isNaN) JNull else JDouble(x)
-
-  def jsonDef = json
 
   val field = StatsActor.getParams(json).get
 
   val stats = SummaryStatistics.mutable
 
-  def state = Map(
+  override def state = Map(
     ("count", render(stats.count)),
     ("avg", render(stats.average)),
     ("sd", render(stats.populationSd)),
@@ -52,12 +50,12 @@ class StatsActor(json: JObject) extends CoralActor with ActorLogging {
     ("max", render(stats.max))
   )
 
-  def timer = {
+  override def timer = {
     stats.reset()
     JNothing
   }
 
-  def trigger = {
+  override def trigger = {
     json: JObject =>
       for {
         value <- getTriggerInputField[Double](json \ field)
@@ -66,5 +64,4 @@ class StatsActor(json: JObject) extends CoralActor with ActorLogging {
       }
   }
 
-  def emit = emitNothing
 }
