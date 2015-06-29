@@ -20,8 +20,7 @@ import org.json4s.JsonAST.JValue
 import org.json4s.JsonDSL._
 
 // scalaz monad transformers
-import scalaz.OptionT._
-import scalaz.{Monad, OptionT}
+import scalaz.{Monad}
 
 //coral
 
@@ -32,7 +31,11 @@ object TimerExit     extends TimerBehavior
 object TimerContinue extends TimerBehavior
 object TimerNone     extends TimerBehavior
 
-abstract class CoralActor(json: JObject) extends Actor with ActorLogging {
+abstract class CoralActor(json: JObject)
+  extends Actor
+  with NoTrigger
+  with ActorLogging {
+
   // begin: implicits and general actor init
   def actorRefFactory = context
 
@@ -56,22 +59,12 @@ abstract class CoralActor(json: JObject) extends Actor with ActorLogging {
 
   implicit val formats = org.json4s.DefaultFormats
 
-  implicit val futureMonad = new Monad[Future] {
-    def point[A](a: => A): Future[A] = Future.successful(a)
-    def bind[A, B](fa: Future[A])(f: A => Future[B]): Future[B] = fa flatMap f
-  }
-
   def getCollectInputField[A](actorAlias: String, by: String, field: String)(implicit mf: Manifest[A]): Future[Option[A]] = {
     collectSources.get(actorAlias) match {
       case Some(actorPath) =>
         askActor(actorPath, GetFieldBy(field, by)).mapTo[JValue].map(json => json.extractOpt[A])
       case None => Future.failed(throw new Exception(s"Collect actor not defined"))
     }
-  }
-
-  def getActorResponse[A](path: String, msg: Any) = {
-    val result = askActor(path, msg).mapTo[Option[A]]
-    optionT(result)
   }
 
   def in[U](duration: FiniteDuration)(body: => U): Unit =
@@ -121,25 +114,6 @@ abstract class CoralActor(json: JObject) extends Actor with ActorLogging {
         case _ => // do nothing
       }
   }
-
-  // trigger
-
-  type Trigger =  JObject => Future[Option[JValue]]
-
-  def trigger: Trigger = defaultTrigger
-  val defaultTrigger : Trigger =
-    json => {
-      if (isInstanceOf[NoEmitTrigger]) {
-        val noEmitTrigger = asInstanceOf[NoEmitTrigger]
-        noEmitTrigger.noEmitTrigger(json)
-        Future.successful(Some(JNothing))
-      } else if (isInstanceOf[SimpleEmitTrigger]) {
-        val simpleEmitTrigger = asInstanceOf[SimpleEmitTrigger]
-        Future.successful(simpleEmitTrigger.simpleEmitTrigger(json))
-      } else {
-        Future.successful(Some(JNothing))
-      }
-    }
 
   // transmitting to the subscribing coral actors
 

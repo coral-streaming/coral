@@ -17,7 +17,6 @@ import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 import scala.language.postfixOps
 import scala.util.Success
-import scalaz.OptionT
 
 class CoralActorSpec(_system: ActorSystem)
   extends TestKit(_system)
@@ -80,18 +79,6 @@ class CoralActorSpec(_system: ActorSystem)
       val probe = TestProbe()
       coral.tellActor(probe.ref.path.toString, "tell")
       probe.expectMsg("tell")
-    }
-
-    "Get an actor response as OptionT via 'getActorResponse'" in {
-      val coral = createCoralActor()
-      val probe = TestProbe()
-      val path = probe.ref.path.toString
-      val result = coral.getActorResponse[Long](path, "msg1")
-      probe.expectMsg("msg1")
-      probe.reply(Some(42L))
-      whenReady(result.run) {
-        value => value should be(Some(42L))
-      }
     }
 
     "Have an 'in' method" in {

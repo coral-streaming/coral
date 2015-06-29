@@ -2,6 +2,13 @@ package io.coral.actors
 
 import org.json4s.JsonAST.{JValue, JObject}
 
-trait SimpleEmitTrigger {
+import scala.concurrent.Future
+
+trait SimpleEmitTrigger extends Trigger {
+  override def trigger: TriggerType = {
+    json =>
+      Future.successful(simpleEmitTrigger(json))
+  }
+
   def simpleEmitTrigger(json: JObject): Option[JValue]
 }
