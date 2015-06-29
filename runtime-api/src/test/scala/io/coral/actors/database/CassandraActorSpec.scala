@@ -88,6 +88,9 @@ with BeforeAndAfterAll {
     "Return a JSON representation of a ResultSet" in {
       val query = parse("""{ "query": "select * from testkeyspace.test1" } """)
         .asInstanceOf[JObject]
+
+      cassandra ! query
+
       val actual = Await.result(cassandra.ask(Shunt(query)), timeout.duration)
 
       val expected = parse(
