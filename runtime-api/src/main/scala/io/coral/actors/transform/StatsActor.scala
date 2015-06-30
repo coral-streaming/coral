@@ -11,7 +11,7 @@ import org.json4s._
 import org.json4s.jackson.JsonMethods.render
 
 // coral
-import io.coral.actors.{NoEmitTrigger, CoralActor}
+import io.coral.actors.{SimpleTimer, NoEmitTrigger, CoralActor}
 import io.coral.lib.SummaryStatistics
 
 import scala.language.implicitConversions
@@ -37,7 +37,8 @@ object StatsActor {
 class StatsActor(json: JObject)
   extends CoralActor(json)
   with ActorLogging
-  with NoEmitTrigger {
+  with NoEmitTrigger
+  with SimpleTimer {
 
   implicit def double2jvalue(x: Double): JValue = if (x.isNaN) JNull else JDouble(x)
 
@@ -53,9 +54,9 @@ class StatsActor(json: JObject)
     ("max", render(stats.max))
   )
 
-  override def timer = {
+  override def simpleTimer = {
     stats.reset()
-    JNothing
+    Some(JNothing)
   }
 
   override def noEmitTrigger(json: JObject) = {

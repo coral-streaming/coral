@@ -57,19 +57,11 @@ object HttpClientActor {
 
 class HttpClientActor(json: JObject) extends CoralActor(json) with ActorLogging {
   private val ContentTypeJson = "application/json"
-  private val TimeOut = 5.seconds
 
   val (url, method, headers) = HttpClientActor.getParams(jsonDef).get
 
-  override def timer: Timer = {
-    val future = getResponse("")
-    try {
-      Await.result(future, TimeOut).get
-    } catch {
-      case e: Exception =>
-        log.warning("Exception waiting for response", e)
-        JNothing
-    }
+  override def timer = {
+    getResponse("")
   }
 
   override def trigger = {
