@@ -185,14 +185,14 @@ abstract class CoralActor extends Actor with ActorLogging {
   // TODO: Remove the old one if there is one otherwise you end up with two
   def propHandling: Receive = {
     case UpdateProperties(json) =>
-      val triggerSource = (json \ "attributes" \ "input" \ "trigger").extractOpt[String]
+      val triggerSource = (json \ "attributes" \ "input" \ "trigger")
 
-      triggerSource map { v =>
-            tellActor(s"/user/coral/$v", RegisterActor(self))
-          }
       val triggerJsonDef = triggerSource match {
-        case Some(_) => render ("trigger" -> (json \ "attributes" \ "input" \ "trigger") )
-        case None => JObject()
+        case JString(v) => {
+          tellActor(s"/user/coral/$v", RegisterActor(self))
+          render ("trigger" -> triggerSource )
+        }
+        case _=> JObject()
       }
       val collectAliases = (json \ "attributes" \ "input" \ "collect").extractOpt[Map[String, Any]]
       val result = collectAliases match {
