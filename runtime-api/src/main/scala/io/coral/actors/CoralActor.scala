@@ -34,6 +34,7 @@ object TimerNone     extends TimerBehavior
 abstract class CoralActor(json: JObject)
   extends Actor
   with NoTrigger
+  with NoTimer
   with ActorLogging {
 
   // begin: implicits and general actor init
@@ -91,14 +92,9 @@ abstract class CoralActor(json: JObject)
       case _ => TimerNone
     }
 
-  type Timer = JValue
-
-  def timer:Timer = noTimer
-  val noTimer: Timer = JNothing
-
   def receiveTimeout: Receive = {
     case TimeoutEvent =>
-      transmit(timer)
+      executeTimer
 
       // depending on the configuration,
       // end the actor (gracefully) or ...
@@ -113,6 +109,20 @@ abstract class CoralActor(json: JObject)
           tellActor("/user/coral", Delete(self.path.name.toLong))
         case _ => // do nothing
       }
+  }
+
+  def executeTimer = {
+    val future = timer
+    future.onSuccess {
+      case Some(result) =>
+        transmit(result)
+
+      case None => log.warning("not processed")
+    }
+
+    future.onFailure {
+      case _ => log.warning("actor execution")
+    }
   }
 
   // transmitting to the subscribing coral actors

@@ -346,17 +346,18 @@ class CoralActorSpec(_system: ActorSystem)
     "Be defined in concrete implementations of 'timer'" in {
       val testJson: JValue = parse( """{ "test": "timer" }""")
       class TestCoralActor extends MinimalCoralActor {
-        override def timer: JValue = testJson
+        override def timer: TimerType = Future.successful(Some(testJson))
       }
       val coral = createCoralActor(Props(new TestCoralActor))
-      coral.timer should be(testJson)
+      val result = Await.result(coral.timer, timeout.duration)
+      result should be(Some(testJson))
     }
 
     "Accept a timer parameter" in {
       val createJson = parse( s"""{ "attributes": {"timeout": { "duration": 0.23, "mode": "exit" } } }""").asInstanceOf[JObject]
       val testJson: JValue = parse( """{ "test": "timer2" }""")
       class TestCoralActor extends CoralActor(createJson) {
-        override def timer: JValue = testJson
+        override def timer: TimerType = Future.successful(Some(testJson))
       }
       val coral = createCoralActor(Props(new TestCoralActor))
       coral.timerDuration should be(0.23d)
@@ -383,7 +384,7 @@ class CoralActorSpec(_system: ActorSystem)
       val createJson = parse( s"""{ "attributes": {"timeout": { "duration": 0.5, "mode": "continue" } } }""").asInstanceOf[JObject]
       val testJson = parse( """{ "test": "timer3" }""")
       class TestCoralActor extends CoralActor(createJson) {
-        override def timer: JValue = testJson
+        override def timer: TimerType = Future.successful(Some(testJson))
       }
       val coral = createCoralActor(Props(new TestCoralActor))
       val probe = TestProbe()
@@ -395,7 +396,7 @@ class CoralActorSpec(_system: ActorSystem)
       val createJson = parse( s"""{ "attributes": {"timeout": { "duration": 5, "mode": "doesnotexist" } } }""").asInstanceOf[JObject]
       val testJson = parse( """{ "test": "timer4" }""")
       class TestCoralActor extends CoralActor(createJson) {
-        override def timer: JValue = testJson
+        override def timer: TimerType = Future.successful(Some(testJson))
       }
       val coral = createCoralActor(Props(new TestCoralActor))
       val probe = TestProbe()

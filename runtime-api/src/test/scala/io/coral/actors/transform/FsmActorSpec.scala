@@ -125,11 +125,6 @@ class FsmActorSpec(_system: ActorSystem)
       }
     }
 
-    "Have no timer action" in {
-      val fsm = createTestFsmActor
-      fsm.timer should be(JNothing)
-    }
-
     "Have a state initialized to s0" in {
       val fsm = createTestFsmActor
       fsm.s should be("normal")

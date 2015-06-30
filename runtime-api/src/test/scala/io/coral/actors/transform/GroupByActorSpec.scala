@@ -77,11 +77,6 @@ class GroupByActorSpec(_system: ActorSystem)
       actor.state should be(Map(("actors", render(Map.empty[String, Long]))))
     }
 
-    "Have no timer action of itself" in {
-      val actor = statsGroupBy
-      actor.timer should be(JNothing)
-    }
-
     "Create a new child when triggered for non existing tag" in {
       val actor = statsGroupBy
       actor.children.size should be(0)
