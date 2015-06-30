@@ -49,7 +49,7 @@ class ZscoreActor(json: JObject)
   override def trigger = {
     json =>
       val result = for {
-        subpath <- optionT(Future.successful((json \ by).extractOpt[String]))
+        subpath <- optionT(getSubpath(json))
         value <- optionT(Future.successful((json \ field).extractOpt[Double]))
         count <- optionT(getCollectInputField[Long]("stats", subpath, "count"))
         avg <- optionT(getCollectInputField[Double]("stats", subpath, "avg"))
@@ -57,6 +57,13 @@ class ZscoreActor(json: JObject)
         outlier = isOutlier(count, avg, std, value)
       } yield(determineOutput(json, outlier))
       result.run
+  }
+
+  private def getSubpath(json: JObject): Future[Option[String]] = {
+    by match {
+      case "" => Future.successful(Some(""))
+      case _ => Future.successful((json \ by).extractOpt[String])
+    }
   }
 
   private def isOutlier(count: Long, avg: Double, std: Double, value: Double): Boolean = {
