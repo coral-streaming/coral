@@ -182,32 +182,22 @@ abstract class CoralActor extends Actor with ActorLogging {
     }
   }
 
-  // TODO: Refactor this somehow, split up?
+  // TODO: Remove the old one if there is one otherwise you end up with two
   def propHandling: Receive = {
     case UpdateProperties(json) =>
-      // update trigger
-      val triggerSource = (json \ "attributes" \ "input" \ "trigger" \ "in" \ "type").extractOpt[String]
-      val triggerJsonDef = triggerSource match {
-        case Some("none") => render("trigger" -> (json \ "attributes" \ "input" \ "trigger"))
-        case Some("external") => render("trigger" -> (json \ "attributes" \ "input" \ "trigger"))
-        case Some("actor") =>
-          val source = (json \ "attributes" \ "input" \ "trigger" \ "in" \ "source").extractOpt[String]
-          source map { v =>
+      val triggerSource = (json \ "attributes" \ "input" \ "trigger").extractOpt[String]
+
+      triggerSource map { v =>
             tellActor(s"/user/coral/$v", RegisterActor(self))
-            // TODO: Remove the old one if there is one otherwise you end up with two
           }
-          render("trigger" -> (json \ "attributes" \ "input" \ "trigger"))
-
-        case _ =>
-          JObject()
+      val triggerJsonDef = triggerSource match {
+        case Some(_) => render ("trigger" -> (json \ "attributes" \ "input" \ "trigger") )
+        case None => JObject()
       }
-
-      // TODO: Refactor this!
-      // update collect
       val collectAliases = (json \ "attributes" \ "input" \ "collect").extractOpt[Map[String, Any]]
       val result = collectAliases match {
         case Some(v) =>
-          val x = v.keySet.map(k => (k, (json \ "attributes" \ "input" \ "collect" \ k \ "source")
+          val x = v.keySet.map(k => (k, (json \ "attributes" \ "input" \ "collect" \ k )
             .extractOpt[Int].map(v => s"/user/coral/$v")))
           (x.filter(_._2.isDefined).map(i => (i._1, i._2.get)).toMap,
             render("collect" -> (json \ "attributes" \ "input" \ "collect")))
@@ -215,12 +205,11 @@ abstract class CoralActor extends Actor with ActorLogging {
           (Map[String, String](), JObject())
       }
 
-      // TODO: Refactor this!
+      // TODO: Rfactor this!
       collectSources = result._1
       val collectJsonDef = result._2
       inputJsonDef = triggerJsonDef merge collectJsonDef
 
-      // TODO: WTF???
       sender ! true
   }
 
@@ -276,7 +265,7 @@ abstract class CoralActor extends Actor with ActorLogging {
 
   def state: Map[String, JValue]
 
-  def stateResponse(x:String,by:Option[String],sender:ActorRef) = {
+  def stateResponse(x:String, by:Option[String], sender:ActorRef) = {
     // TODO: Refactor to case match
     if ( by.getOrElse("").isEmpty) {
       val value = state.get(x)
@@ -296,8 +285,8 @@ abstract class CoralActor extends Actor with ActorLogging {
 
   def stateReceive: Receive = {
     case GetField(x) =>
-      stateResponse(x,None, sender())
-    case GetFieldBy(x,by) =>
-      stateResponse(x,Some(by), sender())
+      stateResponse(x, None, sender())
+    case GetFieldBy(x, by) =>
+      stateResponse(x, Some(by), sender())
   }
 }

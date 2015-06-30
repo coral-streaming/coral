@@ -257,35 +257,16 @@ class CoralActorSpec(_system: ActorSystem)
       }
     }
 
-    "Ignore an 'UpdateProperties' message without information" in {
-      val coral = createCoralActor()
-      coral.self ! UpdateProperties(parse( """{}""").asInstanceOf[JObject])
-      expectMsg(true)
-      assert((getJson(coral) \ "attributes" \ "input").extract[JObject] == JObject())
-    }
-
     "Handle an 'UpdateProperties' message with trigger connection" in {
       val coral = createCoralActor()
       val other = createCoralActor(name = "test1")
-      val inputJson1 = """{"trigger":{"in": {"type": "external"}}}"""
-      coral.self ! UpdateProperties(parse(s"""{"attributes": {"input": $inputJson1}}""").asInstanceOf[JObject])
-      expectMsg(true)
-      assert((getJson(coral) \ "attributes" \ "input").extract[JObject] == parse(inputJson1))
 
-      val inputJson2 = """{"trigger":{"in": {"type": "actor", "source": "test1"}}}"""
-      coral.self ! UpdateProperties(parse(s"""{"attributes": {"input": $inputJson2}}}""").asInstanceOf[JObject])
+      val inputJson1 = """{"trigger": "test1"}"""
+      coral.self ! UpdateProperties(parse(s"""{"attributes": {"input": $inputJson1}}}""").asInstanceOf[JObject])
       other.emitTargets should be(SortedSet(coral.self))
       expectMsg(true)
-      assert((getJson(coral) \ "attributes" \ "input").extract[JObject] == parse(inputJson2))
+      assert((getJson(coral) \ "attributes" \ "input").extract[JObject] == parse(inputJson1))
     }
-
-    "Ignore an 'UpdateProperties' message with trigger connection of unknown type" in {
-      val coral = createCoralActor()
-      coral.self ! UpdateProperties(parse( """{"attributes": {"input": {"trigger":{"in": {"type": "doesnotexist"}}}}}""").asInstanceOf[JObject])
-      expectMsg(true)
-      assert((getJson(coral) \ "attributes" \ "input").extract[JObject] == JObject())
-    }
-
   }
 
   "CoralActor emit" should {
@@ -388,7 +369,7 @@ class CoralActorSpec(_system: ActorSystem)
 
     "Handle an 'UpdateProperties' message with collect connection" in {
       val coral = createCoralActor()
-      val jsonDef = """{"collect":{"someref": {"source": 12}}}"""
+      val jsonDef = """{"collect":{"someref": 12}}"""
       coral.self ! UpdateProperties(parse(s"""{"attributes": {"input": $jsonDef}}""").asInstanceOf[JObject])
       coral.collectSources should be(Map("someref" -> "/user/coral/12"))
       expectMsg(true)
