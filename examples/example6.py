@@ -6,5 +6,5 @@ post('/api/actors', {"data": {"type": "actors", "attributes": {"type":"threshold
 post('/api/actors', {"data": {"type": "actors", "attributes": {"type":"json", "params": {"template": {"message": {"temperature": "${temperature}", "date": "${date}"}}}}}})
 post('/api/actors', {"data": {"type": "actors", "attributes": {"type":"kafka-producer", "params": {"topic": "destination", "kafka": {"metadata.broker.list": "localhost:9092"}}}}})
 
-patch('/api/actors/3',  {"data": {"type": "actors", "id": "3", "attributes": {"input":{"trigger":2}}}})
-patch('/api/actors/4',  {"data": {"type": "actors", "id": "4", "attributes": {"input":{"trigger":3}}}})
+patch('/api/actors/3',  {"data": {"type": "actors", "id": "3", "attributes": {"input":{"trigger":"2"}}}})
+patch('/api/actors/4',  {"data": {"type": "actors", "id": "4", "attributes": {"input":{"trigger":"3"}}}})

@@ -194,13 +194,14 @@ abstract class CoralActor extends Actor with ActorLogging {
         }
         case _=> JObject()
       }
-      val collectAliases = (json \ "attributes" \ "input" \ "collect").extractOpt[Map[String, Any]]
-      val result = collectAliases match {
+
+      val collectAliases = (json \ "attributes" \ "input" \ "collect")
+      val result = collectAliases.extractOpt[Map[String, Any]] match {
         case Some(v) =>
-          val x = v.keySet.map(k => (k, (json \ "attributes" \ "input" \ "collect" \ k )
-            .extractOpt[Int].map(v => s"/user/coral/$v")))
+          val x = v.keySet.map(k => (k, (collectAliases \ k)
+            .extractOpt[String].map(v => s"/user/coral/$v")))
           (x.filter(_._2.isDefined).map(i => (i._1, i._2.get)).toMap,
-            render("collect" -> (json \ "attributes" \ "input" \ "collect")))
+            render("collect" -> collectAliases))
         case None =>
           (Map[String, String](), JObject())
       }
