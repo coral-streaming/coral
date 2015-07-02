@@ -108,29 +108,6 @@ class ApiServiceSpec
       }
     }
 
-    "modify an actor" in {
-      val actor = system.actorOf(Props(classOf[TestActor1]), "actor3")
-      coralActor ? RegisterActorPath(200, actor.path)
-      val jsonDef = parse(
-        """{"data": {
-          |"id": "200",
-          |"type": "actors",
-          |"attributes": {"type": "testactor", "input":{"trigger":{"in":{"type":"external"}}}}
-          |}}""".stripMargin)
-      val inputEntity = HttpEntity(`application/vnd.api+json`, marshal(jsonDef).right.get.data)
-      Patch("/api/actors/200").withEntity(inputEntity).withHeaders(AcceptHeader, ContentTypeHeader) ~> route ~> check {
-        assert(status == StatusCodes.NoContent)
-      }
-      Get("/api/actors/200").withEntity(inputEntity).withHeaders(AcceptHeader) ~> route ~> check {
-        assert(responseAs[JObject] == parse(
-          """{"data": {
-          |"type": "actors",
-          |"attributes": {"type": "testactor", "key": "value", "state": {}, "input":{"trigger":{"in":{"type":"external"}}}}
-          |"id": "200",
-          |}}""".stripMargin))
-      }
-    }
-
     "refuse a request to modify an actor when the ids don't match" in {
       val actor = system.actorOf(Props(classOf[TestActor1]), "actor4")
       coralActor ? RegisterActorPath(300, actor.path)
