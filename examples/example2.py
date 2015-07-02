@@ -9,7 +9,7 @@ post('/api/actors', {"data": {"type": "actors", "attributes": {"type":"stats", "
 post('/api/actors', {"data": {"type": "actors", "attributes": {"type":"zscore", "params":{"by":"city", "field": "amount","score" : 2.0}}}})
 
 patch('/api/actors/2',  {"data": {"type": "actors", "id": "2", "attributes": {"input":{"trigger":"1"}}}})
-patch('/api/actors/3',  {"data": {"type": "actors", "id": "3", "attributes": {"input":{"trigger":"1"}, "collect":{"stats":"2"}}}})
+patch('/api/actors/3',  {"data": {"type": "actors", "id": "3", "attributes": {"input":{"trigger":"1", "collect":{"stats":"2"}}}}})
 
 # providing a random event stream
 # run:> python ./client.py

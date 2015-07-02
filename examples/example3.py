@@ -8,5 +8,5 @@ post('/api/actors', {"data": {"type": "actors", "attributes": {"type":"zscore", 
 
 patch('/api/actors/2',  {"data": {"type": "actors", "id": "2", "attributes": {"input":{"trigger":"1"}}}})
 patch('/api/actors/3',  {"data": {"type": "actors", "id": "3", "attributes": {"input":{"trigger":"2"}}}})
-patch('/api/actors/4',  {"data": {"type": "actors", "id": "4", "attributes": {"input":{"trigger":"2"}, "collect":{"stats":"3"}}}})
+patch('/api/actors/4',  {"data": {"type": "actors", "id": "4", "attributes": {"input":{"trigger":"2", "collect":{"stats":"3"}}}}})
 
