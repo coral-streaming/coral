@@ -10,6 +10,7 @@ import org.json4s.JsonDSL._
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import scala.concurrent.Await
 import scala.concurrent.duration._
 
 class StatsActorSpec(_system: ActorSystem)
@@ -82,14 +83,10 @@ class StatsActorSpec(_system: ActorSystem)
           ("min", render(2.7)),
           ("max", render(2.7))
         ))
-      val json = actor.timer
+      val future = actor.timer
+      val json = Await.result(future, timeout.duration).get
       json should be(JNothing)
       actor.state should be(expectedInitialState)
-    }
-
-    "emit nothing" in {
-      val actor = createStatsActor
-      actor.emit should be(actor.emitNothing)
     }
 
   }

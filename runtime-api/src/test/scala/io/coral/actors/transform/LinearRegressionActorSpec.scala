@@ -52,21 +52,12 @@ class LinearRegressionActorSpec(_system: ActorSystem)
       actor.underlyingActor.weights should be(Map("salary" -> 2000))
     }
 
-    "have no state" in {
-      val (actor, _) = createLinearRegressionActor(0, Map("salary" -> 2000))
-      actor.underlyingActor.state should be(Map.empty)
-    }
-
-    "have no timer action" in {
-      val (actor, _) = createLinearRegressionActor(0, Map("salary" -> 2000))
-      actor.underlyingActor.timer should be(actor.underlyingActor.noTimer)
-    }
-
     "process trigger data when all the features are available even with different order" in {
-      val (actor, _) = createLinearRegressionActor(0, Map("age" -> 0.2, "salary" -> 0.1))
+      val (actor, probe) = createLinearRegressionActor(0, Map("age" -> 0.2, "salary" -> 0.1))
       val message = parse(s"""{"salary": 4000, "age": 40}""").asInstanceOf[JObject]
       actor ! message
-      actor.underlyingActor.result should be(408)
+
+      probe.expectMsg(parse( s"""{"score": 408.0, "salary": 4000, "age": 40}"""))
     }
 
     "emit when score is calculated" in {

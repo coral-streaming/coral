@@ -10,7 +10,7 @@ import org.json4s._
 
 // coral
 
-import io.coral.actors.CoralActor
+import io.coral.actors.{NoEmitTrigger, CoralActor}
 
 
 object FsmActor {
@@ -34,31 +34,26 @@ object FsmActor {
 
 }
 
-class FsmActor(json: JObject) extends CoralActor with ActorLogging {
-
-  def jsonDef = json
+class FsmActor(json: JObject)
+  extends CoralActor(json)
+  with ActorLogging
+  with NoEmitTrigger {
 
   val (key, table, s0) = FsmActor.getParams(json).get
 
   // fsm state
   var s = s0
 
-  def state = Map(("s", JString(s)))
+  override def state = Map(("s", JString(s)))
 
-  def timer = noTimer
-
-  def trigger = {
-    json: JObject =>
-      for {
-      // from trigger data
-        value <- getTriggerInputField[String](json \ key)
-      } yield {
-        // compute (local variables & update state)
-        val e = table.getOrElse(s, table(s0))
-        s = e.getOrElse(value, s)
-      }
+  override def noEmitTrigger(json: JObject) = {
+    for {
+      value <- (json \ key).extractOpt[String]
+    } yield {
+      // compute (local variables & update state)
+      val e = table.getOrElse(s, table(s0))
+      s = e.getOrElse(value, s)
+    }
   }
-
-  def emit = emitNothing
 
 }

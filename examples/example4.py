@@ -1,6 +1,6 @@
 from httpMethods import *
 
-# FSM demo
+# FSM demo, not useable with client.py because it expects different events
 table = {
     "sleep": {
         "tired":"sleep",

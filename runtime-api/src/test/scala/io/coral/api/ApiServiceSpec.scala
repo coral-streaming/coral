@@ -189,26 +189,10 @@ class ApiServiceSpec
   }
 }
 
-class TestActor1 extends CoralActor {
-  def jsonDef = parse("""{"type": "actors", "attributes": {"type": "testactor", "key": "value"}}""")
+class TestActor1 extends CoralActor(parse("""{"type": "actors", "attributes": {"type": "testactor", "key": "value"}}""").asInstanceOf[JObject]) {
 
-  def timer = noTimer
-
-  def state = Map.empty
-
-  def emit = emitNothing
-
-  def trigger = defaultTrigger
 }
 
-class TestActor2 extends CoralActor {
-  def jsonDef = parse("""{}""")
+class TestActor2 extends CoralActor(parse("""{}""").asInstanceOf[JObject]) {
 
-  def timer = noTimer
-
-  def state = Map.empty
-
-  def emit = emitNothing
-
-  def trigger = defaultTrigger
 }

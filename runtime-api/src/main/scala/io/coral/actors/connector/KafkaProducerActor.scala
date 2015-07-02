@@ -3,15 +3,11 @@ package io.coral.actors.connector
 import java.util.Properties
 
 import akka.actor.{Props, ActorLogging}
-import io.coral.actors.CoralActor
+import io.coral.actors.{NoEmitTrigger, CoralActor}
 import io.coral.lib.KafkaJsonProducer.KafkaEncoder
 import io.coral.lib.{KafkaJsonProducer, ConfigurationBuilder}
 import org.json4s.JsonAST.{JObject, JValue}
 import kafka.serializer.Encoder
-
-import scala.concurrent.Future
-import scalaz.OptionT
-
 
 object KafkaProducerActor {
 
@@ -44,23 +40,18 @@ object KafkaProducerActor {
   }
 }
 
-class KafkaProducerActor[T <: Encoder[JValue]](json: JObject, connection: KafkaJsonProducer[T]) extends CoralActor with ActorLogging {
+class KafkaProducerActor[T <: Encoder[JValue]](json: JObject, connection: KafkaJsonProducer[T])
+  extends CoralActor(json)
+  with NoEmitTrigger
+  with ActorLogging {
   val (properties, topic) = KafkaProducerActor.getParams(json).get
 
   lazy val kafkaSender = connection.createSender(topic, properties)
 
-  def jsonDef = json
-
-  def state = Map.empty
-
-  def timer = noTimer
-
-  def trigger = {
-    json =>
-      val key = (json \ "key").extractOpt[String]
-      val message = (json \"message").extract[JObject]
-      send(key, message)
-      OptionT.some(Future.successful({}))
+  override def noEmitTrigger(json: JObject) = {
+    val key = (json \ "key").extractOpt[String]
+    val message = (json \"message").extract[JObject]
+    send(key, message)
   }
 
   private def send(key: Option[String], message: JObject) = {
@@ -70,6 +61,4 @@ class KafkaProducerActor[T <: Encoder[JValue]](json: JObject, connection: KafkaJ
       case e: Exception => log.error(e, "failed to send message to Kafka")
     }
   }
-
-  def emit = emitNothing
 }

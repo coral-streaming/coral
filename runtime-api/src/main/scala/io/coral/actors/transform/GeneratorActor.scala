@@ -3,7 +3,7 @@ package io.coral.actors.transform
 import java.util.Random
 import akka.actor.{PoisonPill, Props}
 import io.coral.actors.Messages.TimeoutEvent
-import io.coral.actors.{TimerContinue, CoralActor}
+import io.coral.actors.{SimpleTimer, TimerContinue, CoralActor}
 import org.json4s.JsonAST.JValue
 import org.json4s._
 import org.json4s.JsonDSL._
@@ -79,8 +79,7 @@ object GeneratorActor {
   }
 }
 
-class GeneratorActor(json: JObject) extends CoralActor {
-  def jsonDef = json
+class GeneratorActor(json: JObject) extends CoralActor(json) with SimpleTimer {
 
   val (format, rate, times, delay) = GeneratorActor.getParams(json).get
 
@@ -98,7 +97,7 @@ class GeneratorActor(json: JObject) extends CoralActor {
     self ! TimeoutEvent
   }
 
-  def state = Map(
+  override def state = Map(
     ("rate", render(rate)),
     ("times", render(times)),
     ("delay", render(delay)),
@@ -106,11 +105,7 @@ class GeneratorActor(json: JObject) extends CoralActor {
     ("count", render(count))
   )
 
-  def trigger = defaultTrigger
-
-  def emit = emitNothing
-
-  def timer = {
+  override def simpleTimer = {
     val currentTime = System.currentTimeMillis
 
     // If this is true, we are not in the initial delay period any more
@@ -124,9 +119,9 @@ class GeneratorActor(json: JObject) extends CoralActor {
       }
 
       count += 1
-      result
+      Some(result)
     } else {
-      JNothing
+      Some(JNothing)
     }
   }
 

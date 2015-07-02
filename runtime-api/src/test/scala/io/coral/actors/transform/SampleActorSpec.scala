@@ -83,16 +83,6 @@ class SampleActorSpec(_system: ActorSystem)
       SampleActor(json) should be(None)
     }
 
-    "Have no time function implemented" in {
-      val actor = arbitrarySampleActor()
-      actor.timer should be(JNothing)
-    }
-
-    "Have no state for collection" in {
-      val actor = arbitrarySampleActor()
-      actor.state should be(Map.empty[String, JValue])
-    }
-
     "Be constructible with a io.coral.lib.Random for random boolean stream" in {
       val actor = notSoRandomSampleActor(fraction = 0.5, randoms = 0.1, 0.49, 0.50, 0.51, 0.8, 0.4)
       actor.next() should be(true)
@@ -106,24 +96,12 @@ class SampleActorSpec(_system: ActorSystem)
     "Should trigger true or false according to random binomial sequence" in {
       val actor = notSoRandomSampleActor(fraction = 0.7, randoms = 0.8, 0.6)
       val json = parse( """{ "something": "whatever" }""").asInstanceOf[JObject]
-      val trigger1 = actor.trigger(json)
-      whenReady(trigger1.run) {
-        result => {
-          result should be(Some({}))
-          actor.pass should be(false)
-        }
-      }
-      val trigger2 = actor.trigger(json)
-      whenReady(trigger2.run) { _ => actor.pass should be(true) }
-    }
 
-    "Should emit only when pass is true" in {
-      val json = parse( """{ "something": "whatever" }""").asInstanceOf[JObject]
-      val actor = arbitrarySampleActor()
-      actor.pass = false
-      actor.emit(json) should be(JNothing)
-      actor.pass = true
-      actor.emit(json) should be(json)
+      val result1 = actor.simpleEmitTrigger(json)
+      result1 should be(Some(JNothing))
+
+      val result2 = actor.simpleEmitTrigger(json)
+      result2 should be(Some(json))
     }
 
     "Should have trigger and emit cooperate" in {
