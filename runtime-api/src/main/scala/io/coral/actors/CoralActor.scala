@@ -20,8 +20,7 @@ import org.json4s.JsonAST.JValue
 import org.json4s.JsonDSL._
 
 // scalaz monad transformers
-import scalaz.OptionT._
-import scalaz.{Monad, OptionT}
+import scalaz.{Monad}
 
 //coral
 
@@ -32,7 +31,12 @@ object TimerExit     extends TimerBehavior
 object TimerContinue extends TimerBehavior
 object TimerNone     extends TimerBehavior
 
-abstract class CoralActor(json: JObject) extends Actor with ActorLogging {
+abstract class CoralActor(json: JObject)
+  extends Actor
+  with NoTrigger
+  with NoTimer
+  with ActorLogging {
+
   // begin: implicits and general actor init
   def actorRefFactory = context
 
@@ -56,34 +60,12 @@ abstract class CoralActor(json: JObject) extends Actor with ActorLogging {
 
   implicit val formats = org.json4s.DefaultFormats
 
-  implicit val futureMonad = new Monad[Future] {
-    def point[A](a: => A): Future[A] = Future.successful(a)
-    def bind[A, B](fa: Future[A])(f: A => Future[B]): Future[B] = fa flatMap f
-  }
-
-  // Future[Option[A]] to Option[Future, A] using the OptionT monad transformer
-  def getCollectInputField[A](actorAlias: String, by: String, field: String)(implicit mf: Manifest[A]) = {
-    val result = collectSources.get(actorAlias) match {
+  def getCollectInputField[A](actorAlias: String, by: String, field: String)(implicit mf: Manifest[A]): Future[Option[A]] = {
+    collectSources.get(actorAlias) match {
       case Some(actorPath) =>
         askActor(actorPath, GetFieldBy(field, by)).mapTo[JValue].map(json => json.extractOpt[A])
       case None => Future.failed(throw new Exception(s"Collect actor not defined"))
     }
-    optionT(result)
-  }
-
-  def getTriggerInputField[A](jsonValue: JValue)(implicit mf: Manifest[A]): OptionT[Future, A] = {
-    val value = Future.successful(jsonValue.extractOpt[A])
-    optionT(value)
-  }
-
-  def getTriggerInputField[A](jsonValue: JValue, defaultValue: A)(implicit mf: Manifest[A]): OptionT[Future, A] = {
-    val value: Future[Option[A]] = Future.successful(Some(jsonValue.extractOrElse[A](defaultValue)))
-    optionT(value)
-  }
-
-  def getActorResponse[A](path: String, msg: Any) = {
-    val result = askActor(path, msg).mapTo[Option[A]]
-    optionT(result)
   }
 
   def in[U](duration: FiniteDuration)(body: => U): Unit =
@@ -110,14 +92,9 @@ abstract class CoralActor(json: JObject) extends Actor with ActorLogging {
       case _ => TimerNone
     }
 
-  type Timer = JValue
-
-  def timer:Timer = noTimer
-  val noTimer: Timer = JNothing
-
   def receiveTimeout: Receive = {
     case TimeoutEvent =>
-      transmit(timer)
+      executeTimer
 
       // depending on the configuration,
       // end the actor (gracefully) or ...
@@ -134,21 +111,19 @@ abstract class CoralActor(json: JObject) extends Actor with ActorLogging {
       }
   }
 
-  // trigger
+  def executeTimer = {
+    val future = timer
+    future.onSuccess {
+      case Some(result) =>
+        transmit(result)
 
-  type Trigger =  JObject => OptionT[Future, Unit]
+      case None => log.warning("not processed")
+    }
 
-  def trigger: Trigger = defaultTrigger
-  val defaultTrigger : Trigger =
-    json => OptionT.some(Future.successful({}))
-
-  // emitting
-
-  type Emit = JObject => JValue
-
-  def emit: Emit = emitNothing
-  val emitNothing: Emit = _    => JNothing
-  val emitPass   : Emit = json => json
+    future.onFailure {
+      case _ => log.warning("actor execution")
+    }
+  }
 
   // transmitting to the subscribing coral actors
 
@@ -209,19 +184,17 @@ abstract class CoralActor(json: JObject) extends Actor with ActorLogging {
   }
 
   def execute(json:JObject, sender:Option[ActorRef]) = {
-    val stage = trigger(json)
-    val r = stage.run
+    val future = trigger(json)
 
-    r.onSuccess {
-      case Some(_) =>
-        val result = emit(json)
+    future.onSuccess {
+      case Some(result) =>
         transmit(result)
         sender.foreach(_ ! result)
 
       case None => log.warning("not processed")
     }
 
-    r.onFailure {
+    future.onFailure {
       case _ => log.warning("actor execution")
     }
   }

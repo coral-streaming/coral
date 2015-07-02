@@ -120,13 +120,14 @@ class HttpClientActorSpec(_system: ActorSystem)
       val actorRef = TestActorRef[HttpClientActor](props)
       actorRef.underlyingActor.emitTargets += testProbe.ref
 
-      val triggerJson = parse("""{"payload": "mypayload"}""").asInstanceOf[JObject]
+      val payload = """{"mypayload":"something"}"""
+      val triggerJson = parse(payload).asInstanceOf[JObject]
 
       actorRef ! triggerJson
 
       val json = testProbe.receiveOne(1.seconds).asInstanceOf[JObject]
 
-      assert((json \ "body").extract[String] == "The received payload is mypayload")
+      assert((json \ "body").extract[String] == s"The received payload is ${payload}")
     }
 
     "emit the timer json when timer mode = 'continue'" in {

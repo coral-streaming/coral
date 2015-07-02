@@ -2,27 +2,15 @@ package io.coral.actors.transform
 
 import akka.actor.{ActorLogging, Props}
 import com.datastax.driver.core.{ResultSet, Session, Cluster}
-import io.coral.actors.CoralActor
-import org.json4s.JsonAST.JValue
-import org.json4s._
-import org.json4s.jackson.JsonMethods._
+import io.coral.actors.{SimpleEmitTrigger, CoralActor}
 import scala.collection.mutable.Queue
-import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.language.postfixOps
-import scala.util.Try
-import scalaz.OptionT
 import akka.actor.Props
-import com.datastax.driver.core.{DataType, ResultSet, Session, Cluster}
-import org.json4s.JValue
 import org.json4s.JsonAST.JValue
-import scala.concurrent.{Promise, Future}
 import org.json4s._
 import org.json4s.JsonDSL._
 import org.json4s.jackson.JsonMethods._
-import io.coral.actors.CoralActor
-import scalaz.{OptionT, Monad}
-import scalaz.OptionT._
 
 
 /**
@@ -128,48 +116,66 @@ object WindowActor {
     }
 }
 
-class WindowActor(json: JObject) extends CoralActor(json) with ActorLogging {
-    var (method, number, sliding) = WindowActor.getParams(json).get
+class WindowActor(json: JObject)
+  extends CoralActor(json)
+  with ActorLogging
+  with SimpleEmitTrigger {
 
-    // The list of items is a tuple with adding time
-    val items = Queue.empty[(Long, JObject)]
-    var toEmit = List.empty[JObject]
+  var (method, number, sliding) = WindowActor.getParams(json).get
 
-    // A counter to keep track of the sliding window position
-    var counter: Int = 0
-    var startTime: Long = 0
+  // The list of items is a tuple with adding time
+  val items = Queue.empty[(Long, JObject)]
+  var toEmit = List.empty[JObject]
 
-    override def preStart() {
-        // Start the timer, if any
-        if (method == "time") {
-            // The sliding interval is the interval at
-            // which something actually has to happen
-            startTime = System.currentTimeMillis()
+  // A counter to keep track of the sliding window position
+  var counter: Int = 0
+  var startTime: Long = 0
 
-            actorRefFactory.system.scheduler.schedule(sliding millis, sliding millis) {
-                performTimeWindow()
-                transmit(emit(JObject()))
-            }
-        }
+  override def preStart() {
+    // Start the timer, if any
+    if (method == "time") {
+      // The sliding interval is the interval at
+      // which something actually has to happen
+      startTime = System.currentTimeMillis()
+
+      actorRefFactory.system.scheduler.schedule(sliding millis, sliding millis) {
+        performTimeWindow()
+        transmit(determineOutput)
+      }
     }
+  }
 
-    override def state = Map(
-        ("method", render(JString(method))),
-        ("number", render(JInt(number))),
-        ("sliding", render(JInt(sliding)))
-    )
+  override def state = Map(
+    ("method", render(JString(method))),
+    ("number", render(JInt(number))),
+    ("sliding", render(JInt(sliding)))
+  )
 
-    override def trigger = {
-        json: JObject =>
-            items.enqueue((System.currentTimeMillis, json))
+  override def simpleEmitTrigger(json: JObject): Option[JValue] = {
+      items.enqueue((System.currentTimeMillis, json))
 
-            // Only process the "count" method here,
-            // "time" is handled by the timer
-            if (method == "count") {
-                performCountWindow()
+      // Only process the "count" method here,
+      // "time" is handled by the timer
+      if (method == "count") {
+        performCountWindow()
+      }
+
+      Some(determineOutput)
+  }
+
+    private def determineOutput: JValue = {
+            if (method == "count" && toEmit.length < number) {
+                JNothing
+            } else if (method == "time" && toEmit.length == 0) {
+                JNothing
+            } else {
+                val result = ("data" -> JArray(toEmit))
+
+                // Reset the toEmit list
+                toEmit = List.empty[JObject]
+
+                result
             }
-
-            OptionT.some(Future.successful({}))
     }
 
     /**
@@ -229,21 +235,5 @@ class WindowActor(json: JObject) extends CoralActor(json) with ActorLogging {
                 // No items.clear() here!
             }
         }
-    }
-
-    override def emit = {
-        json: JObject =>
-            if (method == "count" && toEmit.length < number) {
-                JNothing
-            } else if (method == "time" && toEmit.length == 0) {
-                JNothing
-            } else {
-                val result = ("data" -> JArray(toEmit))
-
-                // Reset the toEmit list
-                toEmit = List.empty[JObject]
-
-                result
-            }
     }
 }

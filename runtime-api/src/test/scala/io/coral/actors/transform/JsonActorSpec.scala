@@ -73,7 +73,7 @@ class JsonActorSpec(_system: ActorSystem)
           |  "b": "xyz",
           |  "g": 1.0
           |}""".stripMargin)
-      actor.emit(triggerJson.asInstanceOf[JObject]) shouldBe expectedJson
+      actor.simpleEmitTrigger(triggerJson.asInstanceOf[JObject]) shouldBe Some(expectedJson)
     }
 
   }

@@ -11,9 +11,8 @@ import org.json4s.JsonDSL._
 import org.json4s.jackson.JsonMethods.render
 
 // coral
-import io.coral.actors.CoralActor
+import io.coral.actors.{SimpleEmitTrigger, CoralActor}
 
-import scalaz.OptionT
 import scala.collection.mutable.{ListBuffer => mList}
 
 object CassandraActor {
@@ -33,7 +32,10 @@ object CassandraActor {
     }
 }
 
-class CassandraActor(json: JObject) extends CoralActor(json) with CassandraHelper {
+class CassandraActor(json: JObject) extends CoralActor(json)
+    with CassandraHelper
+    with SimpleEmitTrigger {
+
     var (seeds, port, keyspace) = CassandraActor.getParams(json).get
 
     override def preStart() {
@@ -49,62 +51,54 @@ class CassandraActor(json: JObject) extends CoralActor(json) with CassandraHelpe
         ("schema", render(getSchema(session, keyspace)))
     )
 
-    var result: Option[ResultSet] = _
-    var lastQuery: String = _
-    var lastError: String = _
+    override def simpleEmitTrigger(json: JObject) = {
+        ensureConnection(seeds, port, keyspace)
 
-    override def trigger = {
-        json: JObject =>
-            ensureConnection(seeds, port, keyspace)
+        val queryResult = try {
+            val query = (json \ "query").extractOpt[String].get.trim()
 
-            try {
-                lastQuery = ""
-                val query = (json \ "query").extractOpt[String].get.trim()
-                lastQuery = query
+            // Since there is no way of using the AST from the query,
+            // we use text parsing instead
+            val result = if (query.startsWith("use keyspace")) {
+                log.info("Changing keyspace, updating schema")
+                keyspace = query.substring(13, query.length - 1)
+                ensureConnection(seeds, port, keyspace)
+                getSchema(session, keyspace)
+                None
+            } else {
+                val data = session.execute(query)
 
-                // Since there is no way of using the AST from the query,
-                // we use text parsing instead
-                if (query.startsWith("use keyspace")) {
-                    log.info("Changing keyspace, updating schema")
-                    keyspace = query.substring(13, query.length - 1)
-                    ensureConnection(seeds, port, keyspace)
-                    getSchema(session, keyspace)
+                if (query.startsWith("select")) {
+                    Some(data)
                 } else {
-                    val data = session.execute(query)
-
-                    if (query.startsWith("select")) {
-                        result = Some(data)
-                    } else {
-                        result = None
-                    }
+                    None
                 }
-
-                lastError = ""
-            } catch {
-                // In this case, the operation failed
-                case e: Exception =>
-                    result = None
-                    lastError = e.getMessage
             }
 
-            OptionT.some(Future.successful({}))
+            QueryResult(result, query, "")
+        } catch {
+            // In this case, the operation failed
+            case e: Exception =>
+                QueryResult(None, (json \ "query").extractOrElse[String](""), e.getMessage)
+        }
+
+        Some(determineResult(queryResult))
     }
 
-    override def emit = {
-        json: JObject =>
-            result match {
-                case Some(data) =>
-                    // Actual data returned
-                    render(("query" -> lastQuery) ~ ("success" -> true) ~ renderResultSet(data))
-                case None if (lastError != "") =>
-                    // Error, and therefore no results
-                    render(("query" -> lastQuery) ~ ("success" -> false) ~ ("error" -> lastError))
-                case None =>
-                    // No error, just no results
-                    render(("query" -> lastQuery) ~ ("success" -> true))
-                case _ =>
-                    JNothing
-            }
+    def determineResult(queryResult: QueryResult): JValue = {
+        queryResult.result match {
+            case Some(data) =>
+                // Actual data returned
+                render(("query" -> queryResult.lastQuery) ~ ("success" -> true) ~ renderResultSet(data))
+            case None if (queryResult.lastError != "") =>
+                // Error, and therefore no results
+                render(("query" -> queryResult.lastQuery) ~ ("success" -> false) ~ ("error" -> queryResult.lastError))
+            case None =>
+                // No error, just no results
+                render(("query" -> queryResult.lastQuery) ~ ("success" -> true))
+            case _ =>
+                JNothing
+        }
     }
 
     /**
@@ -134,6 +128,8 @@ class CassandraActor(json: JObject) extends CoralActor(json) with CassandraHelpe
         builder.build()
     }
 }
+
+case class QueryResult(result: Option[ResultSet], lastQuery: String, lastError: String)
 
 trait CassandraHelper {
     /**

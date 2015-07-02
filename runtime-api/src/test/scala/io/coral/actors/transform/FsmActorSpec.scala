@@ -67,7 +67,7 @@ class FsmActorSpec(_system: ActorSystem)
 
   def trigger(fsm: FsmActor, key: String) = {
     val json = parse( s"""{ "transactionsize": "${key}" }""").asInstanceOf[JObject]
-    fsm.trigger(json)
+    fsm.noEmitTrigger(json)
   }
 
   "An FsmActor" should {
@@ -125,16 +125,6 @@ class FsmActorSpec(_system: ActorSystem)
       }
     }
 
-    "Have no timer action" in {
-      val fsm = createTestFsmActor
-      fsm.timer should be(JNothing)
-    }
-
-    "Emit nothing" in {
-      val fsm = createTestFsmActor
-      fsm.emit(parse( """{"test":"whatever"}""").asInstanceOf[JObject]) should be(JNothing)
-    }
-
     "Have a state initialized to s0" in {
       val fsm = createTestFsmActor
       fsm.s should be("normal")
@@ -144,54 +134,51 @@ class FsmActorSpec(_system: ActorSystem)
     "Have change state on trigger (happy flow)" in {
       val fsm = createTestFsmActor
       fsm.state should be(Map("s" -> JString("normal")))
-      whenReady(trigger(fsm, "small").run) {
-        _ => fsm.state should be(Map("s" -> JString("normal")))
-      }
-      whenReady(trigger(fsm, "x-large").run) {
-        _ => fsm.state should be(Map("s" -> JString("suspicious")))
-      }
-      whenReady(trigger(fsm, "x-large").run) {
-        _ => fsm.state should be(Map("s" -> JString("alarm")))
-      }
-      whenReady(trigger(fsm, "large").run) {
-        _ => fsm.state should be(Map("s" -> JString("alarm")))
-      }
-      whenReady(trigger(fsm, "small").run) {
-        _ => fsm.state should be(Map("s" -> JString("suspicious")))
-      }
-      whenReady(trigger(fsm, "small").run) {
-        _ => fsm.state should be(Map("s" -> JString("normal")))
-      }
+      trigger(fsm, "small")
+      fsm.state should be(Map("s" -> JString("normal")))
+
+      trigger(fsm, "x-large")
+      fsm.state should be(Map("s" -> JString("suspicious")))
+
+      trigger(fsm, "x-large")
+      fsm.state should be(Map("s" -> JString("alarm")))
+
+      trigger(fsm, "large")
+      fsm.state should be(Map("s" -> JString("alarm")))
+
+      trigger(fsm, "small")
+      fsm.state should be(Map("s" -> JString("suspicious")))
+
+      trigger(fsm, "small")
+      fsm.state should be(Map("s" -> JString("normal")))
     }
 
     "Keep current state after unknown or empty value" in {
       val fsm = createTestFsmActor
       fsm.state should be(Map("s" -> JString("normal")))
-      whenReady(trigger(fsm, "x-large").run) {
-        _ => fsm.state should be(Map("s" -> JString("suspicious")))
-      }
+      trigger(fsm, "x-large")
+      fsm.state should be(Map("s" -> JString("suspicious")))
+
       // now FSM is in a non-initial state
-      whenReady(trigger(fsm, "doesnotexist").run) {
-        _ => fsm.state should be(Map("s" -> JString("suspicious")))
-      }
-      whenReady(fsm.trigger(parse("{}").asInstanceOf[JObject]).run) {
-        _ => fsm.state should be(Map("s" -> JString("suspicious")))
-      }
+      trigger(fsm, "doesnotexist")
+      fsm.state should be(Map("s" -> JString("suspicious")))
+
+      fsm.trigger(parse("{}").asInstanceOf[JObject])
+      fsm.state should be(Map("s" -> JString("suspicious")))
     }
 
     "Revert to initial state when an unknown state is provided in as transition result" in {
       val fsm = createTestFsmActor
       fsm.state should be(Map("s" -> JString("normal")))
-      whenReady(trigger(fsm, "x-large").run) {
-        _ => fsm.state should be(Map("s" -> JString("suspicious")))
-      }
+      trigger(fsm, "x-large")
+      fsm.state should be(Map("s" -> JString("suspicious")))
+
       // now FSM is in a non-initial state
-      whenReady(trigger(fsm, "oeps").run) {
-        _ => fsm.state should be(Map("s" -> JString("unknown")))
-      }
-      whenReady(trigger(fsm, "large").run) {
-        _ => fsm.state should be(Map("s" -> JString("normal")))
-      }
+      trigger(fsm, "oeps")
+      fsm.state should be(Map("s" -> JString("unknown")))
+
+      trigger(fsm, "large")
+      fsm.state should be(Map("s" -> JString("normal")))
     }
 
   }
