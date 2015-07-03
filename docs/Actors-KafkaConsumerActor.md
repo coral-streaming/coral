@@ -48,7 +48,7 @@ Other properties may be supplied cf. the [Kafka consumer properties](https://kaf
   "data": {
     "type": "actors",
     "attributes": {
-      "type": "json",
+      "type": "kafka-consumer",
       "params": {
         "topic": "clickstream",
         "kafka": {

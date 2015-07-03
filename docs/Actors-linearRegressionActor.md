@@ -24,7 +24,7 @@ topic: Actors
 The `LinearRegression` is a [Coral Actor](https://github.com/coral-streaming/coral/wiki/Coral-Actors) which performs prediction on the streaming data, based on the behavior of past observations.
 
 ## Creating a LinearRegressionActor
-The creation JSON of the LinearRegression actor (see [Coral Actor](https://github.com/coral-streaming/coral/wiki/Coral-Actors)) has `"type": "LinearRegression"`.
+The creation JSON of the LinearRegression actor (see [Coral Actor](https://github.com/coral-streaming/coral/wiki/Coral-Actors)) has `"type": "linearregression"`.
 The `params` value contains the following fields:
 
 field  | type | required | description
