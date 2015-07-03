@@ -74,3 +74,6 @@ The `KafkaConsumerActor` keeps no state.
 
 ## Collect
 The `KafkaConsumerActor` does not collect state from other actors.
+
+## Timer
+The `KafkaConsumerActor` has no timer.

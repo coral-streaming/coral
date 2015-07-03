@@ -49,19 +49,21 @@ List choice | `['string','string','string']` | Samples a value uniformly from an
       "type": "actors",
       "attributes": {
           "type": "generator",
-          "format": {
-            "field1": "N(100, 10)",
-            "field2": "['a', 'b', 'c']",
-            "field3": {
-               "nested1": "U(100)",
-               "nested2": "U(20.3)",
-               "nested3": "N(20.5, 5.2)"
-            }
-          },
-          "timer": {
-            "rate": 10,
-            "times": 100,
-            "delay": 1000
+          "params": {
+              "format": {
+                "field1": "N(100, 10)",
+                "field2": "['a', 'b', 'c']",
+                "field3": {
+                   "nested1": "U(100)",
+                   "nested2": "U(20.3)",
+                   "nested3": "N(20.5, 5.2)"
+                }
+              },
+              "timer": {
+                "rate": 10,
+                "times": 100,
+                "delay": 1000
+              }
           }
       }
   }
@@ -113,3 +115,6 @@ field  | type | description
 `delay` | Int | The number of milliseconds that the actor has waited before emitting the first object.
 `format` | Int | The format that was specified in the constructor.
 `count` | Int | The total number of objects emitted until now.
+
+## Timer
+The generator actor periodically emits data.

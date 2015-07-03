@@ -19,9 +19,6 @@ import org.json4s.jackson.JsonMethods._
 import org.json4s.JsonAST.JValue
 import org.json4s.JsonDSL._
 
-// scalaz monad transformers
-import scalaz.{Monad}
-
 //coral
 
 import io.coral.actors.Messages._

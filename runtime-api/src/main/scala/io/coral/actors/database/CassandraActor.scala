@@ -3,8 +3,6 @@ package io.coral.actors.database
 import akka.actor.Props
 import com.datastax.driver.core._
 
-import scala.concurrent.Future
-
 //json goodness
 import org.json4s._
 import org.json4s.JsonDSL._
