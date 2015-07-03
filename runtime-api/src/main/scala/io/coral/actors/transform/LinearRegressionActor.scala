@@ -30,11 +30,15 @@ class LinearRegressionActor(json: JObject)
   override def simpleEmitTrigger(json: JObject): Option[JValue] = {
     val inputVector = weights.keys.map(key => {
       (json \ key).extractOpt[Double] match {
-        case Some(value) => value
-        case None => throw new Exception ("Key does not exists")
+        case Some(value) => Some(value)
+        case None => None
       }}).toVector
-    val result = intercept + (inputVector zip weights.values).map(x => x._1 * x._2).sum
-    Some(render("score" -> result) merge json)
+    if (inputVector.exists(!_.isDefined)) {
+      None
+    } else {
+      val result = intercept + (inputVector.flatten zip weights.values).map(x => x._1 * x._2).sum
+      Some(render("score" -> result) merge json)
+    }
   }
 
 }
