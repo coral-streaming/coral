@@ -39,11 +39,8 @@ There is no `params` field.
 }
 {% endhighlight %}
 
-## Trigger
-The `HttpBroadcastActor` has no trigger implemented.
-
-## Emit
-The `HttpBroadcastActor` emits what is supplied (passthrough).
+## Trigger/Emit
+The `HttpBroadcastActor` emits what is supplied to the trigger (passthrough).
 
 ## State
 The `HttpBroadcastActor` does not keep a state
@@ -52,4 +49,4 @@ The `HttpBroadcastActor` does not keep a state
 The `HttpServerActor` does not collect state from other actors.
 
 ## Timer
-The `HttpBroadcastActor` does not implement a timer action.
+The `HttpServerActor` does not provide timer actions.

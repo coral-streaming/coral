@@ -87,3 +87,9 @@ field |type| description
 `method` | String | "count" or "time" as set in the constructor
 `number` | Int | The number of objects or the number of seconds of the window.
 `sliding` | Array | The amount of objects or the amount of milliseconds the window slides every time.
+
+## Collect
+The `WindowActor` does not collect state from other actors.
+
+## Timer
+The `WindowActor` does not provide timer actions.

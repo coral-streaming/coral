@@ -60,4 +60,7 @@ Otherwise nothing is emitted.
 The `SampleActor` doesn't keep state.
 
 ## Collect
-The `SampleActor` doesn't collect.
+The `SampleActor` does not collect state from other actors.
+
+## Timer
+The `SampleActor` does not provide timer actions.

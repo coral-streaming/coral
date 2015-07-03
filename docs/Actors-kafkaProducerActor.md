@@ -85,3 +85,6 @@ The `KafkaProducerActor` keeps no state.
 
 ## Collect
 The `KafkaProducerActor` does not collect state from other actors.
+
+## Timer
+The `KafkaProducerActor` does not provide timer actions.

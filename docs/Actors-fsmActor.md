@@ -91,4 +91,4 @@ The state is updated according to the table due to trigger events.
 The `FsmActor` does not collect state from other actors.
 
 ## Timer
-The `FsmActor` has no timer.
+The `FsmActor` does not provide timer actions.

@@ -136,4 +136,4 @@ An example of a schema is as follows:
 The `CassandraActor` does not collect state from other actors.
 
 ## Timer
-The `CassandraActor` has no timer.
+The `CassandraActor` does not provide timer actions.

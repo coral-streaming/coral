@@ -116,5 +116,8 @@ field  | type | description
 `format` | Int | The format that was specified in the constructor.
 `count` | Int | The total number of objects emitted until now.
 
+## Collect
+The `GeneratorActor` does not collect state from other actors.
+
 ## Timer
-The generator actor periodically emits data.
+The `GeneratorActor` periodically emits data.
