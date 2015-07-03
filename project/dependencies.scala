@@ -33,7 +33,7 @@ object Dependencies {
     "com.datastax.cassandra" % "cassandra-driver-core" % "2.1.4",
 
     // kafka
-    "org.apache.kafka"   %% "kafka" % "0.8.2.1",
+    "org.apache.kafka"   %% "kafka" % "0.8.2.1" exclude("org.slf4j", "slf4j-log4j12"),
 
     // dependency injection
     "org.scaldi" %% "scaldi-akka" % "0.5.3",
