@@ -140,7 +140,7 @@ class WindowActor(json: JObject)
 
       actorRefFactory.system.scheduler.schedule(sliding millis, sliding millis) {
         performTimeWindow()
-        transmit(determineOutput)
+        emit(determineOutput)
       }
     }
   }
