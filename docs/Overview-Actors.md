@@ -30,7 +30,7 @@ name             | class | description
 `cassandra`      | [CassandraActor](/coral/docs/Actors-CassandraActor.html) | connect to a Cassandra datasource
 `fsm`            | [FsmActor](/coral/docs/Actors-FsmActor.html) | select a state according to key
 `generator`      | [GeneratorActor](/coral/docs/Actors-GeneratorActor.html) | generate data based on a JSON template and distribution definitions
-`group`          | [GroupByActor](/coral/docs/Actors-GroupActor.html) | partition the stream
+`group`          | [GroupByActor](/coral/docs/Actors-GroupByActor.html) | partition the stream
 `httpbroadcast`  | [HttpBroadcastActor](/coral/docs/Actors-HttpBroadcastActor.html) | pass (HTTP supplied) JSON to other actors
 `httpclient`     | [HttpClientActor](/coral/docs/Actors-HttpClientActor.html) | post to a service URL
 `json`           | [JsonActor](/coral/docs/Actors-JsonActor.html) | transform an input JSON
