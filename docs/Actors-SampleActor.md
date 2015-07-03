@@ -1,6 +1,6 @@
 ---
 layout: default
-title: sampleActor
+title: SampleActor
 topic: Actors
 ---
 <!--

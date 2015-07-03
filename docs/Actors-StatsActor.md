@@ -1,6 +1,6 @@
 ---
 layout: default
-title: statsActor
+title: StatsActor
 topic: Actors
 ---
 <!--

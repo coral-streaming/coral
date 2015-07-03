@@ -1,6 +1,6 @@
 ---
 layout: default
-title: thresholdActor
+title: ThresholdActor
 topic: Actors
 ---
 <!--

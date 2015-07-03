@@ -1,6 +1,6 @@
 ---
 layout: default
-title: lookupActor
+title: LookupActor
 topic: Actors
 ---
 <!--

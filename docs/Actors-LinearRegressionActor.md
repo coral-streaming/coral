@@ -1,6 +1,6 @@
 ---
 layout: default
-title: linearRegressionActor
+title: LinearRegressionActor
 topic: Actors
 ---
 <!--

@@ -1,6 +1,6 @@
 ---
 layout: default
-title: fsmActor
+title: FsmActor
 topic: Actors
 ---
 <!--

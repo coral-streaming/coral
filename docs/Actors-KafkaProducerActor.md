@@ -1,6 +1,6 @@
 ---
 layout: default
-title: kafkaProducerActor
+title: KafkaProducerActor
 topic: Actors
 ---
 <!--

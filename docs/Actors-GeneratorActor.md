@@ -1,6 +1,6 @@
 ---
 layout: default
-title: generatorActor
+title: GeneratorActor
 topic: Actors
 ---
 <!--

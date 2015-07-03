@@ -1,6 +1,6 @@
 ---
 layout: default
-title: windowActor
+title: WindowActor
 topic: Actors
 ---
 <!--

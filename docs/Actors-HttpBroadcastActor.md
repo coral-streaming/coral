@@ -1,6 +1,6 @@
 ---
 layout: default
-title: httpBroadcastActor
+title: HttpBroadcastActor
 topic: Actors
 ---
 <!--

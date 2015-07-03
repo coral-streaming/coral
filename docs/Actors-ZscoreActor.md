@@ -1,6 +1,6 @@
 ---
 layout: default
-title: zscoreActor
+title: ZscoreActor
 topic: Actors
 ---
 <!--
