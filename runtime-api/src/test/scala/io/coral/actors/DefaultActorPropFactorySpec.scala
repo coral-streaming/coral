@@ -25,8 +25,9 @@ class DefaultActorPropFactorySpec
         """{
           |"type": "actors",
           |"attributes": {"type": "cassandra",
+          |"params": {
           |"seeds": ["0.0.0.0"], "keyspace": "test"
-          |}}""".stripMargin
+          |}}}""".stripMargin
       // should be: "params": { "seeds": ["0.0.0.0"], "keyspace": "test" }
       val props = factory.getProps("cassandra", parse(json))
       props.get.actorClass should be(classOf[CassandraActor])

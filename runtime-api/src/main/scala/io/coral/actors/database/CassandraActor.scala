@@ -20,10 +20,10 @@ object CassandraActor {
 
     def getParams(json: JValue) = {
         for {
-            seeds <- (json \ "attributes" \ "seeds").extractOpt[List[String]]
-            keyspace <- (json \ "attributes" \ "keyspace").extractOpt[String]
+            seeds <- (json \ "attributes" \ "params" \ "seeds").extractOpt[List[String]]
+            keyspace <- (json \ "attributes" \ "params" \ "keyspace").extractOpt[String]
         } yield {
-            (seeds, (json \ "attributes" \ "port").extractOpt[Int], keyspace)
+            (seeds, (json \ "attributes" \ "params" \ "port").extractOpt[Int], keyspace)
         }
     }
 
