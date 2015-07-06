@@ -1,5 +1,6 @@
 *.class
 *.log
+*.pyc
 
 #dot files
 .history
@@ -36,3 +37,4 @@ _site/*
 # Generated docs
 /docs/_site
 /docs/Gemfile.lock
+
