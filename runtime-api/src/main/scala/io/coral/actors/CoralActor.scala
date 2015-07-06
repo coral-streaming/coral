@@ -113,7 +113,7 @@ abstract class CoralActor(json: JObject)
     val future = timer
     future.onSuccess {
       case Some(result) =>
-        transmit(result)
+        emit(result)
 
       case None => log.warning("not processed")
     }
@@ -123,14 +123,12 @@ abstract class CoralActor(json: JObject)
     }
   }
 
-  // transmitting to the subscribing coral actors
-
-  def transmitAdmin: Receive = {
+  def emitAdmin: Receive = {
     case RegisterActor(r) =>
       emitTargets += r
   }
 
-  def transmit(json:JValue) = {
+  def emit(json:JValue) = {
     json match {
       case json: JObject =>
         emitTargets map (actorRef => actorRef ! json)
@@ -166,6 +164,7 @@ abstract class CoralActor(json: JObject)
 
       sender ! true
   }
+
   def resourceDesc: Receive = {
     case Get() =>
       sender ! (jsonDef
@@ -178,7 +177,7 @@ abstract class CoralActor(json: JObject)
 
     future.onSuccess {
       case Some(result) =>
-        transmit(result)
+        emit(result)
         sender.foreach(_ ! result)
 
       case None => log.warning("not processed")
@@ -203,7 +202,7 @@ abstract class CoralActor(json: JObject)
 
   def receive = jsonData           orElse
     stateReceive       orElse
-    transmitAdmin      orElse
+    emitAdmin      orElse
     propHandling       orElse
     resourceDesc       orElse
     receiveTimeout     orElse
@@ -212,7 +211,7 @@ abstract class CoralActor(json: JObject)
   def state: Map[String, JValue] = noState
   val noState: Map[String, JValue] = Map.empty
 
-  def stateResponse(x:String,by:Option[String],sender:ActorRef) = {
+  def stateResponse(x:String, by:Option[String], sender:ActorRef) = {
     if ( by.getOrElse("").isEmpty) {
       val value = state.get(x)
       sender ! render(value)
