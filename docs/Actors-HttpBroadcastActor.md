@@ -21,7 +21,8 @@ topic: Actors
 -->
 
 # HttpBroadcastActor
-The `HttpBroadcastActor` (HTTP server) is a [Coral Actor](/actors/overview/) that passes through HTTP JSON requests.
+The `HttpBroadcastActor` (HTTP server) is a [Coral Actor](/actors/overview/) that passes through HTTP JSON requests. It is used to be able to directly send the incoming HTTP JSON requests
+to multiple actors by registering the `HttpBroadcastActor` as the trigger source of these actors.
 
 ## Creating a HttpBroadcastActor
 The creation JSON of the HttpBroadcastActor (see [Coral Actor](/actors/overview/)) has `"type": "httpbroadcast"`. This is the only field in the creating JSON for this actor.
