@@ -247,17 +247,17 @@ class CoralActorSpec(_system: ActorSystem)
       coral.emitTargets should be(SortedSet(probe.ref))
     }
 
-    "Have a 'transmit' method" in {
+    "Have a 'emit' method" in {
       val coral = createCoralActor()
       val probe1 = TestProbe()
       val probe2 = TestProbe()
       coral.emitTargets += probe2.ref
       coral.emitTargets += probe1.ref
       val json = parse( """{ "test": "transmit" }""")
-      coral.transmit(json)
+      coral.emit(json)
       probe1.expectMsg(json)
       probe2.expectMsg(json)
-      coral.transmit(JNothing)
+      coral.emit(JNothing)
       probe1.expectNoMsg(100 millis)
     }
 
@@ -372,7 +372,7 @@ class CoralActorSpec(_system: ActorSystem)
       val testJson = parse( """{ "test": "stopped" }""")
       class TestCoralActor extends CoralActor(createJson) {
 
-        override def postStop(): Unit = transmit(testJson)
+        override def postStop(): Unit = emit(testJson)
       }
       val coral = createCoralActor(Props(new TestCoralActor))
       val probe = TestProbe()

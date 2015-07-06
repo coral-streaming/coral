@@ -46,9 +46,8 @@ field  | type | required | description
 {% endhighlight %}
 
 ## Trigger
-The `HttpClientActor` is triggered by a JSON. This JSON can be an empty object or can contain the field '**payload**'.
-The `HttpClientActor` will perform a HTTP method on the defined field '**url***' with the optionally the given payload message.
-Currently the client supports the following HTTP methods:
+The `HttpClientActor` is triggered by a JSON. The `HttpClientActor` will perform a HTTP method on the defined field '**url**' with as payload
+the received trigger JSON (can be an empty object). Currently the client supports the following HTTP methods:
 
 POST
 GET
@@ -58,7 +57,7 @@ DELETE
 #### Example
 {% highlight json %}
 {
-  "payload": "my payload"
+  "my payload"
 }
 {% endhighlight %}
 

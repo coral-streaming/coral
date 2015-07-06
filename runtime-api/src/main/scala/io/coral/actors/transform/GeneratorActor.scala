@@ -48,10 +48,10 @@ object GeneratorActor {
   def getParams(json: JValue) = {
     for {
     // The structure of the object to emit
-      format <- (json \ "attributes" \ "format").extractOpt[JObject]
-      rate <- (json \ "attributes" \ "timer" \ "rate").extractOpt[Double]
-      times <- getIntValueOrZero(json \ "attributes" \ "timer" \ "times")
-      delay <- getDoubleValueOrZero(json \ "attributes" \ "timer" \ "delay")
+      format <- (json \ "attributes" \ "params" \ "format").extractOpt[JObject]
+      rate <- (json \ "attributes" \ "params" \ "timer" \ "rate").extractOpt[Double]
+      times <- getIntValueOrZero(json \ "attributes" \ "params" \ "timer" \ "times")
+      delay <- getDoubleValueOrZero(json \ "attributes" \ "params" \ "timer" \ "delay")
       if rate >= 0
     } yield {
       (format, rate, times, delay)

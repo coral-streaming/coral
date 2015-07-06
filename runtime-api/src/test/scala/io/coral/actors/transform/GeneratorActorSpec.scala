@@ -37,6 +37,7 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
       val definition = parse( """ {
                 "type": "actors",
                 "attributes": {"type": "generator",
+                "params": {
                 "format": {
                     "field1": "N(100, 10)",
                     "field2": "['a', 'b', 'c']",
@@ -45,7 +46,7 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
                     "rate": 10,
                     "times": 1,
                     "delay": 0
-                } } }""").asInstanceOf[JObject]
+                } } } }""").asInstanceOf[JObject]
 
       val props = CoralActorFactory.getProps(definition).get
       val generator = TestActorRef[GeneratorActor](props)
@@ -68,6 +69,7 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
       val definition = parse( """ {
                 "type": "actors",
                 "attributes": {"type": "generator",
+                "params": {
                 "format": {
                     "field1": "N(100.25, 10.53)",
                     "field2": "['a', 'b', 'c']",
@@ -76,7 +78,7 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
                     "rate": 10,
                     "times": 1,
                     "delay": 0
-                } } }""").asInstanceOf[JObject]
+                } } } }""").asInstanceOf[JObject]
 
       val props = CoralActorFactory.getProps(definition).get
       val generator = TestActorRef[GeneratorActor](props)
@@ -98,6 +100,7 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
       val definition = parse( """ {
                 "type": "actors",
                 "attributes": {"type": "generator",
+                "params": {
                 "format": {
                     "field1": "N(100.25, 10.53)",
                     "field2": "['a', 'b', 'c']",
@@ -111,7 +114,7 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
                     "times": 1,
                     "delay": 0
                 }
-            } }""").asInstanceOf[JObject]
+            } } }""").asInstanceOf[JObject]
 
       val props = CoralActorFactory.getProps(definition).get
       val generator = TestActorRef[GeneratorActor](props)
@@ -135,6 +138,7 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
       val definition = parse( """ {
                 "type": "actors",
                 "attributes": {"type": "generator",
+                "params": {
                 "format": {
                     "field1": "F(100.25, 10.53)",
                     "field2": "['a', 'b', 'c']",
@@ -148,7 +152,7 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
                     "times": 1,
                     "delay": 0
                 }
-            } }""").asInstanceOf[JObject]
+            } } }""").asInstanceOf[JObject]
 
       val props = CoralActorFactory.getProps(definition).get
       val generator = TestActorRef[GeneratorActor](props)
@@ -163,6 +167,7 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
       val definition = parse( """ {
                 "type": "actors",
                 "attributes": {"type": "generator",
+                "params" : {
                 "format": {
                     "field1": "N(100.))25, 10.53)",
                     "field2": "['a', 'b', 'c']",
@@ -176,7 +181,7 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
                     "times": 1,
                     "delay": 0
                 }
-            } }""").asInstanceOf[JObject]
+            } } }""").asInstanceOf[JObject]
 
       val props = CoralActorFactory.getProps(definition).get
       val generator = TestActorRef[GeneratorActor](props)
@@ -190,6 +195,7 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
       val definition = parse( """ {
                 "type": "actors",
                 "attributes": {"type": "generator",
+                "params": {
                 "format": {
                     "field1": "N(100.25, 10.53)",
                     "field2": "[[''a', 'b,, 'c']",
@@ -198,7 +204,7 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
                     "times": 1,
                     "delay": 0
                 }
-            } }""").asInstanceOf[JObject]
+            } } }""").asInstanceOf[JObject]
 
       val props = CoralActorFactory.getProps(definition).get
       val generator = TestActorRef[GeneratorActor](props)
@@ -212,6 +218,7 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
       val definition = parse( """ {
                 "type": "actors",
                 "attributes": {"type": "generator",
+                "params": {
                 "format": {
                     "field1": "N(100.25, 10.53)",
                     "field2": "[]",
@@ -220,7 +227,7 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
                     "times": 1,
                     "delay": 0
                 }
-            } }""").asInstanceOf[JObject]
+            } } }""").asInstanceOf[JObject]
 
       val props = CoralActorFactory.getProps(definition).get
       val generator = TestActorRef[GeneratorActor](props)
@@ -234,6 +241,7 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
       val definition = parse( """ {
                 "type": "actors",
                 "attributes": {"type": "generator",
+                "params": {
                 "format": {
                     "field1": "N(100, 10)",
                     "field2": "['a', 'b', 'c']",
@@ -242,7 +250,7 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
                     "rate": -20,
                     "times": 1,
                     "delay": 0
-                } } }""").asInstanceOf[JObject]
+                } } } }""").asInstanceOf[JObject]
 
       val props = CoralActorFactory.getProps(definition)
       assert(props == None)
@@ -252,6 +260,7 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
       val definition = parse( """ {
                 "type": "actors",
                 "attributes": {"type": "generator",
+                "params": {
                 "format": {
                     "field1": "N(100, 10)",
                     "field2": "['a', 'b', 'c']",
@@ -260,7 +269,7 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
                     "rate": "notAnInteger",
                     "times": 1,
                     "delay": 0
-                } } }""").asInstanceOf[JObject]
+                } } } }""").asInstanceOf[JObject]
 
       val props = CoralActorFactory.getProps(definition)
       assert(props == None)
@@ -270,6 +279,7 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
       val definition = parse( """ {
                 "type": "actors",
                 "attributes": {"type": "generator",
+                "params": {
                 "format": {
                     "field1": "N(100, 10)",
                     "field2": "['a', 'b', 'c']",
@@ -277,7 +287,7 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
                 }, "timer": {
                     "times": 1,
                     "delay": 0
-                } } }""").asInstanceOf[JObject]
+                } } } }""").asInstanceOf[JObject]
 
       val props = CoralActorFactory.getProps(definition)
       assert(props == None)
@@ -287,6 +297,7 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
       val definition = parse( """ {
                 "type": "actors",
                 "attributes": {"type": "generator",
+                "params": {
                 "format": {
                     "field1": "N(100, 10)",
                     "field2": "['a', 'b', 'c']",
@@ -295,7 +306,7 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
                     "rate": 20,
                     "times": -100,
                     "delay": 0
-                } } }""").asInstanceOf[JObject]
+                } } } }""").asInstanceOf[JObject]
 
       val props = CoralActorFactory.getProps(definition).get
       val generator = TestActorRef[GeneratorActor](props)
@@ -312,6 +323,7 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
       val definition = parse( """ {
                 "type": "actors",
                 "attributes": {"type": "generator",
+                "params": {
                 "format": {
                     "field1": "N(100, 10)",
                     "field2": "['a', 'b', 'c']",
@@ -320,7 +332,7 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
                     "rate": 20,
                     "times": 1,
                     "delay": -3000
-                } } }""").asInstanceOf[JObject]
+                } } } }""").asInstanceOf[JObject]
 
       val props = CoralActorFactory.getProps(definition).get
       val generator = TestActorRef[GeneratorActor](props)
@@ -341,6 +353,7 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
       val definition = parse( """ {
                 "type": "actors",
                 "attributes": {"type": "generator",
+                "params": {
                 "format": {
                     "field1": "N(100, 10)",
                     "field2": "['a', 'b', 'c']",
@@ -348,7 +361,7 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
                 }, "timer": {
                    "rate": 100,
                    "times": 3
-                } } }""").asInstanceOf[JObject]
+                } } } }""").asInstanceOf[JObject]
 
       val props = CoralActorFactory.getProps(definition).get
       val generator = TestActorRef[GeneratorActor](props)
@@ -383,6 +396,7 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
       val definition = parse( """ {
                 "type": "actors",
                 "attributes": {"type": "generator",
+                "params": {
                 "format": {
                     "field1": "N(100, 10)",
                     "field2": "['a','b','c']",
@@ -390,7 +404,7 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
                 }, "timer": {
                     "rate": 10,
                     "times": 1
-                } } }""").asInstanceOf[JObject]
+                } } } }""").asInstanceOf[JObject]
 
       val props = CoralActorFactory.getProps(definition).get
       val generator = TestActorRef[GeneratorActor](props)
@@ -415,6 +429,7 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
       val definition = parse( """ {
                 "type": "actors",
                 "attributes": {"type": "generator",
+                "params": {
                 "format": {
                     "field1": "N(100, 10)",
                     "field2": "['a', 'b', 'c']",
@@ -423,7 +438,7 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
                     "rate": 10,
                     "times": 1,
                     "delay": 3000
-                } } }""").asInstanceOf[JObject]
+                } } } }""").asInstanceOf[JObject]
 
       val props = CoralActorFactory.getProps(definition).get
       val generator = TestActorRef[GeneratorActor](props)
@@ -448,6 +463,7 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
       val definition = parse( """ {
                 "type": "actors",
                 "attributes": {"type": "generator",
+                "params": {
                 "format": {
                     "field1": "N(100, 10)",
                     "field2": "['a', 'b', 'c']",
@@ -456,7 +472,7 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
                     "rate": 100,
                     "times": 3,
                     "delay": 0
-                } } }""").asInstanceOf[JObject]
+                } } } }""").asInstanceOf[JObject]
 
       val props = CoralActorFactory.getProps(definition).get
       val generator = TestActorRef[GeneratorActor](props)

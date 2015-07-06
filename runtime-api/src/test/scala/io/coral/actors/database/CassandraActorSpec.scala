@@ -223,7 +223,7 @@ with BeforeAndAfterAll {
   }
 
   private def createCassandraActor() = {
-    val json = parse(s"""{ "attributes": {"seeds": ["127.0.0.1"], "port": $EmbeddedCassandraPort, "keyspace": "system" } }""")
+    val json = parse(s"""{ "attributes": {"params": {"seeds": ["127.0.0.1"], "port": $EmbeddedCassandraPort, "keyspace": "system" } } }""")
 
     val props = CassandraActor(json)
     assert(props.isDefined)

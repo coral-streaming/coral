@@ -3,8 +3,6 @@ package io.coral.actors.database
 import akka.actor.Props
 import com.datastax.driver.core._
 
-import scala.concurrent.Future
-
 //json goodness
 import org.json4s._
 import org.json4s.JsonDSL._
@@ -20,10 +18,10 @@ object CassandraActor {
 
     def getParams(json: JValue) = {
         for {
-            seeds <- (json \ "attributes" \ "seeds").extractOpt[List[String]]
-            keyspace <- (json \ "attributes" \ "keyspace").extractOpt[String]
+            seeds <- (json \ "attributes" \ "params" \ "seeds").extractOpt[List[String]]
+            keyspace <- (json \ "attributes" \ "params" \ "keyspace").extractOpt[String]
         } yield {
-            (seeds, (json \ "attributes" \ "port").extractOpt[Int], keyspace)
+            (seeds, (json \ "attributes" \ "params" \ "port").extractOpt[Int], keyspace)
         }
     }
 

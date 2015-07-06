@@ -1,6 +1,6 @@
 ---
 layout: default
-title: statsActor
+title: StatsActor
 topic: Actors
 ---
 <!--
@@ -73,3 +73,6 @@ Note that when no events have occurred the count is zero, and other fields are u
 
 ## Collect
 The `StatsActor` does not collect state from other actors.
+
+## Timer
+The `StatsActor` does not provide timer actions.
