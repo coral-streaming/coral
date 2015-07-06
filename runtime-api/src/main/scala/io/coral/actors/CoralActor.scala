@@ -19,6 +19,9 @@ import org.json4s.jackson.JsonMethods._
 import org.json4s.JsonAST.JValue
 import org.json4s.JsonDSL._
 
+// scalaz monad transformers
+import scalaz.{Monad}
+
 //coral
 
 import io.coral.actors.Messages._
@@ -27,7 +30,6 @@ sealed class TimerBehavior
 object TimerExit     extends TimerBehavior
 object TimerContinue extends TimerBehavior
 object TimerNone     extends TimerBehavior
-
 abstract class CoralActor(json: JObject)
   extends Actor
   with NoTrigger
@@ -37,8 +39,9 @@ abstract class CoralActor(json: JObject)
   // begin: implicits and general actor init
   def actorRefFactory = context
 
-  def jsonDef = json
+  def jsonDef= json
 
+  // transmit actor list
   var emitTargets = SortedSet.empty[ActorRef]
 
   // numeric id  or None or "external"
@@ -63,7 +66,6 @@ abstract class CoralActor(json: JObject)
       case None => Future.failed(throw new Exception(s"Collect actor not defined"))
     }
   }
-
   def in[U](duration: FiniteDuration)(body: => U): Unit =
     actorSystem.scheduler.scheduleOnce(duration)(body)
 
@@ -136,35 +138,28 @@ abstract class CoralActor(json: JObject)
 
   def propHandling: Receive = {
     case UpdateProperties(json) =>
-      // update trigger
-      val triggerSource = (json \ "attributes" \ "input" \ "trigger" \ "in" \ "type").extractOpt[String]
+      val triggerSource = (json \ "attributes" \ "input" \ "trigger")
       val triggerJsonDef = triggerSource match {
-        case Some("none") => render("trigger" -> (json \ "attributes" \ "input" \ "trigger"))
-        case Some("external") => render("trigger" -> (json \ "attributes" \ "input" \ "trigger"))
-        case Some("actor") =>
-          val source = (json \ "attributes" \ "input" \ "trigger" \ "in" \ "source").extractOpt[String]
-          source map { v =>
-            tellActor(s"/user/coral/$v", RegisterActor(self))
-          }
-          render("trigger" -> (json \ "attributes" \ "input" \ "trigger"))
-
-        case _ =>
-          JObject()
+        case JString(v) => {
+          tellActor(s"/user/coral/$v", RegisterActor(self))
+          render("trigger" -> triggerSource)
+        }
+        case _ => JObject()
       }
 
-      // update collect
-      val collectAliases = (json \ "attributes" \ "input" \ "collect").extractOpt[Map[String, Any]]
-      val result = collectAliases match {
+      val collectAliases = (json \ "attributes" \ "input" \ "collect")
+      val result = collectAliases.extractOpt[Map[String, Any]] match {
         case Some(v) =>
-          val x = v.keySet.map(k => (k, (json \ "attributes" \ "input" \ "collect" \ k \ "source")
-            .extractOpt[Int].map(v => s"/user/coral/$v")))
-          (x.filter(_._2.isDefined).map(i => (i._1, i._2.get)).toMap, render("collect" -> (json \ "attributes" \ "input" \ "collect")))
+          val x = v.keySet.map(k => (k, (collectAliases \ k)
+            .extractOpt[String].map(v => s"/user/coral/$v")))
+          (x.filter(_._2.isDefined).map(i => (i._1, i._2.get)).toMap,
+            render("collect" -> collectAliases))
         case None =>
           (Map[String, String](), JObject())
       }
+
       collectSources = result._1
       val collectJsonDef = result._2
-
       inputJsonDef = triggerJsonDef merge collectJsonDef
 
       sender ! true
@@ -206,17 +201,17 @@ abstract class CoralActor(json: JObject)
   def receiveExtra:Receive = {case Unit => }
 
   def receive = jsonData           orElse
-                stateReceive       orElse
-                emitAdmin          orElse
-                propHandling       orElse
-                resourceDesc       orElse
-                receiveTimeout     orElse
-                receiveExtra
+    stateReceive       orElse
+    emitAdmin      orElse
+    propHandling       orElse
+    resourceDesc       orElse
+    receiveTimeout     orElse
+    receiveExtra
 
   def state: Map[String, JValue] = noState
   val noState: Map[String, JValue] = Map.empty
 
-  def stateResponse(x:String,by:Option[String],sender:ActorRef) = {
+  def stateResponse(x:String, by:Option[String], sender:ActorRef) = {
     if ( by.getOrElse("").isEmpty) {
       val value = state.get(x)
       sender ! render(value)
