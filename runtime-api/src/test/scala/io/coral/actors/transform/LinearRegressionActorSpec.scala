@@ -67,5 +67,13 @@ class LinearRegressionActorSpec(_system: ActorSystem)
 
       probe.expectMsg(parse( s"""{"score": 20000.0, "salary": 2000}"""))
     }
+
+    "not emit when keys are missing" in {
+      val (actor, probe) = createLinearRegressionActor(0, Map("age" -> 0.2, "salary" -> 10))
+      val message = parse(s"""{"salary": 2000}""").asInstanceOf[JObject]
+      actor ! message
+
+      probe.expectNoMsg
+    }
   }
 }
