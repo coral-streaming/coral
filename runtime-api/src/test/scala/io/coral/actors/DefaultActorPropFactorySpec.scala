@@ -25,9 +25,9 @@ class DefaultActorPropFactorySpec
         """{
           |"type": "actors",
           |"attributes": {"type": "cassandra",
+          |"params": {
           |"seeds": ["0.0.0.0"], "keyspace": "test"
-          |}}""".stripMargin
-      // should be: "params": { "seeds": ["0.0.0.0"], "keyspace": "test" }
+          |}}}""".stripMargin
       val props = factory.getProps("cassandra", parse(json))
       props.get.actorClass should be(classOf[CassandraActor])
     }
@@ -55,10 +55,10 @@ class DefaultActorPropFactorySpec
         """{
           |"type": "actors",
           |"attributes": {"type": "generator",
+          |"params": {
           |"format": {  }
           |"timer": { "rate": 1 }
-          | }}""".stripMargin
-      // wrongly does not have params
+          | }}}""".stripMargin
       val props = factory.getProps("generator", parse(json))
       props.get.actorClass should be(classOf[GeneratorActor])
     }

@@ -22,6 +22,9 @@ topic: Getting started
 
 # Compiling and Starting the platform
 
-In the project directory, type "sbt" to start SBT. After SBT has started up, type "project runtime-api".
+In the coral directory, type `sbt` to start SBT. After SBT has started up, type `project runtime-api`.
 Now, the proper project is set and the main program can be started.
-Type "run" to start the program. The program should respond by saying "Running io.coral.api.Boot". This means that the Coral platform is now started up successfully.
+Type `run` to start the program. The program should respond by saying `Running io.coral.api.Boot`. This means that the Coral platform is now started up successfully.
+
+Alternatively, you can make a distribution of Coral by typing `sbt stage` in the coral directory. A distribution will be placed in the directory `runtime-api/target/universal/stage`.
+The `bin` directory contains startup scripts for the windows and unix. Use the script `coral` or `coral.bat` to start the platform. The coral jar and the dependencies are placed in the `lib` directory.

@@ -1,6 +1,6 @@
 ---
 layout: default
-title: linearRegressionActor
+title: LinearRegressionActor
 topic: Actors
 ---
 <!--
@@ -24,7 +24,7 @@ topic: Actors
 The `LinearRegression` is a [Coral Actor](https://github.com/coral-streaming/coral/wiki/Coral-Actors) which performs prediction on the streaming data, based on the behavior of past observations.
 
 ## Creating a LinearRegressionActor
-The creation JSON of the LinearRegression actor (see [Coral Actor](https://github.com/coral-streaming/coral/wiki/Coral-Actors)) has `"type": "LinearRegression"`.
+The creation JSON of the LinearRegression actor (see [Coral Actor](https://github.com/coral-streaming/coral/wiki/Coral-Actors)) has `"type": "linearregression"`.
 The `params` value contains the following fields:
 
 field  | type | required | description
@@ -65,14 +65,19 @@ An example of a JSON object that comes in is as follows:
 {% endhighlight %}
 
 Based on this input object, the LinearRegressionActor would calculate the following:
-The score that is calculated is .
+
+The score that is calculated is intercept + weightSalary * salary + weightTnxcount1month * tnxcount1month + weightAge * age, which is
+3.972 + 0.47353 * 3000 + 1.86766 * 25 + 4.52352 * 30, which is 1606,9591.
 
 ## Emit
-The `LinearRegressionActor` emits the predicted score. It looks like the following:
+The `LinearRegressionActor` enriches the received trigger JSON with the predicted score and emits it. It looks like the following:
 
 {% highlight json %}
 {
-   "score": 1.49376
+   "salary": 3000,
+   "tnxcount1month": 25,
+   "age": 30,
+   "score": 1606.9591
 }
 {% endhighlight %}
 
@@ -81,3 +86,6 @@ The `LinearRegressionActor` does not keep any state.
 
 ## Collect
 The `LinearRegressionActor` does not collect state from other actors.
+
+## Timer
+The `LinearRegressionActor` does not provide timer actions.

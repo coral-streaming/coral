@@ -48,7 +48,7 @@ Other properties may be supplied cf. the [Kafka consumer properties](https://kaf
   "data": {
     "type": "actors",
     "attributes": {
-      "type": "json",
+      "type": "kafka-consumer",
       "params": {
         "topic": "clickstream",
         "kafka": {
@@ -74,3 +74,6 @@ The `KafkaConsumerActor` keeps no state.
 
 ## Collect
 The `KafkaConsumerActor` does not collect state from other actors.
+
+## Timer
+The `KafkaConsumerActor` does not provide timer actions.

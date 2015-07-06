@@ -61,7 +61,7 @@ class KafkaConsumerActor(json: JObject, connection: KafkaJsonConsumer) extends C
       val message: JValue = stream.next
       stream.commitOffsets
       if (message != JNothing) {
-        transmit(message)
+        emit(message)
       }
       self ! ReadMessageQueue
 

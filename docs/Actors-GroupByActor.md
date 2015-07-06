@@ -1,6 +1,6 @@
 ---
 layout: default
-title: groupActor
+title: GroupByActor
 topic: Actors
 ---
 <!--

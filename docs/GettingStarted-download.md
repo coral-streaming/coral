@@ -28,5 +28,5 @@ topic: Getting started
 
 **SBT** 0.13.x is required to run the Coral platform. Follow the instructions on how to install SBT on [this](http://www.scala-sbt.org) link. Scala will be downloaded automatically if SBT is run for the first time.
 
-The location of the repository is [https://github.com/coral-streaming/coral.git](https://github.com/coral-streaming/coral.git). Open a new terminal, go to a directory where you want to put the project and type "git clone https://github.com/coral-streaming/coral.git". A new directory named "coral" will now be created with the project.
-Type "cd coral" to go into the project directory.
+The location of the repository is [https://github.com/coral-streaming/coral.git](https://github.com/coral-streaming/coral.git). Open a new terminal, go to a directory where you want to put the project and type `git clone https://github.com/coral-streaming/coral.git`. A new directory named `coral` will now be created with the project.
+Type `cd coral` to go into the project directory.
