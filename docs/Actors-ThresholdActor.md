@@ -1,6 +1,6 @@
 ---
 layout: default
-title: thresholdActor
+title: ThresholdActor
 topic: Actors
 ---
 <!--
@@ -60,4 +60,7 @@ The `ThresholdActor` emits the received JSON with the addition of the _threshold
 The `ThresholdActor` doesn't keep state.
 
 ## Collect
-The `ThresholdActor` doesn't collect.
+The `ThresholdActor` does not collect state from other actors.
+
+## Timer
+The `ThresholdActor` does not provide timer actions.

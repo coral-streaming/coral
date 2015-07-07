@@ -8,7 +8,7 @@ import org.json4s._
 import org.json4s.jackson.JsonMethods.render
 
 // coral
-import io.coral.actors.CoralActor
+import io.coral.actors.{SimpleEmitTrigger, CoralActor}
 
 object LookupActor {
   implicit val formats = org.json4s.DefaultFormats
@@ -28,34 +28,24 @@ object LookupActor {
   }
 }
 
-class LookupActor(json: JObject) extends CoralActor with ActorLogging {
-  def jsonDef = json
+class LookupActor(json: JObject)
+  extends CoralActor(json)
+  with ActorLogging
+  with SimpleEmitTrigger {
+
   val (key, lookup, function) = LookupActor.getParams(json).get
 
-  def state =  Map.empty
+  override def simpleEmitTrigger(json: JObject): Option[JValue] = {
+    for {
+      value <- (json \ key).extractOpt[String]
+    } yield {
+      val lookupObject = lookup.get(value)
 
-  //local state
-  var lookupObject: Option[JValue] = None
-
-  def timer = noTimer
-
-  def trigger = {
-    json: JObject =>
-      for {
-      // from trigger data
-        value <- getTriggerInputField[String](json \ key)
-      } yield {
-        // compute (local variables & update state)
-        lookupObject = lookup.get(value)
-      }
-  }
-
-  def emit = {
-    json: JObject =>
       function match {
         case "enrich" => json merge render(lookupObject.getOrElse(JNothing))
         case "filter" => lookupObject map (_ => json) getOrElse(JNull)
         case "check"  => render(lookupObject.getOrElse(JNull))
       }
+    }
   }
 }

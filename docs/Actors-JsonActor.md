@@ -57,7 +57,7 @@ If fields are expressions the create a string field starting with a the expressi
 
 ## Trigger
 The `JsonActor` only does useful work if the trigger is connected.
-The trigger can be any JSON. The supplied JSON will be used to fill te template.
+The trigger can be any JSON. The supplied JSON will be used to fill the template.
 
 #### Example
 
@@ -70,3 +70,6 @@ The `JsonActor` keeps no state.
 
 ## Collect
 The `JsonActor` does not collect state from other actors.
+
+## Timer
+The `JsonActor` does not provide timer actions.

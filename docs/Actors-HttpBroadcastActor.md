@@ -1,6 +1,6 @@
 ---
 layout: default
-title: httpBroadcastActor
+title: HttpBroadcastActor
 topic: Actors
 ---
 <!--
@@ -21,7 +21,8 @@ topic: Actors
 -->
 
 # HttpBroadcastActor
-The `HttpBroadcastActor` (HTTP server) is a [Coral Actor](/actors/overview/) that passes through HTTP JSON requests.
+The `HttpBroadcastActor` (HTTP server) is a [Coral Actor](/actors/overview/) that passes through HTTP JSON requests. It is used to be able to directly send the incoming HTTP JSON requests
+to multiple actors by registering the `HttpBroadcastActor` as the trigger source of these actors.
 
 ## Creating a HttpBroadcastActor
 The creation JSON of the HttpBroadcastActor (see [Coral Actor](/actors/overview/)) has `"type": "httpbroadcast"`. This is the only field in the creating JSON for this actor.
@@ -39,11 +40,8 @@ There is no `params` field.
 }
 {% endhighlight %}
 
-## Trigger
-The `HttpBroadcastActor` has no trigger implemented.
-
-## Emit
-The `HttpBroadcastActor` emits what is supplied (passthrough).
+## Trigger/Emit
+The `HttpBroadcastActor` emits what is supplied to the trigger (passthrough).
 
 ## State
 The `HttpBroadcastActor` does not keep a state
@@ -52,4 +50,4 @@ The `HttpBroadcastActor` does not keep a state
 The `HttpServerActor` does not collect state from other actors.
 
 ## Timer
-The `HttpBroadcastActor` does not implement a timer action.
+The `HttpServerActor` does not provide timer actions.

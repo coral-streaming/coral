@@ -88,6 +88,9 @@ with BeforeAndAfterAll {
     "Return a JSON representation of a ResultSet" in {
       val query = parse("""{ "query": "select * from testkeyspace.test1" } """)
         .asInstanceOf[JObject]
+
+      cassandra ! query
+
       val actual = Await.result(cassandra.ask(Shunt(query)), timeout.duration)
 
       val expected = parse(
@@ -223,7 +226,7 @@ with BeforeAndAfterAll {
   }
 
   private def createCassandraActor() = {
-    val json = parse(s"""{ "attributes": {"seeds": ["127.0.0.1"], "port": $EmbeddedCassandraPort, "keyspace": "system" } }""")
+    val json = parse(s"""{ "attributes": {"params": {"seeds": ["127.0.0.1"], "port": $EmbeddedCassandraPort, "keyspace": "system" } } }""")
 
     val props = CassandraActor(json)
     assert(props.isDefined)

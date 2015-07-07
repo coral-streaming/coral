@@ -9,7 +9,7 @@ import org.json4s.JsonDSL._
 import org.json4s.jackson.JsonMethods.render
 
 // coral
-import io.coral.actors.CoralActor
+import io.coral.actors.{SimpleEmitTrigger, CoralActor}
 
 object ThresholdActor {
   implicit val formats = org.json4s.DefaultFormats
@@ -27,27 +27,18 @@ object ThresholdActor {
   }
 }
 
-class ThresholdActor(json: JObject) extends CoralActor with ActorLogging {
+class ThresholdActor(json: JObject)
+  extends CoralActor(json)
+  with ActorLogging
+  with SimpleEmitTrigger {
+
   val (key, threshold) = ThresholdActor.getParams(json).get
   
-  var thresholdReached = false
-  
-  def jsonDef = json
-  
-  def state = Map.empty
-  
-  def timer = noTimer
-  
-  def trigger = {
-    json =>
-      for {
-        value <- getTriggerInputField[Double](json \ key)
-      } yield {
-        thresholdReached = value >= threshold
-      }
-  }
-  def emit = {
-    json =>
+  override def simpleEmitTrigger(json: JObject): Option[JValue] = {
+    for {
+      value <- (json \ key).extractOpt[Double]
+    } yield {
+      val thresholdReached = value >= threshold
       thresholdReached match {
         case true => {
           val result = ("thresholdReached" -> key)
@@ -55,6 +46,7 @@ class ThresholdActor(json: JObject) extends CoralActor with ActorLogging {
         }
         case false => JNothing
       }
+    }
   }
 
 }

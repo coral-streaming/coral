@@ -3,17 +3,14 @@ package io.coral.actors.database
 import akka.actor.Props
 import com.datastax.driver.core._
 
-import scala.concurrent.Future
-
 //json goodness
 import org.json4s._
 import org.json4s.JsonDSL._
 import org.json4s.jackson.JsonMethods.render
 
 // coral
-import io.coral.actors.CoralActor
+import io.coral.actors.{SimpleEmitTrigger, CoralActor}
 
-import scalaz.OptionT
 import scala.collection.mutable.{ListBuffer => mList}
 
 object CassandraActor {
@@ -21,10 +18,10 @@ object CassandraActor {
 
     def getParams(json: JValue) = {
         for {
-            seeds <- (json \ "attributes" \ "seeds").extractOpt[List[String]]
-            keyspace <- (json \ "attributes" \ "keyspace").extractOpt[String]
+            seeds <- (json \ "attributes" \ "params" \ "seeds").extractOpt[List[String]]
+            keyspace <- (json \ "attributes" \ "params" \ "keyspace").extractOpt[String]
         } yield {
-            (seeds, (json \ "attributes" \ "port").extractOpt[Int], keyspace)
+            (seeds, (json \ "attributes" \ "params" \ "port").extractOpt[Int], keyspace)
         }
     }
 
@@ -33,8 +30,9 @@ object CassandraActor {
     }
 }
 
-class CassandraActor(json: JObject) extends CoralActor with CassandraHelper {
-    def jsonDef = json
+class CassandraActor(json: JObject) extends CoralActor(json)
+    with CassandraHelper
+    with SimpleEmitTrigger {
 
     var (seeds, port, keyspace) = CassandraActor.getParams(json).get
 
@@ -45,70 +43,60 @@ class CassandraActor(json: JObject) extends CoralActor with CassandraHelper {
     var cluster: Cluster = _
     var session: Session = _
     var schema: JValue = _
-    def state = Map(
+    override def state = Map(
         ("connected", render(session != null && !session.isClosed)),
         ("keyspace", render(keyspace)),
         ("schema", render(getSchema(session, keyspace)))
     )
 
-    def timer = JNothing
+    override def simpleEmitTrigger(json: JObject) = {
+        ensureConnection(seeds, port, keyspace)
 
-    var result: Option[ResultSet] = _
-    var lastQuery: String = _
-    var lastError: String = _
+        val queryResult = try {
+            val query = (json \ "query").extractOpt[String].get.trim()
 
-    def trigger = {
-        json: JObject =>
-            ensureConnection(seeds, port, keyspace)
+            // Since there is no way of using the AST from the query,
+            // we use text parsing instead
+            val result = if (query.startsWith("use keyspace")) {
+                log.info("Changing keyspace, updating schema")
+                keyspace = query.substring(13, query.length - 1)
+                ensureConnection(seeds, port, keyspace)
+                getSchema(session, keyspace)
+                None
+            } else {
+                val data = session.execute(query)
 
-            try {
-                lastQuery = ""
-                val query = (json \ "query").extractOpt[String].get.trim()
-                lastQuery = query
-
-                // Since there is no way of using the AST from the query,
-                // we use text parsing instead
-                if (query.startsWith("use keyspace")) {
-                    log.info("Changing keyspace, updating schema")
-                    keyspace = query.substring(13, query.length - 1)
-                    ensureConnection(seeds, port, keyspace)
-                    getSchema(session, keyspace)
+                if (query.startsWith("select")) {
+                    Some(data)
                 } else {
-                    val data = session.execute(query)
-
-                    if (query.startsWith("select")) {
-                        result = Some(data)
-                    } else {
-                        result = None
-                    }
+                    None
                 }
-
-                lastError = ""
-            } catch {
-                // In this case, the operation failed
-                case e: Exception =>
-                    result = None
-                    lastError = e.getMessage
             }
 
-            OptionT.some(Future.successful({}))
+            QueryResult(result, query, "")
+        } catch {
+            // In this case, the operation failed
+            case e: Exception =>
+                QueryResult(None, (json \ "query").extractOrElse[String](""), e.getMessage)
+        }
+
+        Some(determineResult(queryResult))
     }
 
-    def emit = {
-        json: JObject =>
-            result match {
-                case Some(data) =>
-                    // Actual data returned
-                    render(("query" -> lastQuery) ~ ("success" -> true) ~ renderResultSet(data))
-                case None if (lastError != "") =>
-                    // Error, and therefore no results
-                    render(("query" -> lastQuery) ~ ("success" -> false) ~ ("error" -> lastError))
-                case None =>
-                    // No error, just no results
-                    render(("query" -> lastQuery) ~ ("success" -> true))
-                case _ =>
-                    JNothing
-            }
+    def determineResult(queryResult: QueryResult): JValue = {
+        queryResult.result match {
+            case Some(data) =>
+                // Actual data returned
+                render(("query" -> queryResult.lastQuery) ~ ("success" -> true) ~ renderResultSet(data))
+            case None if (queryResult.lastError != "") =>
+                // Error, and therefore no results
+                render(("query" -> queryResult.lastQuery) ~ ("success" -> false) ~ ("error" -> queryResult.lastError))
+            case None =>
+                // No error, just no results
+                render(("query" -> queryResult.lastQuery) ~ ("success" -> true))
+            case _ =>
+                JNothing
+        }
     }
 
     /**
@@ -138,6 +126,8 @@ class CassandraActor(json: JObject) extends CoralActor with CassandraHelper {
         builder.build()
     }
 }
+
+case class QueryResult(result: Option[ResultSet], lastQuery: String, lastError: String)
 
 trait CassandraHelper {
     /**

@@ -1,6 +1,6 @@
 ---
 layout: default
-title: lookupActor
+title: LookupActor
 topic: Actors
 ---
 <!--
@@ -117,7 +117,7 @@ The function `check` emits the lookup value when it is found, otherwise, nothing
 The `LookupActor`does not keep state.
 
 ## Collect
-The `LookupActor` does not collect any data from other actors.
+The `LookupActor` does not collect state from other actors.
 
 ## Timer
 The `LookupActor` does not provide timer actions.

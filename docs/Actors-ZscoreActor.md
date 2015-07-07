@@ -1,6 +1,6 @@
 ---
 layout: default
-title: zscoreActor
+title: ZscoreActor
 topic: Actors
 ---
 <!--
@@ -64,3 +64,6 @@ The `ZscoreActor` keeps no state.
 ## Collect
 The `ZscoreActor` collects state from the `StatsActor` for the field it monitors.
 The count, average and standard deviation values are used to determine whether or not the trigger value is an outlier.
+
+## Timer
+The `ZscoreActor` does not provide timer actions.

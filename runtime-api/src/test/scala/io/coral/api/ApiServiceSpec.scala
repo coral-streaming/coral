@@ -115,7 +115,7 @@ class ApiServiceSpec
         """{"data": {
           |"id": "200",
           |"type": "actors",
-          |"attributes": {"type": "testactor", "input":{"trigger":{"in":{"type":"external"}}}}
+          |"attributes": {"type": "testactor", "input":{"trigger":"1"}}
           |}}""".stripMargin)
       val inputEntity = HttpEntity(`application/vnd.api+json`, marshal(jsonDef).right.get.data)
       Patch("/api/actors/200").withEntity(inputEntity).withHeaders(AcceptHeader, ContentTypeHeader) ~> route ~> check {
@@ -124,10 +124,10 @@ class ApiServiceSpec
       Get("/api/actors/200").withEntity(inputEntity).withHeaders(AcceptHeader) ~> route ~> check {
         assert(responseAs[JObject] == parse(
           """{"data": {
-          |"type": "actors",
-          |"attributes": {"type": "testactor", "key": "value", "state": {}, "input":{"trigger":{"in":{"type":"external"}}}}
-          |"id": "200",
-          |}}""".stripMargin))
+            |"type": "actors",
+            |"attributes": {"type": "testactor", "key": "value", "state": {}, "input":{"trigger":"1"}}
+            |"id": "200",
+            |}}""".stripMargin))
       }
     }
 
@@ -212,26 +212,10 @@ class ApiServiceSpec
   }
 }
 
-class TestActor1 extends CoralActor {
-  def jsonDef = parse("""{"type": "actors", "attributes": {"type": "testactor", "key": "value"}}""")
+class TestActor1 extends CoralActor(parse("""{"type": "actors", "attributes": {"type": "testactor", "key": "value"}}""").asInstanceOf[JObject]) {
 
-  def timer = noTimer
-
-  def state = Map.empty
-
-  def emit = emitNothing
-
-  def trigger = defaultTrigger
 }
 
-class TestActor2 extends CoralActor {
-  def jsonDef = parse("""{}""")
+class TestActor2 extends CoralActor(parse("""{}""").asInstanceOf[JObject]) {
 
-  def timer = noTimer
-
-  def state = Map.empty
-
-  def emit = emitNothing
-
-  def trigger = defaultTrigger
 }

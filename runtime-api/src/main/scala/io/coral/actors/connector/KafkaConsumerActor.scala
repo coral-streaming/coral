@@ -3,7 +3,7 @@ package io.coral.actors.connector
 import java.util.Properties
 
 import akka.actor.Props
-import io.coral.actors.TemplateCoralActor
+import io.coral.actors.CoralActor
 import io.coral.lib.{ConfigurationBuilder, KafkaJsonConsumer}
 import kafka.serializer.Decoder
 import org.json4s.JsonAST.{JNothing, JObject, JValue}
@@ -42,7 +42,7 @@ object KafkaConsumerActor {
 
 }
 
-class KafkaConsumerActor(json: JValue, connection: KafkaJsonConsumer) extends TemplateCoralActor(json) {
+class KafkaConsumerActor(json: JObject, connection: KafkaJsonConsumer) extends CoralActor(json) {
 
   import KafkaConsumerActor.ReadMessageQueue
 
@@ -61,7 +61,7 @@ class KafkaConsumerActor(json: JValue, connection: KafkaJsonConsumer) extends Te
       val message: JValue = stream.next
       stream.commitOffsets
       if (message != JNothing) {
-        transmit(message)
+        emit(message)
       }
       self ! ReadMessageQueue
 

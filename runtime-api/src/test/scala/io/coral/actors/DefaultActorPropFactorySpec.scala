@@ -3,6 +3,7 @@ package io.coral.actors
 import io.coral.actors.connector.{KafkaProducerActor, KafkaConsumerActor}
 import io.coral.actors.database.CassandraActor
 import io.coral.actors.transform._
+import io.coral.lib.KafkaJsonProducer.KafkaEncoder
 import org.json4s.native.JsonMethods._
 import org.scalatest.{Matchers, WordSpecLike}
 import scala.language.postfixOps
@@ -24,9 +25,9 @@ class DefaultActorPropFactorySpec
         """{
           |"type": "actors",
           |"attributes": {"type": "cassandra",
+          |"params": {
           |"seeds": ["0.0.0.0"], "keyspace": "test"
-          |}}""".stripMargin
-      // should be: "params": { "seeds": ["0.0.0.0"], "keyspace": "test" }
+          |}}}""".stripMargin
       val props = factory.getProps("cassandra", parse(json))
       props.get.actorClass should be(classOf[CassandraActor])
     }
@@ -54,10 +55,10 @@ class DefaultActorPropFactorySpec
         """{
           |"type": "actors",
           |"attributes": {"type": "generator",
+          |"params": {
           |"format": {  }
           |"timer": { "rate": 1 }
-          | }}""".stripMargin
-      // wrongly does not have params
+          | }}}""".stripMargin
       val props = factory.getProps("generator", parse(json))
       props.get.actorClass should be(classOf[GeneratorActor])
     }
@@ -115,7 +116,7 @@ class DefaultActorPropFactorySpec
           |"params": {"topic": "test", "kafka": {} }
           |}}""".stripMargin
       val props = factory.getProps("kafka-producer", parse(json))
-      props.get.actorClass should be(classOf[KafkaProducerActor])
+      props.get.actorClass should be(classOf[KafkaProducerActor[KafkaEncoder]])
     }
 
     "Provide a StatsActor for type 'stats'" in {

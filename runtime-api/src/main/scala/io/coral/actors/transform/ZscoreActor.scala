@@ -3,13 +3,19 @@ package io.coral.actors.transform
 // akka
 import akka.actor.{ActorLogging, Props}
 
+import scala.concurrent.Future
+
+import scalaz._
+import Scalaz._
+import scalaz.OptionT._
+
 //json goodness
 import org.json4s._
 import org.json4s.JsonDSL._
 import org.json4s.jackson.JsonMethods.{render, compact}
 
 // coral
-import io.coral.actors.CoralActor
+import io.coral.actors.{SimpleEmitTrigger, CoralActor}
 
 
 object ZscoreActor {
@@ -35,40 +41,37 @@ object ZscoreActor {
 }
 
 // metrics actor example
-class ZscoreActor(json: JObject) extends CoralActor {
-
-  def jsonDef = json
+class ZscoreActor(json: JObject)
+  extends CoralActor(json) {
 
   val (by, field, score) = ZscoreActor.getParams(jsonDef).get
-  var outlier: Boolean = false
 
-  def state = Map.empty
-
-  def timer = noTimer
-
-  def trigger = {
-    json: JObject =>
-      for {
-      // from trigger data
-        subpath <- getTriggerInputField[String](json \ by)
-        value <- getTriggerInputField[Double](json \ field)
-
-        // from other actors
-        count <- getCollectInputField[Long]("stats", subpath, "count")
-        avg   <- getCollectInputField[Double]("stats", subpath, "avg")
-        std   <- getCollectInputField[Double]("stats", subpath, "sd")
-
-      //alternative syntax from other actors multiple fields
-      //(avg,std) <- getActorField[Double](s"/user/events/histogram/$city", List("avg", "sd"))
-      } yield {
-        // compute (local variables & update state)
-        val th = avg + score * std
-        outlier = (value > th) & (count > 20)
-      }
+  override def trigger = {
+    json =>
+      val result = for {
+        subpath <- optionT(getSubpath(json))
+        value <- optionT(Future.successful((json \ field).extractOpt[Double]))
+        count <- optionT(getCollectInputField[Long]("stats", subpath, "count"))
+        avg <- optionT(getCollectInputField[Double]("stats", subpath, "avg"))
+        std <- optionT(getCollectInputField[Double]("stats", subpath, "sd"))
+        outlier = isOutlier(count, avg, std, value)
+      } yield(determineOutput(json, outlier))
+      result.run
   }
 
-  def emit = {
-    json: JObject =>
+  private def getSubpath(json: JObject): Future[Option[String]] = {
+    by match {
+      case "" => Future.successful(Some(""))
+      case _ => Future.successful((json \ by).extractOpt[String])
+    }
+  }
+
+  private def isOutlier(count: Long, avg: Double, std: Double, value: Double): Boolean = {
+    val th = avg + score * std
+    (value > th) & (count > 20)
+  }
+
+  private def determineOutput(json: JObject, outlier: Boolean): JValue = {
       outlier match {
         case true =>
           // produce emit my results (dataflow)

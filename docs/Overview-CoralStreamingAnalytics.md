@@ -22,8 +22,8 @@ topic: Overview
 
 # Coral Streaming Analytics
 
-Coral's real time analytics data pipeline consists of loosely coupled [actors](/actors/overview/).
-An actor is a share-nothing processing element which receive and emits messages via messages mailboxes. Data is transfered between actors has binary json,
-and each actor interpret the relevant part of the message according to its given configuration.Each actor is functionally separate from its neighboring actors.
+Coral's real time analytics data pipeline consists of loosely coupled [actors](/coral/docs/Overview-Actors.html).
+An actor is a share-nothing processing element which receives and emits messages via messages mailboxes. JSON is used to transfer data between actors,
+and each actor interprets the relevant part of the message according to its given configuration. Each actor is functionally separate from its neighboring actors.
 Events are transported asynchronously across a pipeline of loosely coupled actors. This provides a better scaling model with higher reliability and scalability.
 The topology can be changed without restarting the cluster.

@@ -99,25 +99,18 @@ class LookupActorSpec(_system: ActorSystem) extends TestKit(_system)
       assert(actual == expected)
     }
 
-    "Properly instantiate state and timer" in {
-      val lookup = getLookupActor("check")
-      val actor = lookup.underlyingActor
-      actor.state should be(Map.empty[String, JValue])
-      actor.timer should be (JNothing)
-    }
-
     "Emit nothing for check when lookup value does not match any entry in the table" in {
       val lookup = getLookupActor("check")
       val actor = lookup.underlyingActor
       val input = parse("""{"city": "does not exist"}""").asInstanceOf[JObject]
-      actor.emit(input) should be(JNull)
+      actor.simpleEmitTrigger(input) should be(Some(JNull))
     }
 
     "Emit unenriched input for function 'enrich' when lookup value does not match any entry in the table" in {
       val lookup = getLookupActor("enrich")
       val actor = lookup.underlyingActor
       val input = parse("""{"city": "does not exist"}""").asInstanceOf[JObject]
-      actor.emit(input) should be(input)
+      actor.simpleEmitTrigger(input) should be(Some(input))
     }
 
     "Properly perform checking on valid lookup data and valid input data" in {
