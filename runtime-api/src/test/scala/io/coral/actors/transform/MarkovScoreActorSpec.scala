@@ -40,7 +40,7 @@ class MarkovScoreActorSpec(_system: ActorSystem) extends TestKit(_system)
 
     val probe = TestProbe()
     actorTestRef.underlyingActor.emitTargets += probe.ref
-    actorTestRef
+    (actorTestRef, probe)
   }
 
   def writeMapJson(map: Map[(String, String), Double]): String = {
@@ -50,33 +50,28 @@ class MarkovScoreActorSpec(_system: ActorSystem) extends TestKit(_system)
 
   "MarkovScoreActor" should {
     "Instantiate from companion object" in {
-      val actor = createMarkovScoreActor(Map(("s00", "s01") -> 0.2))
+      val (actor, _) = createMarkovScoreActor(Map(("s00", "s01") -> 0.2))
       //println(pretty(actor.underlyingActor.jsonDef))
       actor.underlyingActor.transitionProbs should be (Map(("s00", "s01") -> 0.2))
     }
 
     "have no state" in {
-      val actor = createMarkovScoreActor(Map(("s00", "s01") -> 0.2))
+      val (actor, _) = createMarkovScoreActor(Map(("s00", "s01") -> 0.2))
       actor.underlyingActor.state should be(Map.empty)
     }
 
-    "have no timer action" in {
-      val actor = createMarkovScoreActor(Map(("s00", "s01") -> 0.2))
-      actor.underlyingActor.timer should be(actor.underlyingActor.noTimer)
-    }
-
     "calculate Markov score of the click path with known states" in {
-      val actor = createMarkovScoreActor(Map(("s00", "s01") -> 0.2, ("s01", "s02") -> 0.1))
+      val (actor, probe) = createMarkovScoreActor(Map(("s00", "s01") -> 0.2, ("s01", "s02") -> 0.1))
       val message = parse(s"""{"transitions": ["s00", "s01", "s02"]}""").asInstanceOf[JObject]
       actor ! message
-      actor.underlyingActor.result should be(0.2 * 0.1)
+      probe.expectMsg(parse(s"""{"transitions": ["s00", "s01", "s02"], "score": 0.020000000000000004}""").asInstanceOf[JObject]) //0.2 * 0.1
     }
 
     "return zero when click path contains unknown state" in {
-      val actor = createMarkovScoreActor(Map(("s00", "s01") -> 0.2, ("s01", "s02") -> 0.1))
+      val (actor, probe) = createMarkovScoreActor(Map(("s00", "s01") -> 0.2, ("s01", "s02") -> 0.1))
       val message = parse(s"""{"transitions": ["s00", "s01", "s03"]}""").asInstanceOf[JObject]
       actor ! message
-      actor.underlyingActor.result should be(0.0)
+      probe.expectMsg(parse(s"""{"transitions": ["s00", "s01", "s03"], "score": 0.0}""").asInstanceOf[JObject])
     }
   }
 
