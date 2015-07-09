@@ -15,7 +15,7 @@ class HttpBroadcastActorSpec(_system: ActorSystem)
   with BeforeAndAfterAll
   with ScalaFutures {
 
-  def this() = this(ActorSystem("HttpServerActorSpec"))
+  def this() = this(ActorSystem("HttpBroadcastActorSpec"))
 
   override def afterAll() {
     TestKit.shutdownActorSystem(system)

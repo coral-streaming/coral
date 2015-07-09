@@ -22,7 +22,7 @@ class WindowActorSpec(_system: ActorSystem) extends TestKit(_system)
   implicit val timeout = Timeout(100.seconds)
   val duration = timeout.duration
 
-  def this() = this(ActorSystem("testSystem"))
+  def this() = this(ActorSystem("WindowActorSpec"))
 
   override def afterAll() {
     TestKit.shutdownActorSystem(system)

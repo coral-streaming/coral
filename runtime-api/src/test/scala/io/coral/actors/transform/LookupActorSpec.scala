@@ -21,7 +21,7 @@ class LookupActorSpec(_system: ActorSystem) extends TestKit(_system)
   with Matchers
   with BeforeAndAfterAll {
 
-  def this() = this(ActorSystem("StatsActorSpec"))
+  def this() = this(ActorSystem("LookupActorSpec"))
 
   implicit val injector = new DefaultModule(system.settings.config)
 
