@@ -92,7 +92,7 @@ abstract class CoralActor(json: JObject)
 
   def receiveTimeout: Receive = {
     case TimeoutEvent =>
-      executeTimer
+      execute(timer, None)
 
       // depending on the configuration,
       // end the actor (gracefully) or ...
@@ -107,20 +107,6 @@ abstract class CoralActor(json: JObject)
           tellActor("/user/coral", Delete(self.path.name.toLong))
         case _ => // do nothing
       }
-  }
-
-  def executeTimer = {
-    val future = timer
-    future.onSuccess {
-      case Some(result) =>
-        emit(result)
-
-      case None => log.warning("not processed")
-    }
-
-    future.onFailure {
-      case _ => log.warning("actor execution")
-    }
   }
 
   def emitAdmin: Receive = {
@@ -172,9 +158,7 @@ abstract class CoralActor(json: JObject)
         merge render("attributes" -> render("input" -> inputJsonDef)))
   }
 
-  def execute(json:JObject, sender:Option[ActorRef]) = {
-    val future = trigger(json)
-
+  def execute(future: Future[Option[JValue]], sender: Option[ActorRef]) = {
     future.onSuccess {
       case Some(result) =>
         emit(result)
@@ -190,10 +174,10 @@ abstract class CoralActor(json: JObject)
 
   def jsonData: Receive = {
     case json: JObject =>
-      execute(json,None)
+      execute(trigger(json), None)
 
     case Shunt(json) =>
-      execute(json,Some(sender()))
+      execute(trigger(json), Some(sender()))
   }
 
   var children = SortedMap.empty[String, Long]
