@@ -76,10 +76,16 @@ abstract class CoralActor(json: JObject)
   // timer logic
   def timerInit() = {
     if (timerDuration > 0 && (timerMode == TimerExit || timerMode == TimerContinue))
-      in(timerDuration.seconds) {
+      if (timerStartImmediately) {
         self ! TimeoutEvent
+      } else {
+        in(timerDuration.seconds) {
+          self ! TimeoutEvent
+        }
       }
   }
+
+  def timerStartImmediately: Boolean = false
 
   def timerDuration: Double = (jsonDef \ "attributes" \ "timeout" \ "duration").extractOrElse(0.0)
 
