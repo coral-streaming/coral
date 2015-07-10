@@ -89,12 +89,14 @@ class GeneratorActor(json: JObject) extends CoralActor(json) with SimpleTimer {
   // time to wait before ticking again in seconds
   override def timerDuration = 1/rate
 
+  override def timerStartImmediately = true
+
   var startTime: Long = _
   var count = 0
 
   override def preStart() {
     startTime = System.currentTimeMillis
-    self ! TimeoutEvent
+    super.preStart()
   }
 
   override def state = Map(

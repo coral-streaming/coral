@@ -11,7 +11,7 @@ class CoralActorFactorySpec extends WordSpecLike with Matchers {
 
   implicit val formats = org.json4s.DefaultFormats
 
-  "The CoralActorFactor" should {
+  "The CoralActorFactory" should {
 
     "Provide nothing for invalid JSON" in {
       implicit val injector = new Module {}

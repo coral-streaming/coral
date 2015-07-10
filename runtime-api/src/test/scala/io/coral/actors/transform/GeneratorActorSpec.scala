@@ -26,7 +26,7 @@ class GeneratorActorSpec(_system: ActorSystem) extends TestKit(_system)
   implicit val injector = new DefaultModule(system.settings.config)
   val duration = timeout.duration
 
-  def this() = this(ActorSystem("testSystem"))
+  def this() = this(ActorSystem("GeneratorActorSpec"))
 
   override def afterAll() {
     TestKit.shutdownActorSystem(system)

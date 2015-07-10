@@ -19,7 +19,7 @@ class FsmActorSpec(_system: ActorSystem)
   with BeforeAndAfterAll
   with ScalaFutures {
 
-  def this() = this(ActorSystem("StatsActorSpec"))
+  def this() = this(ActorSystem("FsmActorSpec"))
 
   override def afterAll() {
     TestKit.shutdownActorSystem(system)

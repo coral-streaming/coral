@@ -24,7 +24,7 @@ class ZscoreActorSpec(_system: ActorSystem)
 
   implicit val injector = new DefaultModule(system.settings.config)
 
-  def this() = this(ActorSystem("coral"))
+  def this() = this(ActorSystem("ZscoreActorSpec"))
 
   override def afterAll() {
     TestKit.shutdownActorSystem(system)
