@@ -32,6 +32,20 @@ class DefaultActorPropFactorySpec
       props.get.actorClass should be(classOf[CassandraActor])
     }
 
+    "Provide a FilterActor for type 'filter'" in {
+      val json = """{
+        |"type": "actors",
+        |"attributes": {"type": "filter",
+        |"params": {
+        |   "filters": [
+        |     {"type": "startswith", "function": "include", "field": "key", "param": "start"}
+        |   ]
+        |}}}""".stripMargin
+
+      val props = factory.getProps("filter", parse(json))
+      props.get.actorClass should be(classOf[FilterActor])
+    }
+
     "Provide an FsmActor for type 'fsm'" in {
       val json =
         """{
