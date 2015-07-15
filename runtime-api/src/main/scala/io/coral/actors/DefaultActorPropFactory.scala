@@ -10,6 +10,7 @@ class DefaultActorPropFactory extends ActorPropFactory {
   def getProps(actorType: String, params: JValue): Option[Props] = {
     actorType match {
       case "cassandra" => CassandraActor(params)
+      case "filter" => FilterActor(params)
       case "fsm" => FsmActor(params)
       case "generator" => GeneratorActor(params)
       case "httpbroadcast" => HttpBroadcastActor(params)
