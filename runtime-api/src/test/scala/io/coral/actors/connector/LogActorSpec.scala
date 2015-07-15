@@ -101,7 +101,7 @@ class LogActorSpec(_system: ActorSystem) extends TestKit(_system)
         s"""{ "type": "actors",
            |"attributes": {
            |"type": "log",
-           |"params" : { "file": ${filePath}, "append": "true" }
+           |"params" : { "file": ${filePath}, "append": true }
            |}}""".stripMargin).asInstanceOf[JObject]
 
       val props = LogActor(constructor).get

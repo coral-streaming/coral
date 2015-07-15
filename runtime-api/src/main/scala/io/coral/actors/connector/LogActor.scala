@@ -20,15 +20,8 @@ object LogActor {
     for {
       file <- (json \ "attributes" \ "params" \ "file").extractOpt[String]
     } yield {
-      val append = (json \ "attributes" \ "params" \ "append").extractOpt[String]
-      (file, determineAppend(append))
-    }
-  }
-
-  private def determineAppend(append: Option[String]): Boolean = {
-    append match {
-      case Some("true") => true
-      case _ => false
+      val append = (json \ "attributes" \ "params" \ "append").extractOpt[Boolean]
+      (file, append getOrElse false)
     }
   }
 
