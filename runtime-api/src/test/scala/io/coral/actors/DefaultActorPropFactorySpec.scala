@@ -1,6 +1,6 @@
 package io.coral.actors
 
-import io.coral.actors.connector.{KafkaProducerActor, KafkaConsumerActor}
+import io.coral.actors.connector.{LogActor, KafkaProducerActor, KafkaConsumerActor}
 import io.coral.actors.database.CassandraActor
 import io.coral.actors.transform._
 import io.coral.lib.KafkaJsonProducer.KafkaEncoder
@@ -131,6 +131,18 @@ class DefaultActorPropFactorySpec
           |}}""".stripMargin
       val props = factory.getProps("kafka-producer", parse(json))
       props.get.actorClass should be(classOf[KafkaProducerActor[KafkaEncoder]])
+    }
+
+    "Provide a LogActor for type 'log" in {
+      val json =
+      """{
+        |"type": "actors",
+        |"attributes": {"type": "log",
+        |"params": {"file": "afile"}
+        |}}
+      """.stripMargin
+      val props = factory.getProps("log", parse(json))
+      props.get.actorClass should be(classOf[LogActor])
     }
 
     "Provide a StatsActor for type 'stats'" in {
