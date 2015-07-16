@@ -32,6 +32,8 @@ field  | type | required | description
 `key` | string | yes | name of the key field
 `lookup` | JSON object | yes | the lookup table
 `function` | string | yes | "enrich", "filter" or "check"
+`match` | string | no | "exact" or "startswith"
+`default` | JSON object | no | when there is no match, the default is used when defined
 
 The `function` field in the constructor defines the behavior of the `LookupActor`.
 
@@ -97,6 +99,13 @@ In the case of `check`, the output is the looked up object if it exists, else, n
    "population": 800000
 }
 {% endhighlight %}
+
+The standard behaviour is to use an exact match. When the match is "startswith", a check is done if the key is a string of which a substring occurs in the lookup map.
+If there are multiple matches, one of them is used, which one is undefined.
+
+The standard behaviour when there is no match is to do nothing: for check and filter nothing is emitted, for enrich nothing will be added to the output. When a default
+is given, this is used when there are no matches, so check and filter emit the default and enrich enriches with the default.
+The default is a template like used by the [JsonActor](/coral/docs/Actors-JsonActor.html).
 
 ## Trigger
 The `LookupActor` accepts any JSON as trigger. If a key-field is encountered the fields corresponding to the value in that field will be used to look up additional data (from the lookup table).
