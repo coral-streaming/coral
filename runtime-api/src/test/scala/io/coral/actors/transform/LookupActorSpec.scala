@@ -149,6 +149,21 @@ class LookupActorSpec(_system: ActorSystem) extends TestKit(_system)
       assert(actual == input)
     }
 
+    "Properly perform filtering on valid lookup data and valid input data with starts with match" in {
+      val lookup = getLookupActor("filter", Some("startswith"))
+
+      val input = parse(
+        """{
+                    "city": "amsterdam, noord-holland",
+                    "otherdata": "irrelevant",
+                    "somevalue": 10
+                }""").asInstanceOf[JObject]
+
+      val actual = Await.result(lookup.ask(Shunt(input)), Timeout(1.seconds).duration)
+
+      assert(actual == input)
+    }
+
     "Properly perform filtering on valid lookup data but missing input data" in {
       val lookup = getLookupActor("filter")
 
@@ -210,13 +225,20 @@ class LookupActorSpec(_system: ActorSystem) extends TestKit(_system)
     }
   }
 
-  def getLookupActor(method: String) = {
+  def getLookupActor(method: String, matchType: Option[String] = None) = {
+    val matchDefinition = matchType match {
+      case Some(matchType) => s"""
+                              "match":"$matchType"
+                            """
+      case None => ""
+    }
     val definition = parse( s""" {
             "type": "actors",
             "attributes": {"type": "lookup",
             "params": {
               "key": "city",
               "function": "$method",
+              $matchDefinition
               "lookup": {
                 "amsterdam": { "country": "netherlands", "population": 800000 },
                 "vancouver": { "country": "canada", "population": 600000 }
