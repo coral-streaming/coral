@@ -42,7 +42,7 @@ field  | type |    | description
       "type": "log",
       "params": {
         "file": "/tmp/coral.log",
-        "append": true,
+        "append": true
       }
     }
   }
