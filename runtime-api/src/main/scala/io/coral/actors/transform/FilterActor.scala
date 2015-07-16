@@ -44,6 +44,32 @@ object FilterActor {
       case _ => None
     }
   }
+
+  case class Filter(filterType: FilterType, function: FilterFunction, field: String, param: String) {
+    implicit val formats = org.json4s.DefaultFormats
+
+    def filter(json: JObject): Boolean = {
+      val applied = filterType match {
+        case StartsWith => startsWith(json, field, param)
+      }
+
+      function match {
+        case Exclude => !applied
+        case Include => applied
+      }
+    }
+
+    def startsWith(json: JObject, field: String, param: String): Boolean = {
+      (json \ field).extractOpt[String].map(_.startsWith(param)) getOrElse false
+    }
+  }
+
+  abstract sealed class FilterType
+  object StartsWith extends FilterType
+
+  abstract sealed class FilterFunction
+  object Exclude extends FilterFunction
+  object Include extends FilterFunction
 }
 
 class FilterActor(json: JObject)
@@ -60,29 +86,3 @@ class FilterActor(json: JObject)
     }
   }
 }
-
-case class Filter(filterType: FilterType, function: FilterFunction, field: String, param: String) {
-  implicit val formats = org.json4s.DefaultFormats
-
-  def filter(json: JObject): Boolean = {
-    val applied = filterType match {
-      case StartsWith => startsWith(json, field, param)
-    }
-
-    function match {
-      case Exclude => !applied
-      case Include => applied
-    }
-  }
-
-  def startsWith(json: JObject, field: String, param: String): Boolean = {
-    (json \ field).extractOpt[String].map(_.startsWith(param)) getOrElse false
-  }
-}
-
-abstract sealed class FilterType
-object StartsWith extends FilterType
-
-abstract sealed class FilterFunction
-object Exclude extends FilterFunction
-object Include extends FilterFunction
