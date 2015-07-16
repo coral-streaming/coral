@@ -21,8 +21,14 @@ object LookupActor {
       function <- determineFunction(json)
       matchType <- determineMatch(json)
     } yield {
-      (key, lookup, function, matchType)
+      val defaultValue = determineDefaultValue(json)
+      (key, lookup, function, matchType, defaultValue)
     }
+  }
+
+  private def determineDefaultValue(json: JValue): JValue = {
+    val defaultValue = (json \ "attributes" \ "params" \ "default").extractOpt[JObject]
+    defaultValue getOrElse JNothing
   }
 
   private def determineMatch(json: JValue): Option[MatchType] = {
@@ -64,7 +70,7 @@ class LookupActor(json: JObject)
   with ActorLogging
   with SimpleEmitTrigger {
 
-  val (key, lookup, function, matchType) = LookupActor.getParams(json).get
+  val (key, lookup, function, matchType, defaultValue) = LookupActor.getParams(json).get
 
   override def simpleEmitTrigger(json: JObject): Option[JValue] = {
     for {
@@ -73,9 +79,9 @@ class LookupActor(json: JObject)
       val lookupObject = determineLookup(value)
 
       function match {
-        case Enrich => json merge render(lookupObject.getOrElse(JNothing))
-        case Filter => lookupObject map (_ => json) getOrElse(JNull)
-        case Check  => render(lookupObject.getOrElse(JNull))
+        case Enrich => json merge render(lookupObject.getOrElse(defaultValue))
+        case Filter => lookupObject map (_ => json) getOrElse(defaultValue)
+        case Check  => render(lookupObject.getOrElse(defaultValue))
       }
     }
   }

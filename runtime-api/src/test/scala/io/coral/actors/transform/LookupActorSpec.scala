@@ -103,7 +103,15 @@ class LookupActorSpec(_system: ActorSystem) extends TestKit(_system)
       val lookup = getLookupActor("check")
       val actor = lookup.underlyingActor
       val input = parse("""{"city": "does not exist"}""").asInstanceOf[JObject]
-      actor.simpleEmitTrigger(input) should be(Some(JNull))
+      actor.simpleEmitTrigger(input) should be(Some(JNothing))
+    }
+
+    "Emit default value for check when lookup value does not match any entry in the table" in {
+      val defaultValue = """{"country": "unknown", "population": 0}"""
+      val lookup = getLookupActor("check", Some("exact"), Some(defaultValue))
+      val actor = lookup.underlyingActor
+      val input = parse("""{"city": "does not exist"}""").asInstanceOf[JObject]
+      actor.simpleEmitTrigger(input) should be(Some(parse(defaultValue)))
     }
 
     "Emit unenriched input for function 'enrich' when lookup value does not match any entry in the table" in {
@@ -176,7 +184,7 @@ class LookupActorSpec(_system: ActorSystem) extends TestKit(_system)
 
       val actual = Await.result(lookup.ask(Shunt(input)), Timeout(1.seconds).duration)
 
-      assert(actual == JNull)
+      assert(actual == JNothing)
     }
 
     "Do no enrichment on valid lookup data but invalid input data" in {
@@ -225,11 +233,19 @@ class LookupActorSpec(_system: ActorSystem) extends TestKit(_system)
     }
   }
 
-  def getLookupActor(method: String, matchType: Option[String] = None) = {
+  def getLookupActor(method: String, matchType: Option[String] = None, defaultValue: Option[String] = None) = {
     val matchDefinition = matchType match {
-      case Some(matchType) => s"""
-                              "match":"$matchType"
-                            """
+      case Some(matchType) =>
+        s"""
+        "match":"${matchType}",
+        """
+      case None => ""
+    }
+    val defaultValueDefinition = defaultValue match {
+      case Some(defaultValue) =>
+        s"""
+        "default":${defaultValue},
+        """.stripMargin
       case None => ""
     }
     val definition = parse( s""" {
@@ -239,6 +255,7 @@ class LookupActorSpec(_system: ActorSystem) extends TestKit(_system)
               "key": "city",
               "function": "$method",
               $matchDefinition
+              $defaultValueDefinition
               "lookup": {
                 "amsterdam": { "country": "netherlands", "population": 800000 },
                 "vancouver": { "country": "canada", "population": 600000 }
