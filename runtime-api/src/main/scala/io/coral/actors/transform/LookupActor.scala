@@ -2,6 +2,7 @@ package io.coral.actors.transform
 
 // akka
 import akka.actor.{ActorLogging, Props}
+import io.coral.lib.JsonTemplate
 
 //json goodness
 import org.json4s._
@@ -26,9 +27,9 @@ object LookupActor {
     }
   }
 
-  private def determineDefaultValue(json: JValue): JValue = {
+  private def determineDefaultValue(json: JValue): Option[JsonTemplate] = {
     val defaultValue = (json \ "attributes" \ "params" \ "default").extractOpt[JObject]
-    defaultValue getOrElse JNothing
+    defaultValue.map(JsonTemplate(_))
   }
 
   private def determineMatch(json: JValue): Option[MatchType] = {
@@ -79,10 +80,17 @@ class LookupActor(json: JObject)
       val lookupObject = determineLookup(value)
 
       function match {
-        case Enrich => json merge render(lookupObject.getOrElse(defaultValue))
-        case Filter => lookupObject map (_ => json) getOrElse(defaultValue)
-        case Check  => render(lookupObject.getOrElse(defaultValue))
+        case Enrich => json merge render(lookupObject getOrElse determineDefaultValue(json))
+        case Filter => lookupObject map (_ => json) getOrElse determineDefaultValue(json)
+        case Check  => render(lookupObject getOrElse determineDefaultValue(json) )
       }
+    }
+  }
+
+  private def determineDefaultValue(json: JObject): JValue = {
+    defaultValue match {
+      case Some(template) => template.interpret(json)
+      case None => JNothing
     }
   }
 

@@ -114,6 +114,14 @@ class LookupActorSpec(_system: ActorSystem) extends TestKit(_system)
       actor.simpleEmitTrigger(input) should be(Some(parse(defaultValue)))
     }
 
+    "Emit default value using template for check when lookup value does not match any entry in the table" in {
+      val defaultValue = """{"country": "unknown", "population": 0, "province": "${province}"}"""
+      val lookup = getLookupActor("check", Some("exact"), Some(defaultValue))
+      val actor = lookup.underlyingActor
+      val input = parse("""{"city": "does not exist", "province": "noord-holland"}""").asInstanceOf[JObject]
+      actor.simpleEmitTrigger(input) should be(Some(parse(defaultValue.replace("${province}", "noord-holland"))))
+    }
+
     "Emit unenriched input for function 'enrich' when lookup value does not match any entry in the table" in {
       val lookup = getLookupActor("enrich")
       val actor = lookup.underlyingActor
