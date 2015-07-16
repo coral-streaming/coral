@@ -36,6 +36,7 @@ name             | class | description
 `json`           | [JsonActor](/coral/docs/Actors-JsonActor.html) | transform an input JSON
 `kafka-consumer` | [KafkaConsumerActor](/coral/docs/Actors-KafkaConsumerActor.html) | reads data from Kafka
 `kafka-producer` | [KafkaProducerActor](/coral/docs/Actors-KafkaProducerActor.html) | writes data to Kafka
+`log`            | [LogActor](/coral/docs/Actors-LogActor.html) | logs data to a file
 `linearregression`| [LinearRegressionActor](/coral/docs/Actors-LinearRegressionActor.html) | performs prediction on streaming data
 `lookup`         | [LookupActor](/coral/docs/Actors-LookupActor.html) | find data for a key value
 `sample`         | [SampleActor](/coral/docs/Actors-SampleActor.html) | emits only a fraction of the supplied trigger JSON
