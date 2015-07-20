@@ -2,6 +2,7 @@ package io.coral.actors.transform
 
 // akka
 import akka.actor.{ActorLogging, Props}
+import io.coral.lib.JsonTemplate
 
 //json goodness
 import org.json4s._
@@ -9,6 +10,7 @@ import org.json4s.jackson.JsonMethods.render
 
 // coral
 import io.coral.actors.{SimpleEmitTrigger, CoralActor}
+import io.coral.actors.transform.LookupActor._
 
 object LookupActor {
   implicit val formats = org.json4s.DefaultFormats
@@ -17,15 +19,51 @@ object LookupActor {
     for {
       lookup   <- (json \ "attributes" \ "params" \ "lookup").extractOpt[Map[String, JObject]]
       key      <- (json \ "attributes" \ "params" \ "key").extractOpt[String]
-      function <- (json \ "attributes" \ "params" \ "function").extractOpt[String]
+      function <- determineFunction(json)
+      matchType <- determineMatch(json)
     } yield {
-      (key, lookup, function)
+      val defaultValue = determineDefaultValue(json)
+      (key, lookup, function, matchType, defaultValue)
+    }
+  }
+
+  private def determineDefaultValue(json: JValue): Option[JsonTemplate] = {
+    val defaultValue = (json \ "attributes" \ "params" \ "default").extractOpt[JObject]
+    defaultValue.map(JsonTemplate(_))
+  }
+
+  private def determineMatch(json: JValue): Option[MatchType] = {
+    val matchType = (json \ "attributes" \ "params" \ "match").extractOpt[String]
+    matchType match {
+      case Some("exact") => Some(Exact)
+      case Some("startswith") => Some(StartsWith)
+      case None => Some(Exact)
+      case _ => None
+    }
+  }
+
+  private def determineFunction(json: JValue): Option[LookupFunction] = {
+    val function = (json \ "attributes" \ "params" \ "function").extractOpt[String]
+    function match {
+      case Some("enrich") => Some(Enrich)
+      case Some("filter") => Some(Filter)
+      case Some("check") => Some(Check)
+      case _ => None
     }
   }
 
   def apply(json: JValue): Option[Props] = {
     getParams(json).map(_ => Props(classOf[LookupActor], json))
   }
+
+  abstract sealed class LookupFunction
+  object Enrich extends LookupFunction
+  object Filter extends LookupFunction
+  object Check extends LookupFunction
+
+  abstract sealed class MatchType
+  object Exact extends MatchType
+  object StartsWith extends MatchType
 }
 
 class LookupActor(json: JObject)
@@ -33,19 +71,41 @@ class LookupActor(json: JObject)
   with ActorLogging
   with SimpleEmitTrigger {
 
-  val (key, lookup, function) = LookupActor.getParams(json).get
+  val (key, lookup, function, matchType, defaultValue) = LookupActor.getParams(json).get
 
   override def simpleEmitTrigger(json: JObject): Option[JValue] = {
     for {
       value <- (json \ key).extractOpt[String]
     } yield {
-      val lookupObject = lookup.get(value)
+      val lookupObject = determineLookup(value)
 
       function match {
-        case "enrich" => json merge render(lookupObject.getOrElse(JNothing))
-        case "filter" => lookupObject map (_ => json) getOrElse(JNull)
-        case "check"  => render(lookupObject.getOrElse(JNull))
+        case Enrich => json merge render(lookupObject getOrElse determineDefaultValue(json))
+        case Filter => lookupObject map (_ => json) getOrElse determineDefaultValue(json)
+        case Check  => render(lookupObject getOrElse determineDefaultValue(json) )
       }
     }
+  }
+
+  private def determineDefaultValue(json: JObject): JValue = {
+    defaultValue match {
+      case Some(template) => template.interpret(json)
+      case None => JNothing
+    }
+  }
+
+  private def determineLookup(value: String): Option[JObject] = {
+    matchType match {
+      case Exact => exactMatch(value)
+      case StartsWith => startsWithMatch(value)
+    }
+  }
+
+  private def exactMatch(value: String): Option[JObject] = {
+    lookup.get(value)
+  }
+
+  private def startsWithMatch(value: String): Option[JObject] = {
+    lookup.find{case (key, _) => value.startsWith(key)}.map(_._2)
   }
 }
