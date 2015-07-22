@@ -11,8 +11,6 @@ object ProjectBuild extends Build {
   lazy val root = Project(
     id = "project",
     base = file("."),
-    settings = projectSettings).dependsOn(RootProject(coverallsPlugin))
-
-  lazy val coverallsPlugin = uri("git://github.com/coral-streaming/sbt-coveralls")
+    settings = projectSettings)
 }
 
