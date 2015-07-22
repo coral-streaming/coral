@@ -22,4 +22,3 @@ object ProjectBuild extends Build {
   }
 
 }
-

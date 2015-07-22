@@ -13,10 +13,10 @@ addSbtPlugin("com.github.mpeltonen" % "sbt-idea" % "1.6.0")
 
 resolvers += Classpaths.sbtPluginReleases
 
-addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.0.4")
+addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.1.0")
 
 // the following plugin is built from source locally
 // using sources from a sbt-coveralls fork at git://github.com/coral-streaming/sbt-coveralls
 // check project/project/build.scala and http://www.scala-sbt.org/0.13.5/docs/Extending/Plugins.html 1d)
 //
-// addSbtPlugin("org.scoverage" % "sbt-coveralls" % "1.0.0.BETA1")
+// addSbtPlugin("org.scoverage" % "sbt-coveralls" % "1.0.0")
