@@ -15,6 +15,16 @@ object Packaging {
 
 }
 
+object Publishing {
+  val nexus = if (Settings.buildVersion.trim.endsWith("SNAPSHOT"))
+    sys.props.get("publish.repository.snapshots").map("snapshots" at _)
+  else
+    sys.props.get("publish.repository.releases").map("releases" at _)
+  val publishCredentials = sys.props.get("publish.repository.credentials").map(filename => Credentials(new File(filename))).map(publishCredentials => Seq(credentials += publishCredentials))
+
+  val publishingSettings = Seq(publishTo := nexus) ++ publishCredentials.getOrElse(Seq())
+}
+
 object Plugins {
   val enablePlugins = Seq(JavaAppPackaging)
 }
@@ -24,6 +34,7 @@ object TopLevelBuild extends Build {
   val projectSettings =
     Settings.buildSettings      ++
     Packaging.packagingSettings ++
+    Publishing.publishingSettings ++
     Revolver.settings           ++
     Seq (
       resolvers           ++= Resolvers.allResolvers,
@@ -32,7 +43,11 @@ object TopLevelBuild extends Build {
 
   lazy val coral = Project (
     id = Settings.appName,
-    base = file (".")
+    base = file ("."),
+    settings = Defaults.coreDefaultSettings ++ Seq(
+      publishLocal := {},
+      publish := {}
+    )
   ).aggregate(coralCore, coralApi)
 
   lazy val coralApi = Project (
