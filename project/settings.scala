@@ -5,7 +5,7 @@ object Settings {
   val appName = "coral"
 
   val buildOrganization = "io.coral"
-  val buildVersion      = "1.0.0"
+  val buildVersion      = "1.0.0-SNAPSHOT"
   val buildScalaVersion = "2.11.5"
 
   val buildSettings = Defaults.coreDefaultSettings ++ Seq (
