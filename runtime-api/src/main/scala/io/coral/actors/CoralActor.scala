@@ -174,7 +174,7 @@ abstract class CoralActor(json: JObject)
     }
 
     future.onFailure {
-      case _ => log.warning("actor execution")
+      case t => log.error(t, "actor execution")
     }
   }
 

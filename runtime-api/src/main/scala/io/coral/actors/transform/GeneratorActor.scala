@@ -163,7 +163,7 @@ class GeneratorActor(json: JObject) extends CoralActor(json) with SimpleTimer {
       result
     } catch {
       case e: Exception =>
-        log.error("Error in creating data from generator functions")
+        log.error(e, "Error in creating data from generator functions")
         JNothing
     }
   }
