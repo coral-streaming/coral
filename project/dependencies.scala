@@ -26,6 +26,10 @@ object Dependencies {
     "com.typesafe.akka"  %% "akka-actor"     % akkaVersion,
     "com.typesafe.akka"  %% "akka-slf4j"     % akkaVersion,
 
+    // metrics
+    "io.dropwizard.metrics" % "metrics-graphite" % "3.1.2",
+    "nl.grons" %% "metrics-scala" % "3.5.2_a2.3",
+
     //logging
     "ch.qos.logback"     % "logback-classic" % "1.0.13",
 

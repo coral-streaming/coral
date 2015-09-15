@@ -12,11 +12,16 @@ import akka.pattern.ask
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 
+import io.coral.lib.Metrics
+
 object Boot extends App {
   implicit val system = ActorSystem()
   
   // create the coral actor
   val coral = system.actorOf(Props(classOf[RuntimeActor], new DefaultModule(system.settings.config)), "coral")
+
+  // start the metrics collecting
+  Metrics.startReporter(system)
 
   // create and start our service actor
   val service = system.actorOf(Props[ApiServiceActor], "api")
