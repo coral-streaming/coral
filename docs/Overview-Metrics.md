@@ -28,3 +28,17 @@ See the [documentation](https://github.com/erikvanoosten/metrics-scala/blob/mast
 
 See the graphite section of the application.conf for the configuration. By default, logging to Graphite is disabled. At the moment, none of the provided Coral actors
  use the metrics.
+
+#### Example
+{% highlight scala %}
+class MyActor extends CoralActor with Metrics with SimpleEmitTrigger {
+    val requests = metrics.meter("requests")
+
+    override def simpleEmitTrigger(json: JObject): Option[JValue] = {
+        ...
+        // Measure the number of requests.
+        requests.mark()
+        ...
+    }
+}
+{% endhighlight %}
