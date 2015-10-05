@@ -13,7 +13,7 @@ lookupTable = {
 post('/api/actors', {"data": {"type": "actors", "attributes": {"type":"httpbroadcast"}}})
 post('/api/actors', {"data": {"type": "actors", "attributes": {"type":"lookup", "params":{"key": "city", "function":"enrich", "lookup": lookupTable }}}})
 post('/api/actors', {"data": {"type": "actors", "attributes": {"type":"stats", "params":{"field": "amount"}, "group":{"by":"geo"}}}})
-post('/api/actors', {"data": {"type": "actors", "attributes": {"type":"zscore", "params":{"by":"geo", "field": "amount", "score" : 6.0}}}})
+post('/api/actors', {"data": {"type": "actors", "attributes": {"type":"zscore", "params":{"by":"geo", "field": "amount", "score" : 2.0}}}})
 post('/api/actors', {"data": {"type": "actors", "attributes": {"type": "log", "params": {"file": "/tmp/coral.log"}}}})
 
 patch('/api/actors/2',  {"data": {"type": "actors", "id": "2", "attributes": {"input":{"trigger":"1"}}}})
