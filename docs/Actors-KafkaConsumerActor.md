@@ -1,7 +1,6 @@
 ---
 layout: default
 title: KafkaConsumerActor
-topic: Actors
 ---
 <!--
    Licensed to the Apache Software Foundation (ASF) under one or more
@@ -21,53 +20,45 @@ topic: Actors
 -->
 
 # KafkaConsumerActor
-The `KafkaConsumerActor` (Kafka consumer actor) is a [Coral Actor](/coral/docs/Overview-Actors.html) that can emits incoming Kafka messages as JSON message.
+The `KafkaConsumerActor` (Kafka consumer actor) is a [Coral Actor](/coral/docs/Overview-Actors.html) that listens to a Kafka topic and emits incoming Kafka messages as JSON messages.
 
 ## Creating a KafkaConsumerActor
-The creation JSON of the KafkaConsumerActor (see [Coral Actor](/coral/docs/Overview-Actors.html)) has `"type": "kafka-consumer"`.
-The `params` value is a JSON with the following field:
+The KafkaConsumerActor has `"type": "kafka-consumer"`. The `params` value is a JSON with the following fields:
 
 field  | type | required | description
 :----- | :---- | :--- | :------------
-`topic` | string | yes| the Kafka bus topic to read
-`kafka` | map | yes| a set of kafka properties for the consumer
+`topic` | string | yes| the Kafka topic to read
+`kafka`:&nbsp;`group.id` | string | yes| the unique identifier to read a stream.
+`kafka`:&nbsp;`zookeeper.connect` | string | yes| the ip address(es) of the [ZooKeeper](https://zookeeper.apache.org/) node(s) to connect to.
 
-The properties of the kafka attribute should include at least the following:
+<br>
 
-field  | type | required | description
-:----- | :---- | :--- | :------------
-`group.id` | string | yes| the unique identifier to read a stream (do not use the same name simultaneously for different instances)
-`zookeeper.connect` | string | yes| the ip address(es) of the zookeeper node(s) to connect to
-
-Other properties may be supplied cf. the [Kafka consumer properties](https://kafka.apache.org/documentation.html#consumerconfigs).
+Other supplied properties will be interpreted as [Kafka consumer properties](https://kafka.apache.org/documentation.html#consumerconfigs), if the field matches a Kafka consumer property.
 
 #### Example
 
 {% highlight json %}
 {
-  "data": {
-    "type": "actors",
-    "attributes": {
-      "type": "kafka-consumer",
-      "params": {
-        "topic": "clickstream",
-        "kafka": {
-          "zookeeper.connect": "localhost:2181",
-          "group.id": "mygroup"
-        }
-      }
+  "type": "kafka-consumer",
+  "params": {
+    "topic": "clickstream",
+    "kafka": {
+      "zookeeper.connect": "localhost:2181",
+      "group.id": "mygroup"
     }
   }
 }
 {% endhighlight %}
 
+<br>
+
+The `group.id` is a unique identifier that Kafka uses to memorize the offset in the topic the actor listens to. For instance, if a Kafka consumer actor has listened to 100 messages from the start using `group.id` "mygroup", any other Kafka consumer actor with the same `group.id` will start from message 101. If another `group.id` is chosen, the offset is set to 0.
+
 ## Trigger
-The `KafkaConsumerActor` has no trigger.
-Conceptually, the Kafka stream can be thought of as trigger.
+The `KafkaConsumerActor` has no trigger, but is triggered by incoming Kafka events on the topic the actor listens to.
 
 ## Emit
-The `KafkaConsumerActor` emits Kafka messages as JSON.
-Message bodies are assumed to be in proper JSON format.
+The `KafkaConsumerActor` emits Kafka messages as JSON objects. Message bodies of Kafka events are assumed to be in proper JSON format.
 
 ## State
 The `KafkaConsumerActor` keeps no state.

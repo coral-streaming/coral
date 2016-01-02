@@ -1,7 +1,6 @@
 ---
 layout: default
 title: LinearRegressionActor
-topic: Actors
 ---
 <!--
    Licensed to the Apache Software Foundation (ASF) under one or more
@@ -21,36 +20,40 @@ topic: Actors
 -->
 
 # LinearRegressionActor
-The `LinearRegression` is a [Coral Actor](https://github.com/coral-streaming/coral/wiki/Coral-Actors) which performs prediction on the streaming data, based on the behavior of past observations.
+The `LinearRegression` is a [Coral Actor](https://github.com/coral-streaming/coral/wiki/Coral-Actors) which calculates the outcome variable based on a linear combination of input variables. For example, it can calculate the outcome variable if the formula is as follows:
+
+Y = a + bX + cY + dZ
+
+X, Y and Z are provided in the trigger JSON, while a, b, c and d are coefficients which are given in the constructor of this actor.
 
 ## Creating a LinearRegressionActor
-The creation JSON of the LinearRegression actor (see [Coral Actor](https://github.com/coral-streaming/coral/wiki/Coral-Actors)) has `"type": "linearregression"`.
-The `params` value contains the following fields:
+The LinearRegressionActor has `"type": "linearregression"`. The `params` value contains the following fields:
 
 field  | type | required | description
 :----- | :---- | :--- | :------------
 `weights` | JObject | yes | An object containing the feature names and coefficients of the model.
-`intercept` | Double | yes | The intercept of the linear regression model.
+`intercept` | Double | yes | The intercept of the linear regression model (a).
+`outcome` | string | no | The name of the outcome variable to use. If not provided, "score" is used.
 
 #### Example
 {% highlight json %}
 {
-  "data": {
-      "type": "actors",
-      "attributes": {
-          "type": "linearregression",
-          "params": {
-              "intercept": 3.972,
-              "weights": {
-                "salary": 0.47353,
-                "tnxcount1month": 1.86766,
-                "age": 4.52352
-              }
-          }
-      }
+  "type": "linearregression",
+  "params": {
+    "outcome": "creditscore",
+    "intercept": 3.972,
+    "weights": {
+      "salary": 0.47353,
+      "tnxcount1month": 1.86766,
+      "age": 4.52352
+    }
   }
 }
 {% endhighlight %}
+
+In this model, the formula becomes as follows: 
+
+creditscore = 3.972 + 0.47353 * salary + 1.86766 * tnxcount1month + 4.52352 * age
 
 ## Trigger
 The `LinearRegressionActor` accepts JSON objects that contain the fields that were defined in the constructor.
@@ -66,8 +69,9 @@ An example of a JSON object that comes in is as follows:
 
 Based on this input object, the LinearRegressionActor would calculate the following:
 
-The score that is calculated is intercept + weightSalary * salary + weightTnxcount1month * tnxcount1month + weightAge * age, which is
-3.972 + 0.47353 * 3000 + 1.86766 * 25 + 4.52352 * 30, which is 1606,9591.
+The score that is calculated is 
+
+creditscore = 3.972 + (0.47353 * 3000) + (1.86766 * 25) + (4.52352 * 30) = 1606.9591.
 
 ## Emit
 The `LinearRegressionActor` enriches the received trigger JSON with the predicted score and emits it. It looks like the following:
@@ -77,7 +81,7 @@ The `LinearRegressionActor` enriches the received trigger JSON with the predicte
    "salary": 3000,
    "tnxcount1month": 25,
    "age": 30,
-   "score": 1606.9591
+   "creditscore": 1606.9591
 }
 {% endhighlight %}
 

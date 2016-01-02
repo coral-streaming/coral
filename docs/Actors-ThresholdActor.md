@@ -1,7 +1,6 @@
 ---
 layout: default
 title: ThresholdActor
-topic: Actors
 ---
 <!--
    Licensed to the Apache Software Foundation (ASF) under one or more
@@ -24,40 +23,33 @@ topic: Actors
 The `ThresholdActor` (threshold actor) is a [Coral Actor](/actors/overview/) that emits the received JSON when for the specified field the associated value is at least the specified threshold.
 
 ## Creating a ThresholdActor
-The creation JSON of the threshold actor (see [Coral Actor](/actors/overview/)) has `type: "threshold"`.
-The `params` value is a JSON with two fields:
+The ThresholdActor has `type: "threshold"`. The `params` value is a JSON with two fields:
 
-field  | type |    | description
+field  | type | required | description
 :----- | :---- | :--- | :------------
-`key` | string | required | the name of the threshold field in the trigger-JSON
-`threshold` | number | required | the value in the trigger-JSON for the threshold field should be at least this value to emit
+`key` | string | yes | the name of the threshold field in the trigger-JSON
+`threshold` | number | yes | The value in the `key` field should be at least this before it is emitted.
 
 #### Example
 {% highlight json %}
 {
-  "data": {
-    "type": "actors",
-    "attributes": {
-      "type": "threshold",
-      "params": {
-        "key": "amount",
-        "threshold": 100
-      }
-    }
+  "type": "threshold",
+  "params": {
+    "key": "amount",
+      "threshold": 100
   }
 }
 {% endhighlight %}
-This will create a threshold actor for the field _amount_ with threshold _100_.
+This will create a threshold actor for the field _amount_ which will only emit its trigger JSON if the "amount" field is equal to or larger than 100.
 
 ## Trigger
 The `ThresholdActor` only does useful work if the trigger is connected.
-The actor gathers values supplied by the field specified in the parameters.
 
 ## Emit
-The `ThresholdActor` emits the received JSON with the addition of the _thresholdReached_ field with as value the specified field when the value is at least the threshold. Otherwise, nothing is emitted.
+The `ThresholdActor` emits the received JSON when the value is at least the threshold. Otherwise, nothing is emitted.
 
 ## State
-The `ThresholdActor` doesn't keep state.
+The `ThresholdActor` does not keep state.
 
 ## Collect
 The `ThresholdActor` does not collect state from other actors.

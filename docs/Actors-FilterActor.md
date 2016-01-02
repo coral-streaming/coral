@@ -1,7 +1,6 @@
 ---
 layout: default
 title: FilterActor
-topic: Actors
 ---
 <!--
    Licensed to the Apache Software Foundation (ASF) under one or more
@@ -25,8 +24,7 @@ The `FilterActor` (filter actor) is a [Coral Actor](/actors/overview/) that emit
 (received JSON is emitted when filter applies) or exclude (received JSON is emitted when the filter doesn't apply).
 
 ## Creating a FilterActor
-The creation JSON of the filter actor (see [Coral Actor](/actors/overview/)) has `type: "filter"`.
-The `params` value is a JSON array with at least one filter. Each filter is a JSON object with the following fields:
+The FilterActor has `type: "filter"`. The `params` value is a JSON array with at least one filter. Each filter is a JSON object with the following fields:
 
 field  | type |    | description
 :----- | :---- | :--- | :------------

@@ -1,7 +1,7 @@
 ---
-title: Download
+title: Actor Reference
 layout: default
-topic: Getting started
+topic: Documentation
 order: 2
 ---
 <!--
@@ -21,20 +21,22 @@ order: 2
    limitations under the License.
 -->
 
-# Download Coral
-<br>
+## Actors
 
-### Latest release
-
-<div class="well well-sm">
-<h4>&nbsp;&nbsp;&nbsp;&nbsp;<strong><a href="#">coral-runtime-0.0.113.tar.gz</a></strong>&nbsp;&nbsp;(70 mb)</h4>
-</div>
-<br>
-
-## Release notes
-
-### 0.0.113
-
-- Coral alpha pre-release tryout
-- Basic transformation actors
-- Basic coral authentication
+- [CassandraActor](Actors-CassandraActor.html)
+- [FsmActor](Actors-FsmActor.html)
+- [GeneratorActor](Actors-GeneratorActor.html)
+- [GroupByActor](Actors-GroupByActor.html)
+- [HttpBroadcastActor](Actors-HttpBroadcastActor.html)
+- [HttpClientActor](Actors-HttpClientActor.html)
+- [JsonActor](Actors-JsonActor.html)
+- [KafkaConsumerActor](Actors-KafkaConsumerActor.html)
+- [KafkaProducerActor](Actors-KafkaProducerActor.html)
+- [LogActor](Actors-LogActor.html)
+- [LinearRegressionActor](Actors-LinearRegressionActor.html)
+- [LookupActor](Actors-LookupActor.html)
+- [SampleActor](Actors-SampleActor.html)
+- [StatsActor](Actors-StatsActor.html)
+- [ThresholdActor](Actors-ThresholdActor.html)
+- [WindowActor](Actors-WindowActor.html)
+- [ZscoreActor](Actors-ZscoreActor.html)

@@ -1,0 +1,12 @@
+title: Coral Real-time Streaming Analytics
+email: stevenraemaekers@gmail.com
+description: >
+   Coral is a real-time event processing and streaming analytics platform. 
+   Coral listens to events from Kafka, transforms these events using dynamically 
+   configurable pipelines and outputs other events to Kafka or to other API’s. 
+   The Coral platform can be controlled by a RESTful API.
+baseurl: ""
+url: "http://coral-streaming.github.io/"
+github_username: verbocity
+highlighter: pygments
+markdown: kramdown

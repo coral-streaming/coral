@@ -1,7 +1,6 @@
 ---
 layout: default
 title: StatsActor
-topic: Actors
 ---
 <!--
    Licensed to the Apache Software Foundation (ASF) under one or more
@@ -21,15 +20,14 @@ topic: Actors
 -->
 
 # StatsActor
-The `StatsActor` (statistics actor) is a [Coral Actor](/actors/overview/) that gathers a single real valued measurement from a stream of events. It saves a number of statistics as state.
+The `StatsActor` (statistics actor) is a [Coral Actor](/actors/overview/) that gathers a single real valued field from its trigger JSON. It saves a number of statistics as state for this field.
 
 ## Creating a StatsActor
-The creation JSON of the stats actor (see [Coral Actor](/actors/overview/)) has `"type": "stats"`.
-The `params` value is a JSON with a single field:
+The StatsActor has `"type": "stats"`. The `params` value is a JSON with a single field:
 
 field  | type | required | description
 :----- | :---- | :--- | :------------
-`field` | string | yes| the name of the field in the trigger-JSON to monitor
+`field` | string | yes| the name of the field in the trigger-JSON to collect statistics for.
 
 #### Example
 {% highlight json %}
@@ -40,22 +38,19 @@ field  | type | required | description
       "type": "stats",
       "params": {
         "field": "amount"
-      },
-      "group": {
-        "by": "tag"
       }
     }
   }
 }
 {% endhighlight %}
-This will create a statistics component monitoring the field _amount_. Each different value for the field _tag_ will have a separate state.
+This will create a statistics component monitoring the field "amount". 
 
 ## Trigger
 The `StatsActor` only does useful work if the trigger is connected.
 The actor gathers values supplied by the field specified in the parameters.
 
 ## Emit
-The `StatsActor` emits nothing. Only the state provides information.
+The `StatsActor` emits nothing. The state of the actor should be gathered by another actor through a *collect* procedure.
 
 ## State
 The `StatsActor` keeps the following summary statistics as state:
@@ -67,6 +62,8 @@ field |type| description
 `sd` | float | the (population) standard deviation
 `min` | float | the minimum value
 `max` | float | the maximum value
+
+<br>
 
 The state is updated every time a value for the specified field is encountered in the trigger.
 Note that when no events have occurred the count is zero, and other fields are undefined. This is represented as `null` in the JSON representation of the state.

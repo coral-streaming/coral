@@ -1,7 +1,6 @@
 ---
 layout: default
 title: HttpClientActor
-topic: Actors
 ---
 <!--
    Licensed to the Apache Software Foundation (ASF) under one or more
@@ -21,57 +20,66 @@ topic: Actors
 -->
 
 # HttpClientActor
-The `HttpClientActor` (HTTP client) is a [Coral Actor](/actors/overview/) that can perform the POST, GET, PUT, and DELETE HTTP methods on a specified URL.
+The `HttpClientActor` is a [Coral Actor](/actors/overview/) that can perform POST, GET, PUT, and DELETE HTTP requests on a specified URL.
 
 ## Creating a HttpClientActor
-The creation JSON of the HttpClientActor actor (see [Coral Actor](/actors/overview/)) has `"type": "httpclient"`. The `params` value is a JSON:
+The HttpClientActor has `"type": "httpclient"`. The `params` value is a JSON object with the following fields:
 
 field  | type | required | description
 :----- | :---- | :--- | :------------
-`url` | string | yes | url to which to connect
-`method` | string | yes | the HTTP method to use to connect
-`headers` | JSON object | no | additional headers to send for the request
+`mode` | string | yes | Either `static` or `dynamic`.
+`field` | string | no | When `mode` is set to `dynamic`, the field to get the URL from.
+`url` | string | yes | The URL to connect to.
+`method` | string | yes | The HTTP method (verb) to use.
+`headers` | JSON | no | Additional headers to send for the request.
 
 #### Example
+
+An example of a static HTTPClient is given below:
+
 {% highlight json %}
 {
-  "data": {
-      "type": "actors",
-      "attributes": {
-          "type": "httpclient"
-          "params": {"url": "http://www.google.com", "method": "GET"}
-      }
+  "type": "httpclient",
+  "params": {
+    "mode": "static",
+    "url": "http://www.google.com", 
+    "method": "POST"
   }
 }
 {% endhighlight %}
 
-## Trigger
-The `HttpClientActor` is triggered by a JSON. The `HttpClientActor` will perform a HTTP method on the defined field '**url**' with as payload
-the received trigger JSON (can be an empty object). Currently the client supports the following HTTP methods:
+In this case, the actor will post the JSON it receives through its trigger to http://www.google.com.
 
-POST
-GET
-PUT
-DELETE
-
-#### Example
+An example of a dynamic HTPTClient is given below:
 {% highlight json %}
 {
-  "my payload"
+  "type": "httpclient",
+  "params": {
+    "mode": "dynamic",
+    "field": "url",
+    "method": "POST"
+  }
 }
 {% endhighlight %}
 
+When the actor now receives a JSON object with a field "url" in it, it will post the received JSON to that URL.
+
+## Trigger
+The `HttpClientActor` is triggered by a JSON object. The `HttpClientActor` will perform the specified HTTP on the URL obtained as described above. The payload is the received trigger JSON object. Currently the client supports the following HTTP methods:
+
+- POST
+- GET
+- PUT
+- DELETE
+
 ## Emit
-The `HttpClientActor` emits a json with the '**status**', '**header**' and '**body**' of the response of the http method that was triggered.
-The '**header**' field is an JSON object with as fields the different header fields and as values the header values. The body's value is a JSON
-string, unless the server responds with JSON content, then it is a JSON object.
+The `HttpClientActor` emits a json with the **status**, **header** and **body** of the response of the http method that was triggered. The **header** field is an JSON object with as fields the different header fields and as values the header values.
 
 ## State
-The `HttpClientActor` does not keep a state
+The `HttpClientActor` does not keep state.
 
 ## Collect
 The `HttpClientActor` does not collect state from other actors.
 
 ## Timer
-When the timer is defined in the `HttpClientActor`'s instantiation JSON, the actor will act according to this definition, so it's possible to
- e.g. poll an URL every second and emit the results to all the actors to which the `HttpClientActor` is defined to emit to.
+The `HttpClientActor` does not define a timer function.

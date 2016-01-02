@@ -1,7 +1,6 @@
 ---
 layout: default
 title: SampleActor
-topic: Actors
 ---
 <!--
    Licensed to the Apache Software Foundation (ASF) under one or more
@@ -24,15 +23,13 @@ topic: Actors
 The `SampleActor` (sample actor) is a [Coral Actor](/actors/overview/) that only emits a fraction of the supplied JSON trigger messages. The fraction can be specified by the user. The selection of messages to pass is random, but such that on average in the long term the fraction passed corresponds to the specified fraction.
 
 ## Creating a SampleActor
-The creation JSON of the sample actor (see [Coral Actor](/actors/overview/)) has `type: "sample"`.
-The `params` value is a JSON with one field of two options:
+The SampleActor has `type: "sample"`. The `params` value is a JSON with two optional fields:
 
-field  | type |    | description
+field  | type | required | description
 :----- | :---- | :--- | :------------
-`fraction` | float| optional| the fraction of messages to be passed
-`percentage` | float| optional| the fraction of messages to be passed expressed as percentage number
+`fraction` | float| yes | the fraction of messages to be passed (range 0 to 1).
 
-One and only one of these parameters has to be specified for correct definition. The percentage simply is 100 times the fraction.
+<br>
 
 #### Example
 {% highlight json %}
@@ -41,23 +38,27 @@ One and only one of these parameters has to be specified for correct definition.
     "type": "actors",
     "attributes": {
       "type": "sample",
-        "params": { "percentage": 12.5 }
+        "params": { 
+          "fraction": 0.125
+      }
     }
   }
 }
 {% endhighlight %}
+
+<br>
+
 This will create a sample actor that passes 12.5% of all messages.
 
 ## Trigger
 The `SampleActor` only does useful work if the trigger is connected.
-The actor does not process the supplied JSON.
+The actor does nothing with the supplied JSON but just passes it through (or not).
 
 ## Emit
 The `SampleActor` emits the received JSON with probability equal to the supplied fraction.
-Otherwise nothing is emitted.
 
 ## State
-The `SampleActor` doesn't keep state.
+The `SampleActor` does not keep state.
 
 ## Collect
 The `SampleActor` does not collect state from other actors.

@@ -1,7 +1,6 @@
 ---
 layout: default
 title: WindowActor
-topic: Actors
 ---
 <!--
    Licensed to the Apache Software Foundation (ASF) under one or more
@@ -24,32 +23,26 @@ topic: Actors
 The `WindowActor` is a [Coral Actor](/actors/overview/) that enables windowing of events based on count or time. The actor receives individual events but, depending on the settings, waits until a certain time or a certain number of events have been received and then emits a list of the received items.
 
 ## Creating a WindowActor
-The creation JSON of the WindowActor (see [Coral Actor](/actors/overview/)) has `type: "window"`.
-The `params` value is a JSON with a single field:
+The WindowActor has `type: "window"`. The `params` value is a JSON with a single field:
 
-field  | type |    | description
+field  | type | required | description
 :----- | :---- | :--- | :------------
-`method` | String | required | The method of windowing to use, either "count" or "time"
-`number` | Int | required | The number of milliseconds (in the case of method == "time") or number of events (in the case of method == "count")
-`sliding` | Int | not required | The number of events a window should slide. For instance, when sliding == 1, the window moves 1 event every time an event has been received. In the case of method == "time", sliding should be specified in milliseconds.
+`method` | String | yes | The method of windowing to use, either `count` or `time`.
+`number` | Int | yes | The number of milliseconds (in the case of `time`) or number of events (in the case of `count`).
+`sliding` | Int | no | The number of events or milliseconds a window should slide. For instance, when sliding == 1 and `method` is `count`, the window moves 1 event every time an event has been received. In the case of `time`, sliding should be specified in milliseconds.
 
 #### Creation example
 {% highlight json %}
 {
-  "data": {
-    "type": "actors",
-    "attributes": {
-      "type": "window",
-      "params": {
-        "method": "count",
-        "number": 3,
-        "sliding": 1
-      }
-    }
+  "type": "window",
+  "params": {
+    "method": "count",
+    "number": 3,
+    "sliding": 1
   }
 }
 {% endhighlight %}
-This will create a WindowActor that waits until it receives 3 JSON objects, then emits these 3. Then, if a new event comes in, it moves the window, as in the following example:
+This will create a WindowActor that waits until it receives 3 JSON objects, then emits these 3:
 
 {% highlight json %}
 {
@@ -74,10 +67,10 @@ Then, object4 comes in, and the WindowActor emits the following:
 {% endhighlight %}
 
 ## Trigger
-The `WindowActor` is triggered by any incoming JSON event. It does not care about the structure of the JSON objects received, they can even be all different.
+The `WindowActor` is triggered by any incoming JSON event.
 
 ## Emit
-When the right number of objects is collected, a list is emitted as in the example above. If method == "time", the `WindowActor` waits that amount of time and then emits what it has collected, if anything.
+When the right number of objects is collected in the case of `count`, a list is emitted as in the example above. In the case of `time`, the actor waits that amount of time and then emits what it has collected, if anything.
 
 ## State
 The `WindowActor` returns its state as follows:
@@ -85,7 +78,7 @@ The `WindowActor` returns its state as follows:
 field |type| description
 :--- | :--- | :---
 `method` | String | "count" or "time" as set in the constructor
-`number` | Int | The number of objects or the number of seconds of the window.
+`number` | Int | The number of objects or the number of milliseconds of the window.
 `sliding` | Array | The amount of objects or the amount of milliseconds the window slides every time.
 
 ## Collect

@@ -1,7 +1,6 @@
 ---
 layout: default
 title: LogActor
-topic: Actors
 ---
 <!--
    Licensed to the Apache Software Foundation (ASF) under one or more
@@ -21,43 +20,48 @@ topic: Actors
 -->
 
 # LogActor
-The `LogActor` (log actor) is a [Coral Actor](/actors/overview/) that logs the received trigger JSON. The actor isn't meant for production use, but for usage during testing the pipeline.
-In production, the pipeline should send the results to Kafka using the [KafkaProducerActor](/coral/docs/Actors-KafkaProducerActor.html).
+The `LogActor` is a [Coral Actor](/actors/overview/) that logs the received trigger JSON object. 
+The actor can write incoming messages to a file or it can send them to the same log as where Coral platform log messages are written to (by default, this is standard out). This is useful for debugging purposes.
 
 ## Creating a LogActor
-The creation JSON of the log actor (see [Coral Actor](/actors/overview/)) has `type: "log"`.
-The `params` value has the following fields:
+The LogActor has `"type": "log"`. The `params` value is optional and has the following fields:
 
-field  | type |    | description
+field  | type | required | description
 :----- | :---- | :--- | :------------
-`file`   | string  | required | location of the file to log to.
-`append` | boolean | optional | when true, the actor appends to a possibily existing file, otherwise a possibly existing the file is overwritten.
+`file`   | string  | no | location of the file to log to. If not provided, the log settings of the platform are used.
+`append` | boolean | no | when true, the actor appends to a possibily existing file, otherwise a possibly existing the file is overwritten.
+
+<br>
 
 #### Example
 {% highlight json %}
 {
-  "data": {
-    "type": "actors",
-    "attributes": {
-      "type": "log",
-      "params": {
-        "file": "/tmp/coral.log",
-        "append": true
-      }
-    }
+  "type": "log",
+  "params": {
+    "file": "/tmp/coral.log",
+    "append": true
   }
 }
 {% endhighlight %}
-This will create a log actor that appends the received trigger JSON to the file `/tmp/coral.log`.
+
+This will create a log actor that appends the received trigger JSON to the file `/tmp/coral.log`. If no `params` value is given, the log settings of the Coral platform will be used:
+
+{% highlight json %}
+{
+  "type": "log"
+}
+{% endhighlight %}
+
+By default, this means that JSON objects will then be sent to standard out.
 
 ## Trigger
-The `LogActor` only does useful work if the trigger is connected.
+The `LogActor` only does useful work if JSON objects come in through its trigger.
 
 ## Emit
-The `LogActor` emits nothing. Conceptually, the writing to the output file can be thought of as emit.
+The `LogActor` emits nothing. Conceptually, writing the trigger message to file or to a log can be thought of as an emit.
 
 ## State
-The `LogActor` doesn't keep state.
+The `LogActor` does not keep state.
 
 ## Collect
 The `LogActor` does not collect state from other actors.

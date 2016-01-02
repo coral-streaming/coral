@@ -2,71 +2,103 @@
 <html>
 <head lang="en">
     <meta charset="UTF-8">
-    <title>Coral Wiki</title>
-
-    <script src="{{ site.baseurl }}/docs/lib/jquery/jquery-1.11.2.min.js"></script>
-    <script src="{{ site.baseurl }}/docs/lib/bootstrap/js/bootstrap.min.js"></script>
-    <link rel="stylesheet" href="{{ site.baseurl }}/docs/lib/bootstrap/css/bootstrap.min.css" type="text/css">
-    <link rel="stylesheet" href="{{ site.baseurl }}/docs/css/custom.css" type="text/css">
+    <title>Coral</title>
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+	<link href='https://fonts.googleapis.com/css?family=Droid+Serif:400,400italic,700,700italic' rel='stylesheet' type='text/css'>
+    <script src="{{ site.baseurl }}/lib/jquery/jquery-1.11.2.min.js"></script>
+    <script src="{{ site.baseurl }}/lib/bootstrap/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="{{ site.baseurl }}/lib/bootstrap/css/bootstrap.min.css" type="text/css">
+    <link rel="stylesheet" href="{{ site.baseurl }}/css/custom.css" type="text/css">
+    <link rel="stylesheet" href="{{ site.baseurl }}/css/syntax.css" type="text/css">
 </head>
 <body>
-    <!-- Fixed navbar -->
-    <div class="row">
-        <div class="col-md-12">
-            <nav class="navbar navbar-coral navbar-fixed-top" role="navigation">
-                <div class="container">
-                    <div class="navbar-header">
-                        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
-                                aria-expanded="false" aria-controls="navbar">
-                            <span class="sr-only">Toggle navigation</span>
-                            <span class="icon-bar"></span>
-                            <span class="icon-bar"></span>
-                            <span class="icon-bar"></span>
-                        </button>
-                        <a class="navbar-brand" href="http://coral-streaming.github.io/">Coral Streaming</a>
-                    </div>
-                    <div id="navbar" class="navbar-collapse collapse">
-                        <ul class="nav navbar-nav">
-                            <li><a href="http://coral-streaming.github.io/coral/">Coral wiki</a></li>
-                            <li><a href="https://github.com/coral-streaming/coral">github</a></li>
-                        </ul>
-                    </div>
-
-                    <!--/.nav-collapse -->
-                </div>
-            </nav>
-        </div>
-    </div>
+	<div class="header"></div>
+	
+    <div id="toplinks">
+		<div style="height: 35px"><a href="/Documentation-ApiReference.html">API Reference</a></div>
+		<div style="height: 35px"><a href="/GettingStarted-Download.html">Download</a></div>
+		<div><a href="/">About</a></div>
+	</div>
+	
     <div class="container">
-        <div class="row">
-            <div class="col-md-12">
-                <H1><img src="{{ site.baseurl }}/docs/img/coralLogo.png" style="height:36px; top:-5px; position: relative;">&nbsp;CORAL WIKI</H1>
-            </div>
-        </div>
         <div class="row content">
-            <div class="col-md-2">
-            {% assign topics =  site.pages | group_by: "topic" %}
+            <div class="col-md-3 menu" style="text-align: right; margin-left: -150px">
+            {% assign topics = site.pages | group_by: "topic" | sort:"topic" | reverse %}
             {% for topic in topics %}
-                <div class="row">
-                    <div class="col-md-12">
-                        <h3>{{ topic.name }}</h3>
-                    </div>
-                </div>
-                {% for item in topic.items %}
-                    {% if topic.name != "" %}
-                        <div class="row">
-                        <div class="col-md-12">
-                            <a href="{{ site.baseurl }}{{ item.url }}">{{ item.title }}</a>
-                        </div>
-                        </div>
-                    {% endif %}
-                {% endfor %}
-            {% endfor %}
+            	{% if topic.name != 'API Reference' %}
+	                <div class="row">
+    	                <div class="col-md-12">
+        	                <h3>{{ topic.name }}</h3>
+            	        </div>
+                	</div>
+	                {% assign sorted_items = topic.items | sort:"order" %}
+    	            {% for item in sorted_items %}
+        	            {% if topic.name != "" %}
+            	            <div class="row">
+                	        <div class="col-md-12">
+                    	    <a href="{{ site.baseurl }}{{ item.url }}">
+	                        	{% case item.title %}
+    	                    		{% when 'Actor Overview' %}
+        	                			{{ item.title }}
+        	                		{% when 'Actor Reference' %}
+        	                			{{ item.title }}
+            	            		{% else %}
+                	        			{{ item.title | remove: 'Actor' }}
+                    	    	{% endcase %}
+							</a>
+    	                    </div>
+        	                </div>
+            	        {% endif %}
+                	{% endfor %}
+                	{% endif %}
+	            {% endfor %}
+	            <br>
+	            <br>
+	            <br>
+	            <br>
+	            <br>
+	            <br>
+	            <br>
+	            <br>
+	            <br>
+	            <br>
+	            <br>
+	            <br>
+	            <br>
+	            <br>
+	            <br>
+	            <br>
+	            <br>
+	            <br>
+	            <br>
+	            <br>
+	            <br>
+	            <br>
+	            <br>
+	            <br>
+	            <br>
+	            <br>
+	            <br>
+	            <br>
             </div>
-            <div class="col-md-10">
+            <div class="col-md-7 tableborder" style="margin-top: 50px; ">
                 {{ content }}
             </div>
         </div>
+    </div>
+    
+    <div class="footer"></div>
+    <div id="bottomlinks">
+    		<div><a href="https://github.com/coral-streaming/coral">GitHub</a></div>
+    		<div><a href="https://groups.google.com/d/forum/coral-streaming">Google Groups</a></div>
+    		<div><a href="mailto:stevenraemaekers@gmail.com">Contact</a></div>
+    		<div><a href="Contribute.html">Contribute</a></div>
+    		<div><a href="FAQ.html">FAQ</a></div>
+			<br>
+    		<br>
+    		<div>&copy; 2015-2016 Steven Raemaekers.<br>Website design by Steven Raemaekers.</div>
+    		<div>Coral real-time streaming analytics is open source and available under the Apache 2 license.</div>
     </div>
 </body>
 </html>

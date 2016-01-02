@@ -1,7 +1,6 @@
 ---
 layout: default
 title: ZscoreActor
-topic: Actors
 ---
 <!--
    Licensed to the Apache Software Foundation (ASF) under one or more
@@ -25,8 +24,7 @@ The `ZscoreActor` (Z-score actor) is a [Coral Actor](/actors/overview/) that det
 The statistics actor state is used for the average and standard deviation of the measurement value.
 
 ## Creating the actor
-The creation JSON of the z-score actor (see [Coral Actor](/actors/overview/)) has `type: "zscore"`.
-The `params` value is a JSON with a single field:
+The ZscoreActor has `type: "zscore"`. The `params` value is a JSON with a single field:
 
 field  | type | required   | description
 :----- | :---- | :--- | :------------
@@ -37,26 +35,24 @@ field  | type | required   | description
 #### Example
 {% highlight json %}
 {
-  "data": {
-    "type": "actors",
-    "attributes": {
-      "type": "zscore",
-      "params": {
-        "by": "tag",
-        "field": "amount",
-        "score" : 6.0
-      }
-    }
+  "type": "zscore",
+  "params": {
+    "by": "tag",
+    "field": "amount",
+    "score" : 6.0
   }
 }
 {% endhighlight %}
-This will create a Z-score component monitoring the field _amount_. Outliers are defined to be more than 6 sd from the average.
+
+This will create a Z-score component monitoring the *amount* field. If the amount is more than 6 standard deviations away from the mean, the object is emitted.
+
+Note that this actor implicitly assumes that the data is normally distributed. You can still use this actor if your data is not normally distributed, but we are not sure how the result should be interpreted in that case.
 
 ## Trigger
 The `ZscoreActor` accepts as trigger a JSON with a value for the specified field.
 
 ## Emit
-The `ZscoreActor` emits the input but only when the value is considered an outlier (see below)
+The `ZscoreActor` emits the input but only when the value is considered an outlier.
 
 ## State
 The `ZscoreActor` keeps no state.

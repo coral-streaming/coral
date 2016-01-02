@@ -1,7 +1,6 @@
 ---
 layout: default
 title: FsmActor
-topic: Actors
 ---
 <!--
    Licensed to the Apache Software Foundation (ASF) under one or more
@@ -24,8 +23,7 @@ topic: Actors
 The `FsmActor` (finite state machine actor) is a [Coral Actor](/actors/overview/) that keeps state that can be changed due to trigger events.
 
 ## Creating a FsmActor
-The creation JSON of the FSM actor (see [Coral Actor](/actors/overview/)) has `"type": "fsm"`.
-The `params` value is a JSON with the following fields:
+The FsmActor has `"type": "fsm"`. The `params` value is a JSON object with the following fields:
 
 field  | type | required | description
 :----- | :---- | :--- | :------------
@@ -33,35 +31,29 @@ field  | type | required | description
 `table` | map | yes| a map of maps of state transitions
 `s0` | string | yes| the initial state
 
+<br>
+
 #### Example
 {% highlight json %}
 {
-  "data": {
-      "type": "actors",
-      "attributes": {
-          "type": "fsm",
-          "params": {
-            "key": "transactionsize",
-            "table": {
-              "normal": {
-                "small": "normal",
-                "large": "normal",
-                "x-large": "suspicious"
-              },
-              "suspicious": {
-                "small": "normal",
-                "large": "suspicious",
-                "x-large": "alarm"
-              },
-              "alarm":{
-                "small": "suspicious",
-                "large": "alarm",
-                "x-large": "alarm"
-              }
-            },
-            "s0": "normal"
-          }
+  "type": "fsm",
+  "params": {
+    "key": "transactionsize",
+    "table": {
+      "normal": {
+        "small": "normal",
+        "large": "normal",
+        "x-large": "suspicious"
+      }, "suspicious": {
+        "small": "normal",
+        "large": "suspicious",
+        "x-large": "alarm"
+      }, "alarm": {
+        "small": "suspicious",
+        "large": "alarm",
+        "x-large": "alarm"
       }
+    }, "s0": "normal"
   }
 }
 {% endhighlight %}
@@ -71,12 +63,14 @@ Note that the initial state _s0_ must be a valid key in the table.
 The `FsmActor` only does useful work if the trigger is connected.
 The actor checks for the key field and changes state if appropriate.
 
+<br>
+
 #### Example
 Taking the example constructor above, the initial state is `normal`. Now if a trigger JSON contains `"transactionsize": "x-large"` then the state will change to `suspicious`.
 Another trigger with the same `"transactionsize": "x-large"` will now change to state to `alarm`.
 
 ## Emit
-The `FsmActor` emits nothing. Only the state provides information.
+The `FsmActor` emits nothing, the state must be queried using a *collect* through another actor.
 
 ## State
 The `FsmActor` keeps the FSM state in a map as coral actor state:
@@ -84,6 +78,8 @@ The `FsmActor` keeps the FSM state in a map as coral actor state:
 field |type| description
 :--- | :--- | :---
 `s` | string| the (FSM) state label
+
+<br>
 
 The state is updated according to the table due to trigger events.
 

@@ -1,7 +1,6 @@
 ---
 layout: default
 title: GroupByActor
-topic: Actors
 ---
 <!--
    Licensed to the Apache Software Foundation (ASF) under one or more
@@ -29,22 +28,16 @@ The `GroupByActor` is not created directly. If an actor that supports grouping h
 #### Example
 {% highlight json %}
 {
-  "data": {
-      "type": "actors",
-      "attributes": {
-          "type": "stats",
-          "params": {
-            "field": "amount"
-          },
-          "group": {
-            "by": "tag"
-          }
-      }
+  "type": "stats",
+  "params": {
+    "field": "amount"
+  }, "group": {
+    "by": "tag"
   }
 }
 {% endhighlight %}
 
-In this example, a `StatsActor` is being created partitioned by the field 'tag'.  The Coral platform creates a `GroupByActor`, and waits for distinct values of the 'tag' field. An actual instance of the `StatsActor` is only created when a 'tag' field comes along containing a new value that was not encountered before.
+In this example, a [StatsActor](Actors-StatsActor.html) is being created partitioned by the field 'tag'.  The Coral platform creates a `GroupByActor`, and waits for distinct values of the 'tag' field. An actual instance of the `StatsActor` is only created when a 'tag' field comes along containing a new value that was not encountered before.
 
 ## Trigger
 The `GroupByActor` reads the value of the group by field from the trigger JSON. If such a field is found, the JSON will be relayed as trigger for the corresponding underlying actor. For a newly encountered value a new actor will be created. If the group by field is not found, nothing is done.

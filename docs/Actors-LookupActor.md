@@ -1,7 +1,6 @@
 ---
 layout: default
 title: LookupActor
-topic: Actors
 ---
 <!--
    Licensed to the Apache Software Foundation (ASF) under one or more
@@ -24,33 +23,36 @@ topic: Actors
 The `LookupActor` is a [Coral Actor](/actors/overview/) that can enrich data via the lookup table provided in its constructor.
 
 ## Creating a LookupActor
-The creation JSON of the LookupActor actor (see [Coral Actor](/actors/overview/)) has `"type": "lookup"`.
-The `params` value contains the following fields:
+The LookupActor has `"type": "lookup"`. The `params` value contains the following fields:
 
 field  | type | required | description
 :----- | :---- | :--- | :------------
 `key` | string | yes | name of the key field
 `lookup` | JSON object | yes | the lookup table
-`function` | string | yes | "enrich", "filter" or "check"
-`match` | string | no | "exact" or "startswith"
+`function` | string | yes | `enrich`, `filter` or `map`
+`match` | string | no | `exact` or `startswith`
 `default` | JSON object | no | when there is no match, the default is used when defined
 
+<br>
+
 The `function` field in the constructor defines the behavior of the `LookupActor`.
+
+<br>
 
 #### Example
 {% highlight json %}
 {
-  "data: {
-    "type": "actors",
-    "attributes": {
-      "type": "lookup",
-      "params": {
-        "key": "city",
-        "lookup": {
-          "amsterdam": { "country": "netherlands", "population": 800000 },
-          "vancouver": { "country": "canada", "population": 600000 }
-        },
-        "function": "enrich"
+  "type": "lookup",
+  "params": {
+    "key": "city",
+    "function": "enrich",
+    "lookup": {
+      "amsterdam": { 
+        "country": "netherlands", 
+        "population": 800000 
+      }, "vancouver": { 
+        "country": "canada", 
+        "population": 600000
       }
     }
   }
@@ -92,7 +94,7 @@ If the function is set to `filter`, the output is
 
 but only if the "city" key is found in the lookup map. If it is not found, the input object is not emitted.
 
-In the case of `check`, the output is the looked up object if it exists, else, nothing is emitted:
+In the case of `map`, the output is the looked up object if it exists, else, nothing is emitted:
 {% highlight json %}
 {
    "country": "netherlands",
@@ -100,26 +102,21 @@ In the case of `check`, the output is the looked up object if it exists, else, n
 }
 {% endhighlight %}
 
-The standard behaviour is to use an exact match. When the match is "startswith", a check is done if the key is a string of which a substring occurs in the lookup map.
-If there are multiple matches, one of them is used, which one is undefined.
+The standard behaviour is to use an exact match. When `match` is set to "startswith", a check is done if the key is a string of which a substring occurs in the lookup map. If there are multiple matches, one of them is used, which one is undefined.
 
-The standard behaviour when there is no match is to do nothing: for check and filter nothing is emitted, for enrich nothing will be added to the output. When a default
-is given, this is used when there are no matches, so check and filter emit the default and enrich enriches with the default.
-The default is a template like used by the [JsonActor](/coral/docs/Actors-JsonActor.html).
+The standard behaviour when there is no match is to do nothing: for check and filter nothing is emitted, for enrich nothing will be added to the output. When a default is given, this is used when there are no matches, so check and filter emit the default and enrich enriches with the default. The default is a template like used by the [JsonActor](/coral/docs/Actors-JsonActor.html).
 
 ## Trigger
-The `LookupActor` accepts any JSON as trigger. If a key-field is encountered the fields corresponding to the value in that field will be used to look up additional data (from the lookup table).
+The `LookupActor` accepts any JSON as trigger.
 
 ## Emit
 The `function` of the `LookupActor` determines what is emitted.
 
-##### enrich
-The function `enrich` always emits the originig JSON. If lookup values are found these are added to the original JSON.
-
-##### filter
+- **enrich**  
+The function `enrich` always emits the original JSON object. If lookup values are found, these are added to the original JSON object.
+- **filter**  
 The function `filter` emits the unenriched, original JSON when it is found in the lookup table. If it is not found, nothing is emitted.
-
-##### check
+- **check**  
 The function `check` emits the lookup value when it is found, otherwise, nothing is emitted.
 
 ## State

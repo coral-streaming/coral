@@ -1,7 +1,6 @@
 ---
 layout: default
 title: JsonActor
-topic: Actors
 ---
 <!--
    Licensed to the Apache Software Foundation (ASF) under one or more
@@ -21,11 +20,10 @@ topic: Actors
 -->
 
 # JsonActor
-The `JsonActor` (JSON transformation actor) is a [Coral Actor](/coral/docs/Overview-Actors.html) that can transform an input JSON according to a supplied template.
+The `JsonActor` (JSON transformation actor) is a [Coral Actor](/coral/docs/Overview-Actors.html) that can transform an input JSON object into an output JSON object according to a supplied template.
 
 ## Creating a JsonActor
-The creation JSON of the JsonActor (see [Coral Actor](/coral/docs/Overview-Actors.html)) has `"type": "json"`.
-The `params` value is a JSON with the following field:
+The JsonActor has `"type": "json"`. The `params` value is a JSON object with the following field:
 
 field  | type | required | description
 :----- | :---- | :--- | :------------
@@ -34,39 +32,35 @@ field  | type | required | description
 #### Example
 {% highlight json %}
 {
-  "data": {
-    "type": "actors",
-    "attributes": {
-      "type": "json",
-      "params": {
-        "template": {
-          "a": "some constant text",
-          "b": "${referenceField}",
-          "c": "${ref.sub.sub[2]}",
-          "d": {
-            "e": "${ref2}",
-            "f": "${ref3}"
-          }
-        }
+  "type": "json",
+  "params": {
+    "template": {
+      "a": "some constant text",
+      "b": "${referenceField}",
+      "c": "${ref.sub.sub[2]}",
+      "d": {
+        "e": "${ref.othersub}",
+        "f": "${ref3}"
       }
     }
   }
 }
 {% endhighlight %}
-If fields are expressions the create a string field starting with a the expression (according to the coral JSON expression parser) surrounded by `${` ... `}`.
+
+The above example defines a template according to which the output JSON will be formatted. To access a field value in the trigger JSON, surround a field name with `${` ... `}`.
+
+In the above example, the value of top-level field "referenceField" from the input JSON object is used as value for field "b" in the output JSON object. Sub-fields can be accessed by dot notation, as the field "ref.othersub" shows. Array elements can be accessed by `[i]` where `i` refers to the 0-based index of the element in the array.
 
 ## Trigger
-The `JsonActor` only does useful work if the trigger is connected.
-The trigger can be any JSON. The supplied JSON will be used to fill the template.
 
-#### Example
+The `JsonActor` only does useful work if the trigger is connected.
+The trigger can be any JSON object. The supplied JSON will be used to fill the template.
 
 ## Emit
-The `JsonActor` emits the transformed JSON.
-That is the template JSON with expressions replaced with their evaluation from the trigger input.
+The `JsonActor` emits the transformed JSON object.
 
 ## State
-The `JsonActor` keeps no state.
+The `JsonActor` does not keep any state.
 
 ## Collect
 The `JsonActor` does not collect state from other actors.

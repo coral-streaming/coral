@@ -1,7 +1,6 @@
 ---
 layout: default
 title: KafkaProducerActor
-topic: Actors
 ---
 <!--
    Licensed to the Apache Software Foundation (ASF) under one or more
@@ -21,16 +20,17 @@ topic: Actors
 -->
 
 # KafkaProducerActor
-The `KafkaProducerActor` is a [Coral Actor](/coral/docs/Overview-Actors.html) that can write to Kafka.
+The `KafkaProducerActor` is a [Coral Actor](/coral/docs/Overview-Actors.html) that can write JSON objects to Kafka.
 
 ## Creating a KafkaProducerActor
-The creation JSON of the KafkaProducerActor (see [Coral Actor](/coral/docs/Overview-Actors.html)) has `"type": "kafka-producer"`.
-The `params` value is a JSON with the following fields:
+The KafkaProducerActor has `"type": "kafka-producer"`. The `params` value is a JSON object with the following fields:
 
 field  | type | required | description
 :----- | :---- | :--- | :------------
 `topic` | String | yes| the name of the Kafka topic
 `kafka` | JSON | yes | the configuration parameters for the Kafka producer
+
+<br>
 
 The properties of the kafka attribute should include at least the following:
 
@@ -38,23 +38,18 @@ field  | type | required | description
 :----- | :---- | :--- | :------------
 `metadata.broker.list` | string | yes| the brokers to use initially.
 
-The producer type is configured as async. You can change this, but the KafkaProducerActor is designed for non-blocking
-communication with Kafka.
+<br>
 
-Other properties may be supplied cf. the [Kafka producer properties](https://kafka.apache.org/documentation.html#producerconfigs).
+Other supplied properties will be interpreted as [Kafka producer properties](https://kafka.apache.org/documentation.html#producerconfigs), if the field matches a Kafka consumer property.
 
 #### Example
 {% highlight json %}
 {
-  "data": {
-    "type": "actors",
-    "attributes": {
-      "type": "kafka-producer",
-      "params": {
-        "topic": "test"
-        "kafka" : {
-          "metadata.broker.list": "broker1:9092,broker2:9092,broker3:9092"
-        }
+  "type": "kafka-producer",
+  "params": {
+    "topic": "test",
+      "kafka": {
+        "metadata.broker.list": "broker1:9092,broker2:9092"
       }
     }
   }
@@ -62,26 +57,14 @@ Other properties may be supplied cf. the [Kafka producer properties](https://kaf
 {% endhighlight %}
 
 ## Trigger
-The `KafkaProducerActor` only does useful work if the trigger is connected. The trigger JSON needs to contain a field `message`.
-The value of this field is send to Kafka. The optional field `key` contains the key to use.
-
-#### Example
-{% highlight json %}
-{
-    "key": "somekey",
-    "message": {
-        "key1": "value1",
-        "key2": "value2"
-    }
-}
-{% endhighlight %}
+The `KafkaProducerActor` is triggered by incoming JSON messages. 
+The entire JSON object is sent to the Kafka topic specified in the constructor.
 
 ## Emit
-The `KafkaProducerActor` emits nothing.
-Conceptually, the Kafka stream can be thought of as emit.
+The `KafkaProducerActor` emits nothing to other actors. Its only output is the message that it puts on Kafa.
 
 ## State
-The `KafkaProducerActor` keeps no state.
+The `KafkaProducerActor` does not keep state.
 
 ## Collect
 The `KafkaProducerActor` does not collect state from other actors.

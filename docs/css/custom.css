@@ -1,17 +1,166 @@
 body {
-    padding-top: 40px;
+    padding-top: 0px;
     overflow-y: scroll;
-    font-size: 14px;
+    overflow-x: hidden;
+    font-family: 'Droid Serif', serif; 
+	font-size: 14px; 
+	font-style: normal;
+	font-weight: normal;
 }
 
 table, th, td {
-    border: 1px solid #AAB;
-    padding: 3px;
+    border: 1px solid #dddddd;
+    padding: 5px;
+}
+
+#bottomlinks {
+	position: absolute;
+	text-align: left;
+	top: 0px;
+}
+
+#bottomlinks a:link {
+    color: white;
+}
+
+#bottomlinks a:visited {
+    color: white;
+}
+
+#bottomlinks a:hover {
+    color: white;
+}
+
+#bottomlinks a:active {
+    color: white;
+}
+
+
+#toplinks {
+	position: absolute;
+	text-align: right;
+	top: 0px;
+}
+
+#toplinks a:link {
+    color: white;
+}
+
+#toplinks a:visited {
+    color: white;
+}
+
+#toplinks a:hover {
+    color: white;
+}
+
+#toplinks a:active {
+    color: white;
+}
+
+#toplinks {
+    position: relative;
+    width: 100%;
+    margin-top: -120px;
+    padding-right: 20px;
+    font-family: 'Droid Serif', serif; 
+	font-size: 17px; 
+	font-style: normal; 
+	font-weight: normal; 
+	color: white;
+}
+
+#bottomlinks {
+	position: relative;
+	width: 100%;
+	margin-top: -250px;
+	margin-left: 270px;
+	font-family: 'Droid Serif', serif;
+	font-size: 14px;
+	font-style: normal;
+	font-weight: normal;
+	color: white;
+}
+
+.header {
+	background-color: #4e4a49; 
+	box-shadow: 0px 5px 10px #888888; 
+	text-align:right; 
+	margin-right: 0px;
+	margin-top: 0px; 
+	margin-bottom: 0px; 
+	height: 140px;
+	background-image: url('../img/header.png');
+	background-size: 1400px 140px;
+	background-repeat: no-repeat;
+}
+
+.footer {
+	background-color: #4e4a49; 
+	text-align:right; 
+	margin-right: 0px; 
+	margin-top: 50px; 
+	margin-bottom: 0px;
+	height: 320px;
+	background-image: url('../img/footer.png');
+	background-size: 1330px 320px;
+	background-repeat: no-repeat;
+}
+
+
+.menu h3 a:link {
+	color: blue;
+}
+
+.menu h3 a:visited {
+	color: blue;
+}
+
+.menu h3 a:active {
+	color: blue;
+}
+
+.menu a:link {
+    color: #736c6b;
+}
+
+.menu a:visited {
+    color: #736c6b;
+}
+
+.menu a:hover {
+    color: #736c6b;
+    text-decoration: none;
+}
+
+.menu a:active {
+    color: #736c6b;
+}
+
+.menu {
+	margin-top: 30px;
+	font-family: 'Droid Serif', serif;
+	font-size: 14px; 
+	font-style: normal; 
+	font-weight: normal; 
+	text-decoration: none;
+}
+
+.menu h3 a:link {
+	color: blue;
+}
+
+.menu h3 a:visited {
+	color: blue;
+}
+
+.menu h3 a:active {
+	color: blue;
 }
 
 .navbar-coral {
   background-color:#ADD8C7;
-	color: white;
+  color: white;
 }
 
 .navbar-coral a {
@@ -27,4 +176,3 @@ table, th, td {
   background-color: #1693A5;
   color: white;
 }
-
