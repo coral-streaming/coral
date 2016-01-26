@@ -27,11 +27,15 @@ order: 2
 ### Latest release
 
 <div class="well well-sm">
-<h4>&nbsp;&nbsp;&nbsp;&nbsp;<strong><a href="https://github.com/coral-streaming/coral/releases/download/0.0.113/coral-runtime-0.0.131.tar.gz">coral-runtime-0.0.113.tar.gz</a></strong>&nbsp;&nbsp;(70 mb)</h4>
+<h4>&nbsp;&nbsp;&nbsp;&nbsp;<strong><a href="https://github.com/coral-streaming/coral/releases/download/0.0.131/coral-runtime-0.0.131.jar">coral-runtime-0.0.131.tar.gz</a></strong>&nbsp;&nbsp;(75 mb)</h4>
 </div>
 <br>
 
 ## Release notes
+
+### 0.0.131
+
+- Second pre-release tryout
 
 ### 0.0.113
 
