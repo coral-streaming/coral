@@ -35,7 +35,7 @@ order: 1
   - [Projects](#projects)
 
 <br>
-        
+
 <div class="alert alert-danger" role="alert">
   <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
   <span class="sr-only">Note</span>
@@ -120,10 +120,11 @@ Show platform statistics, change platform settings and add and remove nodes from
 
 URL | action
 ---: | :--
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[POST&nbsp;/api/cluster]() | Join a node to or remove a node from the cluster
-[GET&nbsp;/api/stats]() | Show statistics for the entire platform
-[GET&nbsp;/api/settings]() | Returns all settings of the platform
-[GET&nbsp;/api/cluster]() | Returns all machines in the Coral platform
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[POST&nbsp;/api/platform/cluster]() | Join or remove a node from the cluster&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+[GET&nbsp;/api/platform/cluster]() | Returns all machines in the Coral platform
+[GET&nbsp;/api/platform/cluster/`<id>`]() | Get information on machine `<id>`
+[GET&nbsp;/api/platform/stats]() | Show statistics for the entire platform
+[GET&nbsp;/api/platform/settings]() | Returns all settings of the platform
 
 <br>
 

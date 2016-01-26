@@ -1,0 +1,102 @@
+dn: dc=example,dc=com
+objectClass: top
+objectClass: domain
+objectClass: extensibleObject
+dc: example
+aci: (targetattr!="userPassword")(version 3.0; acl "Allow anonymous read access for anyone"; allow (read,search,compare) userdn="ldap:///anyone";)
+aci: (targetattr="*")(version 3.0; acl "Allow users to update their own entries"; allow (write) userdn="ldap:///self";)
+aci: (targetattr="*")(version 3.0; acl "Grant full access for the admin user"; allow (all) userdn="ldap:///uid=admin,dc=example,dc=com";)
+
+dn: uid=admin,dc=example,dc=com
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: admin
+givenName: Admin
+sn: User
+cn: Admin User
+userPassword: password
+
+dn: ou=People,dc=example,dc=com
+objectClass: top
+objectClass: organizationalUnit
+objectClass: extensibleObject
+ou: People
+
+dn: uid=ab12cd,ou=People,dc=example,dc=com
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+givenName: Aaren
+sn: Atp
+cn: Aaren Atp
+initials: AWA
+employeeNumber: 0
+uid: user.0
+mail: user.0@example.com
+fullName: Mahatma Ghandi
+department: Department of Peaceful Resistance
+userPassword: pzzwrd
+email: mahatma@peace.org
+telephoneNumber: +1 089 907 9947
+homePhone: +1 457 787 9183
+pager: +1 214 214 4195
+mobile: +1 947 007 3231
+street: 91327 Broadway Street
+l: Las Vegas
+st: UT
+postalCode: 08103
+postalAddress: Aaren Atp$91327 Broadway Street$Las Vegas, UT  08103
+description: This is the description for Aaren Atp.
+
+dn: uid=cd34ef,ou=People,dc=example,dc=com
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+givenName: Aarika
+sn: Atpco
+cn: Aarika Atpco
+initials: ALA
+employeeNumber: 1
+uid: user.1
+fullName: Barack Obama
+email: cd34ef@example.com
+userPassword: encrypted_password2
+telephoneNumber: +1 660 706 1787
+homePhone: +1 866 243 0253
+pager: +1 199 010 1031
+mobile: +1 714 548 1671
+street: 58402 Ninth Street
+l: Boston
+st: DC
+postalCode: 50450
+postalAddress: Aarika Atpco$58402 Ninth Street$Boston, DC  50450
+description: This is the description for Aarika Atpco.
+
+dn: uid=gh56ij,ou=People,dc=example,dc=com
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+givenName: Aarika
+sn: Atpco
+cn: Aarika Atpco
+initials: ALA
+employeeNumber: 1
+uid: user.1
+fullName: Ban Ki Moon
+email: cd34ef@example.com
+userPassword: my_pazz
+telephoneNumber: +1 660 706 1787
+homePhone: +1 866 243 0253
+pager: +1 199 010 1031
+mobile: +1 714 548 1671
+street: 58402 Ninth Street
+l: Boston
+st: DC
+postalCode: 50450
+postalAddress: Aarika Atpco$58402 Ninth Street$Boston, DC  50450
+description: This is the description for Aarika Atpco.

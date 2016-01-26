@@ -153,26 +153,38 @@ The JSON looks as follows. Note: This example will actually not work because the
       }
     }
   }, {
+    "name": "broadcast1",
+    "type": "httpbroadcast"
+  }, {
     "name": "stats1",
     "type": "stats",
     "params": {
       "field": "heartbeat"
+    }, "groupby": "name"
+  }, {
+    "name": "zscore1",
+    "type": "zscore", 
+    "params": {
+      "field": "heartbeat",
+      "score": 2.0
     }
   }, {
     "name": "httpclient1",
     "type": "httpclient", 
     "params": {
       "mode": "dynamic",
+      "response": "emit",
       "field": "url",
       "method": "POST" 
     }
   }], "links": [
-    { "from": "generator1", "to": "stats1" },
-    { "from": "generator2", "to": "stats1" },
-    { "from": "generator3", "to": "stats1" },
-    { "from": "generator4", "to": "stats1" },
-    { "from": "stats1", "to": "lookup1" },
-    { "from": "lookup1", "to": "httpclient1" }
+    { "from": "generator1", "to": "broadcast1" },
+    { "from": "generator2", "to": "broadcast1" },
+    { "from": "generator3", "to": "broadcast1" },
+    { "from": "generator4", "to": "broadcast1" },
+    { "from": "broadcast1", "to": "stats1" },
+    { "from": "broadcast1", "to": "zscore1" },
+    { "from": "zscore1", "to": "httpclient1" }
   ]
 }
 {% endhighlight %}
