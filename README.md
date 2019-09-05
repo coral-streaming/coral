@@ -13,4 +13,4 @@ For more information, documentation and tutorials, please refer to the [Coral wi
 Archived
 ===
 
-This project is not currently activelt developed. However, it is kept here on github for reference as a read-only archived repository. A "Thank you" goes to all contributors and supporters who have made this project a very valuable framework for understanding streaming analytics.
+This project is not actively developed any longer. However, it is kept here on github for reference as a read-only archived repository. A "Thank you" goes to all contributors and supporters who have made this project a very valuable framework for understanding streaming analytics.
