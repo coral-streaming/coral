@@ -10,3 +10,7 @@ Documentation
 
 For more information, documentation and tutorials, please refer to the [Coral wiki](http://coral-streaming.github.io)
 
+Archived
+===
+
+This project is not actively maintained/develop. However, it is kept here on github for reference, in a read-only archived mode. A "Thank you" goes to all contributors, and supporters who have made this project a very valuable framework for understanding the domain of streaming analytics.
